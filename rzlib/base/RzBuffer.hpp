@@ -137,8 +137,10 @@ public:
     inline CRzBuffer& operator<<(float v);
     inline CRzBuffer& operator<<(double v);
     inline CRzBuffer& operator<<(const char *str);
-
     inline CRzBuffer& operator<<(CRzBuffer &v);
+    inline CRzBuffer& operator<< (CRzBuffer& (*_f)(CRzBuffer&));
+
+	friend CRzBuffer& endl(CRzBuffer& v);
 
     //
     template<typename T>
@@ -619,6 +621,15 @@ CRzBuffer& CRzBuffer::operator<<(CRzBuffer &v)
     }
     v.rpos(pos,false);
     return *this;
+}
+CRzBuffer& CRzBuffer::operator<< (CRzBuffer& (*_f)(CRzBuffer&))
+{
+	return _f(*this);
+}
+CRzBuffer& endl(CRzBuffer& v)
+{
+    v << '\n';
+	return v;
 }
 
 //////////////////////////////////////////////////////////////////////////
