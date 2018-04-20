@@ -43,7 +43,9 @@ int main(int argc, const char * argv[]) {
     CRzString rzString;
     rzString += " nihao ";
     rzString.Trim();
+    rzString << 456 << endl;
     const char* pBuf = rzString;
+    std::cout << rzString << std::endl;
     printf("rzString = %s, length=%d,\n", pBuf, rzString.GetLength());
     
     string str = CRzConvert::Convert<string>(v);

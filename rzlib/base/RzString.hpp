@@ -4,6 +4,8 @@
 #include <string>
 #include <locale.h>
 #include <assert.h>
+#include <iostream>
+#include <sstream> 
 #include "RzType.hpp"
 
 _RzStdBegin
@@ -37,36 +39,36 @@ public:
         if( m_pstr != m_szBuffer && m_pstr != NULL) free(m_pstr);
     }
 public:
-    void Empty()
+    inline void Empty()
     {
         if( m_pstr != m_szBuffer ) free(m_pstr);
 		m_pstr = m_szBuffer;
 		m_szBuffer[0] = '\0';
     }
-    int GetLength() const
+    inline int GetLength() const
     {
         return (int) strlen(m_pstr); 
     }
-    bool IsEmpty() const
+    inline bool IsEmpty() const
     {
         return m_pstr[0] == '\0'; 
     }
-    char GetAt(int nIndex) const
+    inline char GetAt(int nIndex) const
     {
         return m_pstr[nIndex];
     }
-    char operator[] (int nIndex) const
+    inline char operator[] (int nIndex) const
     {
         return m_pstr[nIndex];
     }
 
-    void SetAt(int nIndex, char ch)
+    inline void SetAt(int nIndex, char ch)
     {
         assert(nIndex>=0 && nIndex<GetLength());
 		m_pstr[nIndex] = ch;
     }
 
-    void Append(const char* pstr)
+    inline void Append(const char* pstr)
     {
         int nNewLength = GetLength() + (int) strlen(pstr);
 		if( nNewLength >= MAX_LOCAL_STRING_LEN ) {
@@ -89,7 +91,7 @@ public:
 		}
     }
 
-	void Assign(const char* pstr, int cchMax = -1)
+	inline void Assign(const char* pstr, int cchMax = -1)
     {
         if( pstr == NULL ) pstr = "";
 		cchMax = (cchMax < 0 ? (int) strlen(pstr) : cchMax);
@@ -106,12 +108,12 @@ public:
 		strncpy(m_pstr, pstr, cchMax);
 		m_pstr[cchMax] = '\0';
     }
-    int Compare(const char* lpsz) const 
+    inline int Compare(const char* lpsz) const 
 	{ 
 		return strcmp(m_pstr, lpsz); 
 	}
 
-	int CompareNoCase(const char* lpsz) const 
+	inline int CompareNoCase(const char* lpsz) const 
 	{ 
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
         return stricmp(m_pstr, lpsz); 
@@ -120,14 +122,14 @@ public:
 #endif
 	}
 
-    CRzString Left(int iLength) const
+    inline CRzString Left(int iLength) const
 	{
 		if( iLength < 0 ) iLength = 0;
 		if( iLength > GetLength() ) iLength = GetLength();
 		return CRzString(m_pstr, iLength);
 	}
 
-	CRzString Mid(int iPos, int iLength = -1) const
+	inline CRzString Mid(int iPos, int iLength = -1) const
 	{
 		if( iLength < 0 ) iLength = GetLength() - iPos;
 		if( iPos + iLength > GetLength() ) iLength = GetLength() - iPos;
@@ -135,7 +137,7 @@ public:
 		return CRzString(m_pstr + iPos, iLength);
 	}
 
-	CRzString Right(int iLength) const
+	inline CRzString Right(int iLength) const
 	{
 		int iPos = GetLength() - iLength;
 		if( iPos < 0 ) {
@@ -145,7 +147,7 @@ public:
 		return CRzString(m_pstr + iPos, iLength);
 	}
 
-    int Find(char ch, int iPos = 0) const
+    inline int Find(char ch, int iPos = 0) const
 	{
 		assert(iPos>=0 && iPos<=GetLength());
 		if( iPos != 0 && (iPos < 0 || iPos >= GetLength()) ) return -1;
@@ -154,7 +156,7 @@ public:
 		return (int)(p - m_pstr);
 	}
 
-	int Find(const char* pstrSub, int iPos = 0) const
+	inline int Find(const char* pstrSub, int iPos = 0) const
 	{
 		assert(iPos>=0 && iPos<=GetLength());
 		if( iPos != 0 && (iPos < 0 || iPos > GetLength()) ) return -1;
@@ -163,14 +165,14 @@ public:
 		return (int)(p - m_pstr);
 	}
 
-	int ReverseFind(char ch) const
+	inline int ReverseFind(char ch) const
 	{
 		const char* p = strrchr(m_pstr, ch);
 		if( p == NULL ) return -1;
 		return (int)(p - m_pstr);
 	}
 
-    int Replace(const char* pstrFrom, const char* pstrTo)
+    inline int Replace(const char* pstrFrom, const char* pstrTo)
 	{
 		CRzString sTemp;
 		int nCount = 0;
@@ -189,11 +191,11 @@ public:
 		return nCount;
 	}
 
-    int Format(const char* pstrFormat, ...)
+    inline int Format(const char* pstrFormat, ...)
 	{
 		// Do ordinary printf replacements
-		// NOTE: Documented max-length of wvsprintf() is 1024
-		char szBuffer[1025] = { 0 };
+		// NOTE: Documented max-length of wvsprintf() is 2048
+		char szBuffer[2049] = { 0 };
 		va_list argList;
 		va_start(argList, pstrFormat);
 
@@ -204,7 +206,7 @@ public:
 		return iRet;
 	}
 
-    void TrimLeft()
+    inline void TrimLeft()
     {
         const char* p = m_pstr;
         while (*p != '\0')
@@ -221,7 +223,7 @@ public:
         Assign(p);
     }
     
-    void TrimRight()
+    inline void TrimRight()
     {
         int len = GetLength();
         char *p = m_pstr + len - 1;
@@ -239,7 +241,7 @@ public:
         }
     }
     
-    void Trim()
+    inline void Trim()
     {
         TrimLeft();
         TrimRight();
@@ -328,10 +330,126 @@ public:
 	bool operator <  (const char* str) const { return (Compare(str) <  0); };
 	bool operator >= (const char* str) const { return (Compare(str) >= 0); };
 	bool operator >  (const char* str) const { return (Compare(str) >  0); };
+
+	template<typename T>
+    inline CRzString& operator<<(T v); // will generate link error
+    inline CRzString& operator<<(int8 v);
+    inline CRzString& operator<<(int16 v);
+    inline CRzString& operator<<(int32 v);
+    inline CRzString& operator<<(int64 v);
+    inline CRzString& operator<<(uint8 v);
+    inline CRzString& operator<<(uint16 v);
+    inline CRzString& operator<<(uint32 v);
+    inline CRzString& operator<<(uint64 v);
+    inline CRzString& operator<<(bool v);
+    inline CRzString& operator<<(float v);
+    inline CRzString& operator<<(double v);
+    inline CRzString& operator<<(const char *str);
+	inline CRzString& operator<<(std::string& str);
+    inline CRzString& operator<<(CRzString &v);
+	inline CRzString& operator<< (CRzString& (*_f)(CRzString&));
+
+	friend CRzString& endl(CRzString& v);
+protected:
+	template<typename T>
+	inline void Write(const T &src);
 private:
     char* m_pstr;
     char m_szBuffer[MAX_LOCAL_STRING_LEN + 1];
 };
+
+inline CRzString& operator<<(CRzString& str,const std::string &v)
+{
+    str.Append(v.c_str());
+    return str;
+}
+
+template<typename T>
+inline void CRzString::Write(const T &src)
+{
+	std::stringstream str;	
+	str << src;
+	Append(str.str().c_str());
+}
+CRzString& CRzString::operator<<(int8 v)
+{
+	Write<int8>(v);
+	return (*this);
+}
+CRzString& CRzString::operator<<(int16 v)
+{
+	Write<int16>(v);
+	return *this;
+}
+CRzString& CRzString::operator<<(int32 v)
+{	
+	Write<int32>(v);
+	return *this;
+}
+CRzString& CRzString::operator<<(int64 v)
+{
+	Write<int64>(v);
+	return *this;
+}
+CRzString& CRzString::operator<<(uint8 v)
+{
+	Write<uint8>(v);
+	return *this;
+}
+CRzString& CRzString::operator<<(uint16 v)
+{
+	Write<uint16>(v);
+	return *this;
+}
+CRzString& CRzString::operator<<(uint32 v)
+{
+	Write<uint32>(v);
+	return *this;
+}
+CRzString& CRzString::operator<<(uint64 v)
+{
+	Write<uint64>(v);
+	return *this;
+}
+CRzString& CRzString::operator<<(bool v)
+{
+	Write<bool>(v);
+	return *this;
+}
+CRzString& CRzString::operator<<(float v)
+{
+	Write<float>(v);
+	return *this;
+}
+CRzString& CRzString::operator<<(double v)
+{
+	Write<double>(v);
+	return *this;
+}
+CRzString& CRzString::operator<<(const char *str)
+{
+	Append(str);
+	return *this;
+}
+CRzString& CRzString::operator<<(std::string& str)
+{
+	Append(str.c_str());
+	return *this;
+}
+CRzString& CRzString::operator<<(CRzString &v)
+{
+	(*this) += v;
+	return *this;
+}
+CRzString& CRzString::operator<< (CRzString& (*_f)(CRzString&))
+{
+	return _f(*this);
+}
+CRzString& endl(CRzString& v)
+{
+	v += '\n';
+	return v;
+}
 
 _RzStdEnd
 

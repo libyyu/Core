@@ -126,6 +126,15 @@ typedef __uint64_t        				uint64;
 typedef unsigned char byte;
 #endif
 
+#undef RZ_DISALLOW_CONSTRUCTORS
+#define RZ_DISALLOW_CONSTRUCTORS(TypeName)    \
+    TypeName(const TypeName&);            \
+    void operator= (const TypeName&)
+
+
 #define lengthof(x)   (sizeof(x)/sizeof(*x))
+
+#define MIN(a,b) ((a)<(b)) ? (a) : (b)
+#define MAX(a,b) ((a)>(b)) ? (a) : (b)
 
 #endif//__RZTYPE_HPP__

@@ -1,8 +1,5 @@
 #ifndef __traits_hpp__
 #define __traits_hpp__
-#include <time.h>
-#include <sstream>
-#include <iostream>
 #include "RzType.hpp"
 
 _RzStdBegin
