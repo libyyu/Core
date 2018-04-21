@@ -345,6 +345,7 @@ public:
     inline CRzString& operator<<(float v);
     inline CRzString& operator<<(double v);
     inline CRzString& operator<<(const char *str);
+	inline CRzString& operator<<(char v[]);
 	inline CRzString& operator<<(std::string& str);
     inline CRzString& operator<<(CRzString &v);
 	inline CRzString& operator<< (CRzString& (*_f)(CRzString&));
@@ -429,6 +430,11 @@ CRzString& CRzString::operator<<(double v)
 CRzString& CRzString::operator<<(const char *str)
 {
 	Append(str);
+	return *this;
+}
+CRzString& CRzString::operator<<(char v[])
+{
+	Append((char*)v);
 	return *this;
 }
 CRzString& CRzString::operator<<(std::string& str)
