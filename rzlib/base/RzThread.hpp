@@ -143,6 +143,11 @@ private:
 
 class CRzThreadGroup
 {
+    struct _RzThreadNode
+    {
+        CRzThread* _pThread;
+        bool _isHeap;
+    };
 public:
     CRzThreadGroup()
     {}
@@ -151,7 +156,8 @@ public:
         joinAll();
         for (size_t i = 0; i < _threads.size(); ++i) 
         {
-            delete _threads[i];
+            if(_threads[i]._isHeap)
+                delete _threads[i]._pThread;
         }
         
         _threads.clear();
@@ -160,14 +166,17 @@ public:
     CRzThread *createThread(const CRzThread::RzThreadCallback &threadfunc)
     {
         CRzThread *thread = new CRzThread(threadfunc);
-        addThread(thread);
+        addThread(thread, true);
         return thread;
     }
     
-    void addThread(CRzThread *thread) 
+    void addThread(CRzThread *thread, bool isHeap) 
     {
+        _RzThreadNode node;
+        node._isHeap = isHeap;
+        node._pThread = thread;
     	_lock.lock();
-        _threads.push_back(thread);
+        _threads.push_back(node);
         _lock.unlock();
     }
     
@@ -175,7 +184,7 @@ public:
     {
         for (size_t i = 0; i < _threads.size(); ++i) 
         {
-            _threads[i]->start();
+            _threads[i]._pThread->start();
         }
     }
     
@@ -183,7 +192,7 @@ public:
     {
         for (size_t i = 0; i < _threads.size(); ++i) 
         {
-            _threads[i]->join();
+            _threads[i]._pThread->join();
         }
     }
     
@@ -191,7 +200,7 @@ public:
     {
         for (size_t i = 0; i < _threads.size(); ++i) 
         {
-            _threads[i]->stop();
+            _threads[i]._pThread->stop();
         }
     }
     
@@ -200,7 +209,7 @@ private:
     CRzThreadGroup(const CRzThreadGroup&){}
     void operator=(const CRzThreadGroup&){}
 
-    std::vector<CRzThread *> _threads;
+    std::vector<_RzThreadNode> _threads;
     CRzLock _lock;
 };
 

@@ -15,6 +15,7 @@
 #include "RzFunc.hpp"
 #include "RzFile.hpp"
 #include "RzCounter.hpp"
+#include "RzThread.hpp"
 
 _RzUsing(std)
 _RzUsing(RzStd)
@@ -24,6 +25,13 @@ int CalcDistance(int x, int z, int x2, int z2)
     int d = x - x2;
     int d2 = z - z2;
     return d*d + d2*d2;
+}
+
+void foo()
+{
+    int i=0;
+    while(++i < 10)
+	    printf("this is a thread function output %d\r\n", RzGetCurrentThreadId());
 }
 
 void test()
@@ -47,6 +55,19 @@ int main(int argc, const char * argv[]) {
     printf("v=%d,buf=%s, b = %d\n", v, buf, b);
     
     test();
+
+    CRzThread thread(&foo);
+    thread.start();
+    thread.join();
+
+    printf("--- ThreadGroup ---\r\n");
+	CRzThreadGroup tg;
+	CRzThread t1(&foo);
+	tg.addThread(&t1, false);
+	tg.createThread(&foo);
+	tg.createThread(&foo);
+	tg.startAll();
+	tg.joinAll();
 
     CRzString rzString;
     rzString += " nihao ";
