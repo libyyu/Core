@@ -52,16 +52,30 @@ class CRzILogMessage
 {
 public:
     CRzILogMessage(RZ_LOGLEVEL level) : _level(level){}
-    CRzILogMessage(RZ_LOGLEVEL level, const char* filename, int line = -1,  const char* func = 0)
+    CRzILogMessage(RZ_LOGLEVEL level, const char* filename, int line = -1)
     : _level(level)
     {
+        char buff[100] = {0};
+        tm* aTm = RzGetNowTime();
+        sprintf(buff, "%-4d-%02d-%02d %02d:%02d:%02d",
+            aTm->tm_year + 1900,
+            aTm->tm_mon + 1,
+            aTm->tm_mday,
+            aTm->tm_hour,
+            aTm->tm_min,
+            aTm->tm_sec);
+
         *this << "[" 
-		<< RzGetCurrentThreadId() << " "
-		<< RzLogLevelName[_level] << " " 
-		<< (filename ? filename : "unknow") << ":" 
-        << line << " "
-        << (func ? func : "")
-		<< "] ";
+		<< RzGetCurrentThreadId() << "|"
+		<< RzLogLevelName[RZ_LOGLEVEL::RZ_LOGLEVEL_TRACE] << "|" 
+        << buff << "|"
+		<< (filename ? filename : "<unknow source>") << ":" 
+        << line
+        << "]";
+    }
+    virtual ~CRzILogMessage()
+    {
+        _message.clear();
     }
     template<typename T>
     inline CRzILogMessage& operator<<(T v); // will generate link error
@@ -78,6 +92,7 @@ public:
     inline CRzILogMessage& operator<<(double v);
     inline CRzILogMessage& operator<<(const char *str);
 	inline CRzILogMessage& operator<<(void *p);
+    inline CRzILogMessage& operator<<(char v[]);
 	inline CRzILogMessage& operator<<(const std::string& str);
 	inline CRzILogMessage& operator<< (CRzILogMessage& (*_f)(CRzILogMessage&));
 	friend CRzILogMessage& endl(CRzILogMessage& v);
@@ -142,6 +157,11 @@ CRzILogMessage& CRzILogMessage::operator<<(const std::string& str)
 	_LogImpl(str);
 	return *this;
 }
+CRzILogMessage& CRzILogMessage::operator<<(char v[])
+{
+    _LogImpl((char*)v);
+	return *this;
+}
 CRzILogMessage& CRzILogMessage::operator<<(void *p)
 {
 	_LogImpl(RzFormat("%p", p));
@@ -164,35 +184,48 @@ public:
         other.Finish();
     }
 };
+
 class CRzLogTraceFunction
 {
 public:
-    CRzLogTraceFunction(const char *func, const char *file, int line)
-    : _func(func)
+    CRzLogTraceFunction(CRzILogMessage& other, const char *func, const char *file, int line)
+    : _log(other)
+    , _func(func)
 	, _file(file)
 	, _line(line){}
 	~CRzLogTraceFunction()
     {
-        *_log << "[" 
-		<< RzGetCurrentThreadId() << " "
-		<< RzLogLevelName[RZ_LOGLEVEL::RZ_LOGLEVEL_TRACE] << " " 
-		<< (_file ? _file : "unknow") << ":" 
-        << _line << " "
-        << (_func ? _func : "")
-		<< "] () end "
+        char buff[100] = {0};
+        tm* aTm = RzGetNowTime();
+        sprintf(buff, "%-4d-%02d-%02d %02d:%02d:%02d",
+            aTm->tm_year + 1900,
+            aTm->tm_mon + 1,
+            aTm->tm_mday,
+            aTm->tm_hour,
+            aTm->tm_min,
+            aTm->tm_sec);
+
+        _log << "[" 
+		<< RzGetCurrentThreadId() << "|"
+		<< RzLogLevelName[RZ_LOGLEVEL::RZ_LOGLEVEL_TRACE] << "|" 
+        << buff << "|"
+		<< (_file ? _file : "<unknow source>") << ":" 
+        << _line
+        << "]"
+        << _func << "() end "
         << endl;
-        //_log->Finish();
+
+        *this = _log;
     }
 	void operator=(CRzILogMessage &other)
     {
-        _log = &other;
         other.Finish();
     }
 private:
+    CRzILogMessage& _log;
 	const char *_func;
 	const char *_file;
 	int _line;
-    CRzILogMessage* _log;
 };
 
 _RzStdEnd

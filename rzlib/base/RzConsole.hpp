@@ -79,12 +79,12 @@ public:
 	{
 		_RzConsoleHandle::get()->RedirectIOToConsole();
 	}
-	CRzConsole(RZ_LOGLEVEL level, const char* filename, int line = -1,  const char* func = 0)
-		:CRzILogMessage(level, filename, line, func)
+	CRzConsole(RZ_LOGLEVEL level, const char* filename, int line = -1)
+		:CRzILogMessage(level, filename, line)
 	{
 		_RzConsoleHandle::get()->RedirectIOToConsole();
 	}
-	
+	virtual ~CRzConsole() { }
 private:
 	CRzLock     m_lock;
 protected:
@@ -144,10 +144,9 @@ _RzStdBegin
 	CRzLogFinisher() = CRzConsole(RZ_LOGLEVEL::RZ_LOGLEVEL_##LEVEL)
 
 #define RZ_CONSOLE_TRACE  \
-	CRzLogTraceFunction RzLogTraceFunction(__FUNCTION__, __FILE__, __LINE__); \
-		RzLogTraceFunction = CRzConsole(RZ_LOGLEVEL::RZ_LOGLEVEL_TRACE,                    \
-			__FILE__, __LINE__, __FUNCTION__)                     \
-			<< "() begin " << endl;
+	CRzConsole rz_console_trace(RZ_LOGLEVEL::RZ_LOGLEVEL_TRACE, __FILE__, __LINE__);  \
+	CRzLogTraceFunction rz_logTraceFunction(rz_console_trace, __FUNCTION__, __FILE__, __LINE__); \
+	rz_logTraceFunction = rz_console_trace << __FUNCTION__ << "() begin " << endl;
 
 _RzStdEnd
 

@@ -137,6 +137,7 @@ public:
     inline CRzBuffer& operator<<(float v);
     inline CRzBuffer& operator<<(double v);
     inline CRzBuffer& operator<<(const char *str);
+    inline CRzBuffer& operator<<(char v[]);
     inline CRzBuffer& operator<<(CRzBuffer &v);
     inline CRzBuffer& operator<< (CRzBuffer& (*_f)(CRzBuffer&));
 
@@ -605,6 +606,13 @@ CRzBuffer& CRzBuffer::operator<<(const char *str)
     int len = strlen(str);
     Write<uint32>(len);
     Write((uint8 const *)str, len);
+    return *this;
+}
+inline CRzBuffer& CRzBuffer::operator<<(char v[])
+{
+    int len = strlen(v);
+    Write<uint32>(len);
+    Write((uint8 const *)v, len);
     return *this;
 }
 

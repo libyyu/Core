@@ -74,12 +74,12 @@ inline std::string RzFormat(const char* format, ...)
 	return std::string(buff);
 }
 
-inline int32 RzGetCurrentThreadId()
+inline uint32 RzGetCurrentThreadId()
 {
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
-	return (int32)GetCurrentThreadId();
+	return (uint32)GetCurrentThreadId();
 #else
-	return 0;//(int32)pthread_self();
+	return static_cast<uint32>(reinterpret_cast<uintptr_t>(pthread_self()));
 #endif
 }
 
