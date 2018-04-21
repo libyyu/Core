@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include <vector>
 #include "RzType.hpp"
 #include <sys/types.h>  
@@ -55,6 +56,21 @@ inline void RzSleep(unsigned int seconds)
 #else
     sleep(seconds);
 #endif
+}
+
+inline std::string RzFormat(const char* format, ...)
+{
+	va_list va;
+	va_start(va, format);
+	const int MAX_BUFFLEN = 20480;
+	char buff[MAX_BUFFLEN+1] = { 0 };
+#if PLATFORM_TARGET == PLATFORM_WINDOWS
+	_vsnprintf_s(buff, MAX_BUFFLEN, format, va);
+#else
+	vsnprintf(buff, MAX_BUFFLEN, format, va);
+#endif
+	va_end(va);
+	return std::string(buff);
 }
 
 inline void  RzUnitPath(char *path) 
@@ -378,6 +394,10 @@ inline int memfind(const void* src,size_t srcsize,const void* dst,size_t dstsize
     return -1;
 }
 
+_RzStdEnd
+
+_RzStdBegin
+#define RZ_FORMAT RzFormat
 _RzStdEnd
 
 #endif//__RZFUNC_HPP__

@@ -51,8 +51,8 @@ int main(int argc, const char * argv[]) {
     string str = CRzConvert::Convert<string>(v);
     int n = CRzConvert::Convert<int>("5");
     
-    CRzConsole::LogWarning("n = %d, %s\n", n, RzGetModulePath());
-    CRzConsole::LogError("n = %d, %s\n", n, RzGetModuleName());
+    RZ_CONSOLE(ERROR) << RZ_FORMAT("n = %d, %s\n", n, RzGetModulePath());
+    RZ_CONSOLE(ERROR) << RZ_FORMAT("n = %d, %s\n", n, RzGetModuleName());
 
     int counter = 0;
     clock_t t = clock();
@@ -86,9 +86,9 @@ int main(int argc, const char * argv[]) {
     printf("clock = %lu\n", clock() - t);
 
     CRzFile file;
-    if(!file) CRzConsole::LogWarning("file is invalid\n");
+    if(!file) RZ_CONSOLE(WARN) << RZ_FORMAT("file is invalid\n");
     int ret = file.Open("hello.txt", true);
-    if(file) CRzConsole::LogWarning("file is valid\n");
+    if(file) RZ_CONSOLE(WARN) << RZ_FORMAT("file is valid\n");
     //ret = file.Write("Hello File", 10);
     char buff[20] = {0};
     ret = file.Read(buff, 20);

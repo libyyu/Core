@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
-#include "RzCore.hpp"
+#include "RzPlatform.hpp"
 
 #if defined( UNICODE ) || defined( _UNICODE )
     #define _T(type)            L##type

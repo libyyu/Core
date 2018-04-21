@@ -1,5 +1,5 @@
-#ifndef __RZCORE_HPP__
-#define __RZCORE_HPP__
+#ifndef __RZPLATFORM_HPP__
+#define __RZPLATFORM_HPP__
 #pragma once
 
 /********************************************************************************/
@@ -27,4 +27,4 @@
 /********************************************************************************/
 
 
-#endif//__RZCORE_HPP__
+#endif//__RZPLATFORM_HPP__
