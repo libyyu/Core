@@ -3,11 +3,11 @@ CFLAGS = -std=c++0x -g
 INCLUDE = -I.
 LIBRARY = -lstdc++ -lpthread
 
-all : base
+all : build
 
-base : test.o
+build : test.o
 	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY)
 test.o : rzlib/base/test.cpp
 	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY)
 clean :
-	rm -rf base *.o
+	rm -rf build *.o

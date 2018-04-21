@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <pthread.h>
 #if PLATFORM_TARGET == PLATFORM_MACOSX
 #include <libproc.h>
 #endif
@@ -71,6 +72,15 @@ inline std::string RzFormat(const char* format, ...)
 #endif
 	va_end(va);
 	return std::string(buff);
+}
+
+inline int32 RzGetCurrentThreadId()
+{
+#if PLATFORM_TARGET == PLATFORM_WINDOWS
+	return (int32)GetCurrentThreadId();
+#else
+	return 0;//(int32)pthread_self();
+#endif
 }
 
 inline void  RzUnitPath(char *path) 

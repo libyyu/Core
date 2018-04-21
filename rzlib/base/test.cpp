@@ -26,8 +26,14 @@ int CalcDistance(int x, int z, int x2, int z2)
     return d*d + d2*d2;
 }
 
+void test()
+{
+    RZ_CONSOLE_TRACE
+}
+
 int main(int argc, const char * argv[]) {
     // insert code here...
+    RZ_CONSOLE_TRACE
     std::cout << "Hello, World!\n";
 #if PLATFORM_TARGET == PLATFORM_MACOSX
     std::cout << "MacOSX" << std::endl;
@@ -40,6 +46,8 @@ int main(int argc, const char * argv[]) {
     buffer >> v >> buf >> b;
     printf("v=%d,buf=%s, b = %d\n", v, buf, b);
     
+    test();
+
     CRzString rzString;
     rzString += " nihao ";
     rzString.Trim();
@@ -53,7 +61,8 @@ int main(int argc, const char * argv[]) {
     
     RZ_CONSOLE(ERROR) << RZ_FORMAT("n = %d, %s\n", n, RzGetModulePath());
     RZ_CONSOLE(ERROR) << RZ_FORMAT("n = %d, %s\n", n, RzGetModuleName());
-
+    int *p = &n;
+    RZ_CONSOLE(WARN) << (void*)p << endl;
     int counter = 0;
     clock_t t = clock();
     CRzCounter cnt;
@@ -89,6 +98,7 @@ int main(int argc, const char * argv[]) {
     if(!file) RZ_CONSOLE(WARN) << RZ_FORMAT("file is invalid\n");
     int ret = file.Open("hello.txt", true);
     if(file) RZ_CONSOLE(WARN) << RZ_FORMAT("file is valid\n");
+    else return -1;
     //ret = file.Write("Hello File", 10);
     char buff[20] = {0};
     ret = file.Read(buff, 20);
