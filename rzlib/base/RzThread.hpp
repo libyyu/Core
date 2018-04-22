@@ -17,18 +17,9 @@ class CRzThread
 {
 public:
     typedef std::function<void()> RzThreadCallback;
-	typedef std::function<void(void*)> RzThreadCallbackArg;
     enum RzStateT { kInit, kStart, kJoined, kStop };
     explicit CRzThread(const RzThreadCallback &cb)
         : _cb(cb)
-        , _state(kInit)
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
-        , _handle(NULL)
-        , _threadId(0)
-#endif
-    {}
-    explicit CRzThread(const RzThreadCallbackArg &cb)
-        : _cbex(cb)
         , _state(kInit)
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
         , _handle(NULL)
@@ -42,13 +33,12 @@ public:
         _state = kStop;
     }
 
-    bool start(void* args = NULL)
+    bool start()
     {
         if (kInit != _state) 
         {
             return false;
         }
-        _args = args;
 
         bool result = false;
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
@@ -135,21 +125,12 @@ private:
 #endif
     {
         CRzThread *pThis = reinterpret_cast<CRzThread *>(param);
-        pThis->_run();
+        pThis->_cb();
         return 0;
     }
-    inline void _run()
-    {
-        if(_cbex)
-            _cbex(_args);
-        else
-            _cb();
-    }
 
-    RzThreadCallbackArg _cbex;
     RzThreadCallback _cb;
     RzStateT _state;
-    void* _args;
 
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
     HANDLE _handle;
@@ -351,10 +332,6 @@ public:
     explicit RzAsync(const std::function<void()>& action) : _thread(action)
     {
         _thread.start();
-    }
-    explicit RzAsync(const std::function<void(void*)>& action, void* sender) : _thread(action)
-    {
-        _thread.start(sender);
     }
     ~RzAsync()
     {
