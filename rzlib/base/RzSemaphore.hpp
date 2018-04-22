@@ -9,9 +9,10 @@
 #else
     #include <semaphore.h>
     #include <sys/time.h>
+    #include <limits>
 #endif
 _RzStdBegin
-//Óë -lrt »ò -pthread Ò»ÆðÁ´½Ó
+//ï¿½ï¿½ -lrt ï¿½ï¿½ -pthread Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 class CRzSemaphore
 {
 public:

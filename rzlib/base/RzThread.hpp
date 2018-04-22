@@ -16,11 +16,19 @@ _RzStdBegin
 class CRzThread
 {
 public:
-	typedef std::function<void()> RzThreadCallback;
+    typedef std::function<void()> RzThreadCallback;
+	typedef std::function<void(void*)> RzThreadCallbackArg;
     enum RzStateT { kInit, kStart, kJoined, kStop };
-
     explicit CRzThread(const RzThreadCallback &cb)
         : _cb(cb)
+        , _state(kInit)
+#if PLATFORM_TARGET == PLATFORM_WINDOWS
+        , _handle(NULL)
+        , _threadId(0)
+#endif
+    {}
+    explicit CRzThread(const RzThreadCallbackArg &cb)
+        : _cbex(cb)
         , _state(kInit)
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
         , _handle(NULL)
@@ -34,12 +42,13 @@ public:
         _state = kStop;
     }
 
-    bool start()
+    bool start(void* args = NULL)
     {
         if (kInit != _state) 
         {
             return false;
         }
+        _args = args;
 
         bool result = false;
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
@@ -126,12 +135,21 @@ private:
 #endif
     {
         CRzThread *pThis = reinterpret_cast<CRzThread *>(param);
-        pThis->_cb();
+        pThis->_run();
         return 0;
     }
+    inline void _run()
+    {
+        if(_cbex)
+            _cbex(_args);
+        else
+            _cb();
+    }
 
+    RzThreadCallbackArg _cbex;
     RzThreadCallback _cb;
     RzStateT _state;
+    void* _args;
 
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
     HANDLE _handle;
@@ -234,7 +252,7 @@ public:
 		return _inited;
 	}
 	
-	void addTask(const std::function<void()> &task)
+	void addTask(const CRzThread::RzThreadCallback &task)
 	{ 
 		_tasks.put(task); 
 	}
@@ -270,7 +288,7 @@ private:
 		_RzTaskQueue() {}
 		~_RzTaskQueue() {}
 		
-		void put(const std::function<void()> &task) 
+		void put(const CRzThread::RzThreadCallback &task) 
 		{
 			lock_wrapper lock(&_mutex);
 			_tasks.push(task);
@@ -278,7 +296,7 @@ private:
 		}
 		CRzThread::RzThreadCallback get()
 		{
-			std::function<void()> task;
+			CRzThread::RzThreadCallback task;
 			_sem.wait(CRzSemaphore::kInfinite);
 			lock_wrapper lock(&_mutex);
 			task = _tasks.front();
@@ -289,7 +307,7 @@ private:
 	private:
 		_RzTaskQueue(const _RzTaskQueue&){}
     	void operator=(const _RzTaskQueue&){}
-		typedef std::queue<std::function<void()>> _RzTasks;
+		typedef std::queue<CRzThread::RzThreadCallback> _RzTasks;
 		_RzTasks _tasks;
 		CRzLock _mutex;
 		CRzSemaphore _sem;
@@ -301,8 +319,9 @@ private:
 		_lock.lock();
 		for (int i = 0; i < threadNum; ++i) 
 		{
-			std::shared_ptr<CRzThread> thread(new CRzThread(std::bind(&CRzThreadPool::taskRunner, this)));
-			_threads.push_back(thread);					
+            CRzThread::RzThreadCallback _run = std::bind(&CRzThreadPool::taskRunner, this);
+			std::shared_ptr<CRzThread> thread(new CRzThread(_run));
+			_threads.push_back(thread);			
 			thread->start();
 		}
 		_lock.unlock();
@@ -313,7 +332,7 @@ private:
 	{
 		while(true) 
 		{
-			std::function<void()> task = _tasks.get();
+			CRzThread::RzThreadCallback task = _tasks.get();
 			task();
 		}
 	}
@@ -326,6 +345,27 @@ private:
 	static const int32_t kDefaultThreadNum = 4;
 };
 
+class RzAsync
+{
+public:
+    typedef std::function<void()> AsyncCallback;
+    typedef std::function<void(void*)> AsyncCallbackArgs;
+    explicit RzAsync(const AsyncCallback& action) : _thread(action)
+    {
+        _thread.start();
+    }
+    explicit RzAsync(const AsyncCallbackArgs& action, void* sender) : _thread(action)
+    {
+        _thread.start(sender);
+    }
+    ~RzAsync()
+    {
+        _thread.join();
+        delete this;
+    }
+protected:
+    CRzThread _thread;
+};
 
 _RzStdEnd
 
