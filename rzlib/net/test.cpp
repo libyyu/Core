@@ -47,6 +47,17 @@ public:
             TestAsync *pThis = reinterpret_cast<TestAsync *>(sender);
             pThis->OnADo();
         }, (void*)this);
+
+        AsyncCallback(std::bind(&TestAsync::DoB, this))();
+    }
+    void DoB()
+    {
+        for(int i=0;i<10;++i)
+        {
+            g_lock.lock();
+            std::cout<<i << "TestAsync.DoB run in async thread " << RzGetCurrentThreadId() << std::endl;
+            g_lock.unlock();
+        }
     }
 protected:
     void OnADo()

@@ -348,13 +348,11 @@ private:
 class RzAsync
 {
 public:
-    typedef std::function<void()> AsyncCallback;
-    typedef std::function<void(void*)> AsyncCallbackArgs;
-    explicit RzAsync(const AsyncCallback& action) : _thread(action)
+    explicit RzAsync(const std::function<void()>& action) : _thread(action)
     {
         _thread.start();
     }
-    explicit RzAsync(const AsyncCallbackArgs& action, void* sender) : _thread(action)
+    explicit RzAsync(const std::function<void(void*)>& action, void* sender) : _thread(action)
     {
         _thread.start(sender);
     }
@@ -366,7 +364,22 @@ public:
 protected:
     CRzThread _thread;
 };
-
+inline std::function<void()> AsyncCallback(const std::function<void()>& action)
+{
+    auto func = [action]()
+    {
+        new RzAsync(action);
+    };
+    return func;
+}
+inline std::function<void(void*)> AsyncCallback(const std::function<void(void*)>& action, void* sender)
+{
+    auto func = [action](void* sender)
+    {
+        new RzAsync(action, sender);
+    };
+    return func;
+}
 _RzStdEnd
 
 
