@@ -30,7 +30,10 @@ static CRzLock g_lock;
 
 class TestAsync
 {
-public:
+public: 
+    int value;
+    static const int32_t kDefaultThreadNum = 4;
+    TestAsync():value(5){}
     void DoA(const char* name)
     {
         printf("before %p\n", this);
@@ -49,6 +52,8 @@ public:
         }, (void*)this);
 
         AsyncCallback(std::bind(&TestAsync::DoB, this))();
+        auto func = std::bind(&TestAsync::DoC, this, (void*)this);
+        AsyncCallback(func)();
     }
     void DoB()
     {
@@ -56,6 +61,20 @@ public:
         {
             g_lock.lock();
             std::cout<<i << "TestAsync.DoB run in async thread " << RzGetCurrentThreadId() << std::endl;
+            g_lock.unlock();
+        }
+    }
+    void DoC(void* arg)
+    {
+        TestAsync *pThis = reinterpret_cast<TestAsync *>(arg);
+        g_lock.lock();
+        printf("inner DoC %p, %d\n", pThis, pThis->value);
+        std::cout << ">>>>>>>>>>>>>>>>DoC " << arg << "," << pThis->kDefaultThreadNum << std::endl;
+        g_lock.unlock();
+        for(int i=0;i<10;++i)
+        {
+            g_lock.lock();
+            std::cout<<i << "TestAsync.DoC run in async thread " << RzGetCurrentThreadId() << std::endl;
             g_lock.unlock();
         }
     }

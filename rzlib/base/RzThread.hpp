@@ -372,14 +372,6 @@ inline std::function<void()> AsyncCallback(const std::function<void()>& action)
     };
     return func;
 }
-inline std::function<void(void*)> AsyncCallback(const std::function<void(void*)>& action, void* sender)
-{
-    auto func = [action](void* sender)
-    {
-        new RzAsync(action, sender);
-    };
-    return func;
-}
 _RzStdEnd
 
 
