@@ -16,6 +16,7 @@
 #define RZ_SOCKET_CLEANUP               \
 	::WSACleanup();
 #define socklen_t int
+#define RZ_ERRNO WSAGetLastError()
 #else
 #include <errno.h>
 #include <netdb.h>
@@ -30,11 +31,13 @@
 #define SOCKET int
 #define INVALID_SOCKET -1
 #define SOCKET_ERROR -1
-#define RZ_SOCKET_STARTUP 
+#define RZ_SOCKET_STARTUP 	signal(SIGPIPE, SIG_IGN);
 #define RZ_SOCKET_CLEANUP
+#define RZ_ERRNO errno
 #endif
 
 _RzStdBegin
+_RzNameSpaceBegin(Net)
 class CRzSockAddr : public sockaddr_in
 {
 public:
@@ -96,12 +99,12 @@ public:
     inline bool IsCreate()const {return INVALID_SOCKET != _s;}
 	inline bool Create(int ntype = SOCK_STREAM);
 	inline bool Close();
-	inline bool Bind(CRzSockAddr* addr);
+	inline bool Bind(const CRzSockAddr* addr);
     inline bool Listen(int nbacklog = 5);
 	inline SOCKET Accept(CRzSockAddr* addr = NULL);
     inline bool IsConnect() const;
-	inline bool Connect(CRzSockAddr* pRemoteaddr);
-	inline bool ConnectEx(CRzSockAddr* pRemoteaddr,int nTimeOut = 10,ExitWaitPred isExitWaitPred = NULL);
+	inline bool Connect(const CRzSockAddr* pRemoteaddr);
+	inline bool ConnectEx(const CRzSockAddr* pRemoteaddr,int nTimeOut = 10,ExitWaitPred isExitWaitPred = NULL);
 
     inline bool WaitReadable(unsigned int nTimeOut = 10,ExitWaitPred isExitWaitPred = NULL);
 	inline bool WaitWriteable(unsigned int nTimeOut = 10,ExitWaitPred isExitWaitPred = NULL);
@@ -115,6 +118,7 @@ protected:
 	SOCKET    _s;
 };
 
+typedef std::shared_ptr<CRzSocket> spSocketT;
 
 bool CRzSocket::Ioctl(long cmd,u_long* argp)
 {
@@ -171,7 +175,7 @@ bool CRzSocket::Close()
 	_s = INVALID_SOCKET;
 	return !IsCreate();
 }
-bool CRzSocket::Bind(CRzSockAddr* addr)
+bool CRzSocket::Bind(const CRzSockAddr* addr)
 {
 	assert(IsCreate());
 	if(!IsCreate()) return false;
@@ -210,7 +214,7 @@ bool CRzSocket::IsConnect() const
 	
 	return false;
 }
-bool CRzSocket::Connect(CRzSockAddr* pRemoteaddr)
+bool CRzSocket::Connect(const CRzSockAddr* pRemoteaddr)
 {
 	assert(IsCreate());
 	if(!IsCreate()) return false;
@@ -227,7 +231,7 @@ bool CRzSocket::Connect(CRzSockAddr* pRemoteaddr)
     }
     return true;
 }
-bool CRzSocket::ConnectEx(CRzSockAddr* pRemoteaddr,int nTimeOut /* = 10 */,CRzSocket::ExitWaitPred isExitWaitPred/* = NULL*/)
+bool CRzSocket::ConnectEx(const CRzSockAddr* pRemoteaddr,int nTimeOut /* = 10 */,CRzSocket::ExitWaitPred isExitWaitPred/* = NULL*/)
 {
 	assert(IsCreate());
 	if(!IsCreate()) return false;
@@ -356,7 +360,7 @@ int CRzSocket::SendTo(char* buf,size_t cnt,CRzSockAddr* pRemoteaddr)
 
 	return ::sendto(_s,buf,cnt,0,(sockaddr*)pRemoteaddr,(pRemoteaddr ? pRemoteaddr->addlen : NULL));
 }
-
+_RzNameSpaceEnd
 _RzStdEnd
 
 

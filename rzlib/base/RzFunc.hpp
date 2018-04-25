@@ -320,7 +320,9 @@ inline int RzGetAllFiles(const char* path, std::vector<char*>& files)
 	return ret;
 #endif
 }
+_RzStdEnd
 
+_RzStdBegin
 inline void* memcpyFromRing(void * dst,
     const size_t cnt,
     const void * src,
@@ -373,7 +375,6 @@ inline void* memcpyToRing(const void *src,
     memcpy(pdst,(psrc + l), cnt - l);
     return dst;
 }
-
 
 inline int memfind(const void* src,size_t srcsize,const void* dst,size_t dstsize)
 {

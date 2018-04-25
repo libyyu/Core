@@ -1,8 +1,9 @@
-//#include "RzSocket.hpp"
+#include "RzSocket.hpp"
 #include <iostream>
 #include <functional>
 #include "../base/RzFunc.hpp"
 #include "../base/RzThread.hpp"
+#include "RzConnector.hpp"
 using namespace RzStd;
 
 static CRzLock g_lock;
@@ -63,9 +64,20 @@ protected:
     }
 };
 
+void TestSock()
+{
+    // CRzSockAddr addr(8002);
+    // CRzSocket client;
+    // client.Create();
+    // bool b = client.Connect(&addr);
+    // printf("Connect b = %d\n", b);
+    int timeout = 10;
+    auto socket = Net::SyncConnect(NULL, 8002, timeout);
+}
+
 int main()
 {
-    TestAsync test;
+    /*TestAsync test;
     test.DoA("hello");
     new RzAsync([]
     {
@@ -76,6 +88,9 @@ int main()
             g_lock.unlock();
         }
     });
+    AsyncCallback(&TestSock)();
+    
+    
     char tmp;
     while(1)
     {
@@ -87,6 +102,7 @@ int main()
         {
             break;
         }   
-    }
+    }*/
+    TestSock();
     return 0;
 }
