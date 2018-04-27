@@ -7,7 +7,8 @@
 #include <fstream>
 #include <vector>
 #include <iostream>
-
+#include <functional>
+#include <memory>
 _RzStdBegin
 
 class CRzIni
@@ -171,5 +172,6 @@ public:
 	   _SectionMap[SectionStr][KeyStr] = vauleStr;
    }
 };
+typedef std::shared_ptr<CRzIni> spRzIniT;
 _RzStdEnd
 #endif//__RZINI_HPP__

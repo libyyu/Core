@@ -3,6 +3,8 @@
 #pragma once
 #include "RzConsole.hpp"
 #include <stdio.h>
+#include <functional>
+#include <memory>
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 #include <windows.h>
 #include <sys/types.h>  
@@ -66,6 +68,8 @@ private:
     int _file;
 #endif
 };
+
+typedef std::shared_ptr<CRzFile> spRzFileT;
 
 int CRzFile::Open(const char* filename, bool readonly)
 {

@@ -15,7 +15,6 @@ protected:
 	static const size_t MaxBufferSize = 1024*1024;
 	static const size_t MaxErrCnt     = 2;
 	static const size_t TimeOutSec    = 8;
-    typedef std::shared_ptr<CRzBuffer> spBuffer;
 public:
 	CRzLink() 
     : _nTimeOut(TimeOutSec)
@@ -23,7 +22,7 @@ public:
     {}
 	virtual ~CRzLink(){}
 public:
-	inline spBuffer GetBuffer();
+	inline spRzBufferT GetBuffer();
 
 	inline void SetTimeOut(size_t nTimeOut);
 	inline size_t GetTimeOut() const{return _nTimeOut;};
@@ -38,14 +37,14 @@ protected:
 	inline bool _Recv(CRzBuffer* pbuffer,size_t minSize = 0);
 protected:
 	size_t          _nTimeOut;
-	spBuffer        _pBuffer;
+	spRzBufferT     _pBuffer;
 	bool            _isConnected;
 	CRzSocket       _s;
 };
-inline CRzLink::spBuffer CRzLink::GetBuffer()
+inline spRzBufferT CRzLink::GetBuffer()
 {
     if(!_pBuffer)
-			_pBuffer = spBuffer(new CRzBuffer);
+			_pBuffer = spRzBufferT(new CRzBuffer);
 	return _pBuffer;
 }
 void CRzLink::SetTimeOut(size_t nTimeOut)
@@ -101,7 +100,7 @@ bool CRzLink::FixBuffer(CRzBuffer* pbuffer)
 }
 bool CRzLink::Recv(size_t minSize /*= 0*/)
 {
-    spBuffer theBuffer(GetBuffer());
+    spRzBufferT theBuffer(GetBuffer());
     return _Recv(theBuffer.get(),minSize);
 }
 bool CRzLink::_Recv(CRzBuffer* pbuffer,size_t minSize/* = 0*/)

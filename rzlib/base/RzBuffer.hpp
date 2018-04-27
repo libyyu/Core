@@ -10,6 +10,8 @@
 #include <vector>
 #include <bitset>
 #include <assert.h>
+#include <functional>
+#include <memory>
 #include "RzFunc.hpp"
 #include "RzAlloctor.hpp"
 #include "RzConvert.hpp"
@@ -182,6 +184,8 @@ protected:
 
     uint8               _flag;
 };
+typedef std::shared_ptr<CRzBuffer> spRzBufferT;
+
 _RzStdEnd
 
 _RzStdBegin
