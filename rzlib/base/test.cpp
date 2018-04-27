@@ -16,6 +16,8 @@
 #include "RzFile.hpp"
 #include "RzCounter.hpp"
 #include "RzThread.hpp"
+#include "RzMD5.hpp"
+#include "RzBase64.hpp"
 
 _RzUsing(std)
 _RzUsing(RzStd)
@@ -39,6 +41,19 @@ void test()
     RZ_CONSOLE_TRACE
 }
 
+void testbase64()
+{
+    const char* str = "helloworld";
+    std::string code = RZ_BASE64_ENCODE(str);
+    RZ_CONSOLE(DEBUG) << "base64:" << RZ_BASE64_ENCODE(str) << "," << RZ_BASE64_DECODE(code.c_str()) << endl;
+}
+void testmd5()
+{
+    char buff[200];
+    RzMD5String("hello world", buff);
+    RZ_CONSOLE(DEBUG) << buff << endl;
+}
+
 int main(int argc, const char * argv[]) {
     // insert code here...
     RZ_CONSOLE_TRACE
@@ -55,6 +70,8 @@ int main(int argc, const char * argv[]) {
     printf("v=%d,buf=%s, b = %d\n", v, buf, b);
     
     test();
+    testbase64();
+    testmd5();
 
     CRzThread thread(&foo);
     thread.start();

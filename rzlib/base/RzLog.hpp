@@ -96,7 +96,6 @@ public:
 	inline CRzILogMessage& operator<<(const std::string& str);
 	inline CRzILogMessage& operator<< (CRzILogMessage& (*_f)(CRzILogMessage&));
 	friend CRzILogMessage& endl(CRzILogMessage& v);
-    friend CRzILogMessage& operator<<(CRzILogMessage& str,const std::string &v);
 protected:
     inline void _LogImpl(const std::string& message) { _LogImpl(message.c_str()); }
     inline void _LogImpl(const char* str) { _message += str; }
@@ -114,12 +113,6 @@ protected:
     RZ_LOGLEVEL _level;
 };
 
-
-inline CRzILogMessage& operator<<(CRzILogMessage& str,const std::string &v)
-{
-    str._LogImpl(v);
-    return str;
-}
 inline CRzILogMessage& endl(CRzILogMessage& v)
 {
 	v._LogImpl("\n");

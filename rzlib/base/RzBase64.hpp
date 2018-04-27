@@ -18,7 +18,7 @@ inline bool Rzis_base64(unsigned char c)
 {
   return (isalnum(c) || (c == '+') || (c == '/'));
 }
-inline std::string Rzbase64_encode(unsigned char const* bytes_to_encode, unsigned int in_len) 
+inline std::string Rzbase64_encode(char const* bytes_to_encode, unsigned int in_len) 
 {
   std::string ret;
   int i = 0;
@@ -61,8 +61,9 @@ inline std::string Rzbase64_encode(unsigned char const* bytes_to_encode, unsigne
   return ret;
 }
 
-inline std::string Rzbase64_decode(std::string const& encoded_string) 
+inline std::string Rzbase64_decode(char const* bytes_encoded) 
 {
+  std::string encoded_string(bytes_encoded);
   int in_len = encoded_string.size();
   int i = 0;
   int j = 0;
@@ -103,7 +104,8 @@ inline std::string Rzbase64_decode(std::string const& encoded_string)
   return ret;
 }
 
-
+#define RZ_BASE64_ENCODE(str) Rzbase64_encode(str, strlen(str))
+#define RZ_BASE64_DECODE(str) Rzbase64_decode(str)
 _RzStdEnd
 
 #endif//_RZBASE64_HPP__
