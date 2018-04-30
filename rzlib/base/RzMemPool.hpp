@@ -11,7 +11,7 @@ _RzUsing(std)
   ÀàÖÐÈÎºÎ´óÐ¡ÄÚ´æ¶¼¿ÉÒÔ³É¹¦ÉêÇë£¬µ«Ö»´æ·ÅÐ¡ÓÚMaxSaveSizeµÄÄÚ´æ¿é£¬ÆäËüÖ±½ÓÉ¾³ý
 
 ******************************************************************************************************/
-_RzCFunBegin
+_RzDeclsBegin
 _RzStdBegin
 typedef struct _RZ_Node_
 {
@@ -232,5 +232,5 @@ private:
 	CRzMemPool* m_pHead;      //¹ÜÀíÁ´±íÍ·½áµã
 };
 _RzStdEnd
-_RzCFunEnd
+_RzDeclsEnd
 #endif//__RZMEMPOOL_HPP__

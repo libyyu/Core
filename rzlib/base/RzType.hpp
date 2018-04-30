@@ -54,9 +54,18 @@
      #define  RzDeBugOut(type)   //cout(type)
 #endif
 
-#ifdef   __cplusplus
-      #define  _RzCFunBegin   extern "C" {
-      #define  _RzCFunEnd     }
+#if defined(__cplusplus)
+    #define _RzDeclsBegin   extern "C" {
+    #define _RzDeclsEnd     }
+#else
+    #define _RzDeclsBegin
+    #define _RzDeclsEnd
+#endif
+
+#if defined(__cplusplus)
+    #define  _RzCFun   extern "C"
+#else
+    #define  _RzCFun   extern
 #endif //__cplusplus
 
 #define  _RzNameSpaceBegin(name)   namespace name {
