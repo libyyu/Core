@@ -18,7 +18,7 @@
 #include "RzThread.hpp"
 #include "RzMD5.hpp"
 #include "RzBase64.hpp"
-
+#include "RzMemTrack.hpp"
 _RzUsing(std)
 _RzUsing(RzStd)
 
@@ -57,6 +57,7 @@ void testmd5()
 int main(int argc, const char * argv[]) {
     // insert code here...
     RZ_CONSOLE_TRACE
+    int * pT = new int(8);
     std::cout << "Hello, World!\n";
 #if PLATFORM_TARGET == PLATFORM_MACOSX
     std::cout << "MacOSX" << std::endl;
@@ -131,6 +132,11 @@ int main(int argc, const char * argv[]) {
         }
     }
     printf("clock = %lu\n", clock() - t);
+    delete pT;
+#ifdef _RZ_USE_MEMTRACK
+    MemTrack::TrackDumpBlocks();
+    MemTrack::TrackListMemoryUsage();
+#endif
 
     CRzFile file;
     if(!file) RZ_CONSOLE(WARN) << RZ_FORMAT("file is invalid\n");

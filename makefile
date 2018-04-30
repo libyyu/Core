@@ -9,9 +9,9 @@ BOOST_CFLAGS = -lboost_regex
 all : build testnet boosttest
 
 build : test.o
-	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY)
+	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY) -D_RZ_USE_MEMTRACK
 test.o : rzlib/base/test.cpp
-	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY)
+	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY) -D_RZ_USE_MEMTRACK
 testnet : test2.o
 	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY)
 test2.o : rzlib/net/test.cpp
