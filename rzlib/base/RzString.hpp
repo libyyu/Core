@@ -451,7 +451,7 @@ CRzString& CRzString::operator<< (CRzString& (*_f)(CRzString&))
 {
 	return _f(*this);
 }
-CRzString& endl(CRzString& v)
+inline CRzString& endl(CRzString& v)
 {
 	v += '\n';
 	return v;

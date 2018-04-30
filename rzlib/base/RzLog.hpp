@@ -20,7 +20,7 @@ enum RZ_LOGLEVEL
     RZ_LOGLEVEL_NUM_LOG_LEVELS
 };
 
-const char* RzLogLevelName[RZ_LOGLEVEL_NUM_LOG_LEVELS] =
+const static char* RzLogLevelName[RZ_LOGLEVEL_NUM_LOG_LEVELS] =
 {
 	"TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL",
 };

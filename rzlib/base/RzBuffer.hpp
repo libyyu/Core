@@ -638,7 +638,7 @@ CRzBuffer& CRzBuffer::operator<< (CRzBuffer& (*_f)(CRzBuffer&))
 {
 	return _f(*this);
 }
-CRzBuffer& endl(CRzBuffer& v)
+inline CRzBuffer& endl(CRzBuffer& v)
 {
     v << '\n';
 	return v;
