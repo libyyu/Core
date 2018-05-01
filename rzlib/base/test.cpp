@@ -133,22 +133,22 @@ int main(int argc, const char * argv[]) {
     }
     printf("clock = %lu\n", clock() - t);
     delete pT;
-#ifdef _RZ_USE_MEMTRACK
-    MemTrack::TrackDumpBlocks();
-    MemTrack::TrackListMemoryUsage();
-#endif
 
     CRzFile file;
     if(!file) RZ_CONSOLE(WARN) << RZ_FORMAT("file is invalid\n");
     int ret = file.Open("hello.txt", true);
-    if(file) RZ_CONSOLE(WARN) << RZ_FORMAT("file is valid\n");
-    else return -1;
-    //ret = file.Write("Hello File", 10);
-    char buff[20] = {0};
-    ret = file.Read(buff, 20);
-    printf("write size = %d, size = %ld, offset = %ld, eof = %d\n", ret, file.GetSize(), file.GetOffset(), (int)(file.IsEOF()));
-    ret = file.Read(buff+ret, 10);
-    file.Close();
+    if(file) 
+    {
+        RZ_CONSOLE(WARN) << RZ_FORMAT("file is valid\n");
+        //ret = file.Write("Hello File", 10);
+        char buff[20] = {0};
+        ret = file.Read(buff, 20);
+        printf("write size = %d, size = %ld, offset = %ld, eof = %d\n", ret, file.GetSize(), file.GetOffset(), (int)(file.IsEOF()));
+        ret = file.Read(buff+ret, 10);
+        file.Close();
+    }
 
+    RZ_REPORT_MEMORY
+    
     return 0;
 }

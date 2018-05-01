@@ -548,4 +548,11 @@ inline void operator delete[](void *p)
 
 #endif//_RZ_USE_MEMTRACK
 
+#ifdef _RZ_USE_MEMTRACK
+#define RZ_REPORT_MEMORY RzStd::MemTrack::TrackListMemoryUsage();
+#else
+#define RZ_REPORT_MEMORY
+#endif
+
+
 #endif//_RZMEMTRACK_HPP__
