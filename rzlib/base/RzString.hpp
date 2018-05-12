@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <iostream>
 #include <sstream> 
+#include <stdarg.h>
 #include "RzType.hpp"
 
 _RzStdBegin
@@ -18,12 +19,12 @@ public:
     {
         m_szBuffer[0] = '\0';
     }
-    CRzString(const char ch) : m_pstr(m_szBuffer)
+	CRzString(const Rzchar ch) : m_pstr(m_szBuffer)
     {
         m_szBuffer[0] = ch;
 		m_szBuffer[1] = '\0';
     }
-	CRzString(const char* lpsz, int nLen = -1) : m_pstr(m_szBuffer)
+	CRzString(const Rzchar* lpsz, int nLen = -1) : m_pstr(m_szBuffer)
     {
         assert(lpsz);
 		m_szBuffer[0] = '\0';
@@ -47,39 +48,39 @@ public:
     }
     inline int GetLength() const
     {
-        return (int) strlen(m_pstr); 
+		return (int)Rzstrlen(m_pstr);
     }
     inline bool IsEmpty() const
     {
         return m_pstr[0] == '\0'; 
     }
-    inline char GetAt(int nIndex) const
+    inline Rzchar GetAt(int nIndex) const
     {
         return m_pstr[nIndex];
     }
-    inline char operator[] (int nIndex) const
+	inline Rzchar operator[] (int nIndex) const
     {
         return m_pstr[nIndex];
     }
 
-    inline void SetAt(int nIndex, char ch)
+	inline void SetAt(int nIndex, Rzchar ch)
     {
         assert(nIndex>=0 && nIndex<GetLength());
 		m_pstr[nIndex] = ch;
     }
 
-    inline void Append(const char* pstr)
+	inline void Append(const Rzchar* pstr)
     {
-        int nNewLength = GetLength() + (int) strlen(pstr);
+		int nNewLength = GetLength() + (int)Rzstrlen(pstr);
 		if( nNewLength >= MAX_LOCAL_STRING_LEN ) {
 			if( m_pstr == m_szBuffer ) {
-				m_pstr = static_cast<char*>(malloc((nNewLength + 1) * sizeof(char)));
-				strcpy(m_pstr, m_szBuffer);
-				strcat(m_pstr, pstr);
+				m_pstr = static_cast<Rzchar*>(malloc((nNewLength + 1) * sizeof(Rzchar)));
+				Rzstrcpy(m_pstr, m_szBuffer);
+				Rzstrcat(m_pstr, pstr);
 			}
 			else {
-				m_pstr = static_cast<char*>(realloc(m_pstr, (nNewLength + 1) * sizeof(char)));
-				strcat(m_pstr, pstr);
+				m_pstr = static_cast<Rzchar*>(realloc(m_pstr, (nNewLength + 1) * sizeof(Rzchar)));
+				Rzstrcat(m_pstr, pstr);
 			}
 		}
 		else {
@@ -87,14 +88,14 @@ public:
 				free(m_pstr);
 				m_pstr = m_szBuffer;
 			}
-			strcat(m_szBuffer, pstr);
+			Rzstrcat(m_szBuffer, pstr);
 		}
     }
 
-	inline void Assign(const char* pstr, int cchMax = -1)
+	inline void Assign(const Rzchar* pstr, int cchMax = -1)
     {
-        if( pstr == NULL ) pstr = "";
-		cchMax = (cchMax < 0 ? (int) strlen(pstr) : cchMax);
+        if( pstr == NULL ) pstr = _T("");
+		cchMax = (cchMax < 0 ? (int)Rzstrlen(pstr) : cchMax);
 		if( cchMax < MAX_LOCAL_STRING_LEN ) {
 			if( m_pstr != m_szBuffer ) {
 				free(m_pstr);
@@ -103,20 +104,20 @@ public:
 		}
 		else if( cchMax > GetLength() || m_pstr == m_szBuffer ) {
 			if( m_pstr == m_szBuffer ) m_pstr = NULL;
-			m_pstr = static_cast<char*>(realloc(m_pstr, (cchMax + 1) * sizeof(char)));
+			m_pstr = static_cast<Rzchar*>(realloc(m_pstr, (cchMax + 1) * sizeof(Rzchar)));
 		}
-		strncpy(m_pstr, pstr, cchMax);
+		Rzstrncpy(m_pstr, pstr, cchMax);
 		m_pstr[cchMax] = '\0';
     }
-    inline int Compare(const char* lpsz) const 
+	inline int Compare(const Rzchar* lpsz) const
 	{ 
-		return strcmp(m_pstr, lpsz); 
+		return Rzstrcmp(m_pstr, lpsz); 
 	}
 
-	inline int CompareNoCase(const char* lpsz) const 
+	inline int CompareNoCase(const Rzchar* lpsz) const
 	{ 
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
-        return stricmp(m_pstr, lpsz); 
+		return Rzcsicmp(m_pstr, lpsz);
 #else
 		return strcasecmp(m_pstr, lpsz); 
 #endif
@@ -147,39 +148,39 @@ public:
 		return CRzString(m_pstr + iPos, iLength);
 	}
 
-    inline int Find(char ch, int iPos = 0) const
+    inline int Find(Rzchar ch, int iPos = 0) const
 	{
 		assert(iPos>=0 && iPos<=GetLength());
 		if( iPos != 0 && (iPos < 0 || iPos >= GetLength()) ) return -1;
-		const char* p = strchr(m_pstr + iPos, ch);
+		const Rzchar* p = Rzstrrchr(m_pstr + iPos, ch);
 		if( p == NULL ) return -1;
 		return (int)(p - m_pstr);
 	}
 
-	inline int Find(const char* pstrSub, int iPos = 0) const
+	inline int Find(const Rzchar* pstrSub, int iPos = 0) const
 	{
 		assert(iPos>=0 && iPos<=GetLength());
 		if( iPos != 0 && (iPos < 0 || iPos > GetLength()) ) return -1;
-		const char* p = strstr(m_pstr + iPos, pstrSub);
+		const Rzchar* p = Rzstrstr(m_pstr + iPos, pstrSub);
 		if( p == NULL ) return -1;
 		return (int)(p - m_pstr);
 	}
 
-	inline int ReverseFind(char ch) const
+	inline int ReverseFind(Rzchar ch) const
 	{
-		const char* p = strrchr(m_pstr, ch);
+		const Rzchar* p = Rzstrrchr(m_pstr, ch);
 		if( p == NULL ) return -1;
 		return (int)(p - m_pstr);
 	}
 
-    inline int Replace(const char* pstrFrom, const char* pstrTo)
+	inline int Replace(const Rzchar* pstrFrom, const Rzchar* pstrTo)
 	{
 		CRzString sTemp;
 		int nCount = 0;
 		int iPos = Find(pstrFrom);
 		if( iPos < 0 ) return 0;
-		int cchFrom = (int) strlen(pstrFrom);
-		int cchTo = (int) strlen(pstrTo);
+		int cchFrom = (int) Rzstrlen(pstrFrom);
+		int cchTo = (int) Rzstrlen(pstrTo);
 		while( iPos >= 0 ) {
 			sTemp = Left(iPos);
 			sTemp += pstrTo;
@@ -191,15 +192,15 @@ public:
 		return nCount;
 	}
 
-    inline int Format(const char* pstrFormat, ...)
+	inline int Format(const Rzchar* pstrFormat, ...)
 	{
 		// Do ordinary printf replacements
 		// NOTE: Documented max-length of wvsprintf() is 2048
-		char szBuffer[2049] = { 0 };
+		Rzchar szBuffer[2049] = { 0 };
 		va_list argList;
 		va_start(argList, pstrFormat);
 
-		int iRet = vsnprintf(szBuffer, sizeof(szBuffer) / sizeof(szBuffer[0]) - 2, pstrFormat, argList);
+		int iRet = Rzvsnprintf(szBuffer, sizeof(szBuffer) / sizeof(szBuffer[0]) - 2, pstrFormat, argList);
 		
 		va_end(argList);
 		Assign(szBuffer);
@@ -208,7 +209,7 @@ public:
 
     inline void TrimLeft()
     {
-        const char* p = m_pstr;
+		const Rzchar* p = m_pstr;
         while (*p != '\0')
         {
             if(*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n')
@@ -226,7 +227,7 @@ public:
     inline void TrimRight()
     {
         int len = GetLength();
-        char *p = m_pstr + len - 1;
+		Rzchar *p = m_pstr + len - 1;
         while (p >= m_pstr)
         {
             if(*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n')
@@ -247,12 +248,12 @@ public:
         TrimRight();
     }
 
-	virtual operator char*() const
+	virtual operator Rzchar*() const
     {
         return m_pstr; 
     }
 
-    const CRzString& operator=(const char ch)
+	const CRzString& operator=(const Rzchar ch)
     {
         Empty();
 		m_szBuffer[0] = ch;
@@ -265,7 +266,7 @@ public:
         Assign(src);
 		return *this;
     }
-    const CRzString& operator=(const char* lpStr)
+	const CRzString& operator=(const Rzchar* lpStr)
     {
         if ( lpStr )
 		{
@@ -284,7 +285,7 @@ public:
 		sTemp.Append(src);
 		return sTemp;
 	}
-    CRzString operator+(const char* lpStr) const
+	CRzString operator+(const Rzchar* lpStr) const
 	{
 		if ( lpStr )
 		{
@@ -295,10 +296,10 @@ public:
 
 		return *this;
 	}
-    CRzString operator+(const char ch) const
+	CRzString operator+(const Rzchar ch) const
 	{
 		CRzString sTemp = *this;
-        char str[] = { ch, '\0' };
+		Rzchar str[] = { ch, '\0' };
 		sTemp.Append(str);
 		return sTemp;
 	}
@@ -308,7 +309,7 @@ public:
 		Append(src);
 		return *this;
 	}
-    const CRzString& operator+=(const char* lpStr)
+	const CRzString& operator+=(const Rzchar* lpStr)
 	{      
 		if ( lpStr )
 		{
@@ -317,19 +318,19 @@ public:
 		
 		return *this;
 	}
-    const CRzString& operator+=(const char ch)
+	const CRzString& operator+=(const Rzchar ch)
 	{      
-		char str[] = { ch, '\0' };
+		Rzchar str[] = { ch, '\0' };
 		Append(str);
 		return *this;
 	}
 
-    bool operator == (const char* str) const { return (Compare(str) == 0); };
-	bool operator != (const char* str) const { return (Compare(str) != 0); };
-	bool operator <= (const char* str) const { return (Compare(str) <= 0); };
-	bool operator <  (const char* str) const { return (Compare(str) <  0); };
-	bool operator >= (const char* str) const { return (Compare(str) >= 0); };
-	bool operator >  (const char* str) const { return (Compare(str) >  0); };
+	bool operator == (const Rzchar* str) const { return (Compare(str) == 0); };
+	bool operator != (const Rzchar* str) const { return (Compare(str) != 0); };
+	bool operator <= (const Rzchar* str) const { return (Compare(str) <= 0); };
+	bool operator <  (const Rzchar* str) const { return (Compare(str) <  0); };
+	bool operator >= (const Rzchar* str) const { return (Compare(str) >= 0); };
+	bool operator >  (const Rzchar* str) const { return (Compare(str) >  0); };
 
 	template<typename T>
     inline CRzString& operator<<(T v); // will generate link error
@@ -345,8 +346,11 @@ public:
     inline CRzString& operator<<(float v);
     inline CRzString& operator<<(double v);
     inline CRzString& operator<<(const char *str);
+	inline CRzString& operator<<(const wchar_t *str);
 	inline CRzString& operator<<(char v[]);
+	inline CRzString& operator<<(wchar_t v[]);
 	inline CRzString& operator<<(std::string& str);
+	inline CRzString& operator<<(std::wstring& str);
     inline CRzString& operator<<(CRzString &v);
 	inline CRzString& operator<< (CRzString& (*_f)(CRzString&));
 
@@ -355,20 +359,29 @@ protected:
 	template<typename T>
 	inline void Write(const T &src);
 private:
-    char* m_pstr;
-    char m_szBuffer[MAX_LOCAL_STRING_LEN + 1];
+	Rzchar* m_pstr;
+	Rzchar m_szBuffer[MAX_LOCAL_STRING_LEN + 1];
 };
 
 inline CRzString& operator<<(CRzString& str,const std::string &v)
 {
-    str.Append(v.c_str());
+	str << v;
     return str;
+}
+inline CRzString& operator<<(CRzString& str, const std::wstring &v)
+{
+	str << v;
+	return str;
 }
 
 template<typename T>
 inline void CRzString::Write(const T &src)
 {
+#ifdef _UNICODE
+	std::wstringstream str;	
+#else
 	std::stringstream str;	
+#endif
 	str << src;
 	Append(str.str().c_str());
 }
@@ -429,17 +442,46 @@ CRzString& CRzString::operator<<(double v)
 }
 CRzString& CRzString::operator<<(const char *str)
 {
+#ifdef _UNICODE
+#else
 	Append(str);
+#endif
+	return *this;
+}
+CRzString& CRzString::operator<<(const wchar_t *str)
+{
+#ifdef _UNICODE
+	Append(str);
+#else
+	
+#endif
 	return *this;
 }
 CRzString& CRzString::operator<<(char v[])
 {
+#ifdef _UNICODE
+#else
 	Append((char*)v);
+#endif
+	return *this;
+}
+CRzString& CRzString::operator<<(wchar_t v[])
+{
+#ifdef _UNICODE
+	Append((wchar_t*)v);
+#else
+	
+#endif
 	return *this;
 }
 CRzString& CRzString::operator<<(std::string& str)
 {
-	Append(str.c_str());
+	(*this) << (str.c_str());
+	return *this;
+}
+CRzString& CRzString::operator<<(std::wstring& str)
+{
+	(*this) << (str.c_str());
 	return *this;
 }
 CRzString& CRzString::operator<<(CRzString &v)

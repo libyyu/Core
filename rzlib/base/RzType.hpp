@@ -18,15 +18,19 @@
     #define Rzfopen             _wfopen
 
     #define Rzfprintf           fwprintf
+	#define Rzstrstr			wcsstr
+	#define Rzcsstr				wcschr
     #define Rzstrrchr           wcsrchr
     #define Rzstrncpy           wcsncpy
+	#define Rzcsicmp			wcsicmp
     #define Rzstrlen            wcslen
     #define Rzstrcmp            wcscmp
-    #define Rzstrcpy            lstrcpy
+	#define Rzstrcpy            wcscpy
+	#define Rzcscspn			wcscspn
     #define Rzvfprintf          vfwprintf
-    #define Rzsnprintf		    _vsnwprintf_s 
-	#define Rzprintf	        swprintf
-	#define Rznprintf          _snwprintf
+    #define Rzvsnprintf		    _vsnwprintf_s 
+	#define Rzsprintf	        swprintf
+	#define Rzsnprintf          _snwprintf
 #else
     #define _T(type)            type
     #define _W(fun)             fun
@@ -37,15 +41,19 @@
     #define Rzfopen             fopen
 
     #define Rzfprintf           fprintf
+	#define Rzstrstr			strstr
     #define Rzstrrchr           strrchr
+	#define Rzcsstr				strchr
     #define Rzstrncpy           strncpy
+	#define Rzcsicmp			stricmp
     #define Rzstrlen            strlen
     #define Rzstrcmp            strcmp
     #define Rzstrcpy            strcpy
+	#define Rzcscspn			strcspn
     #define Rzvfprintf          vfprintf
-    #define Fvsnprintf			vsnprintf 
-	#define Fsprintf	        sprintf
-	#define Fsnprintf           snprintf
+	#define Rzvsnprintf			vsnprintf 
+	#define Rzsprintf	        sprintf
+	#define Rzsnprintf          snprintf
 #endif
 
 #ifdef  _DEBUG

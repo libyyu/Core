@@ -21,6 +21,7 @@ class CRzConsole : public CRzILogMessage
 	{
 		bool 		_isAlloced;
 		CRzLock     m_lock;
+	public:
 		//Console
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 		HANDLE 	 	m_stdOutputHandle;
@@ -95,11 +96,11 @@ protected:
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 	if (_level == RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
 	{
-		::SetConsoleTextAttribute(m_stdOutputHandle, FOREGROUND_RED | FOREGROUND_GREEN);
+		::SetConsoleTextAttribute(_RzConsoleHandle::get()->m_stdOutputHandle, FOREGROUND_RED | FOREGROUND_GREEN);
 	}
 	else if (_level > RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
 	{
-		::SetConsoleTextAttribute(m_stdErrHandle, FOREGROUND_RED);
+		::SetConsoleTextAttribute(_RzConsoleHandle::get()->m_stdErrHandle, FOREGROUND_RED);
 	}
 	if (_level <= RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
 	{
@@ -111,11 +112,11 @@ protected:
 	}
 	if (_level == RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
 	{
-		::SetConsoleTextAttribute(m_stdOutputHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+		::SetConsoleTextAttribute(_RzConsoleHandle::get()->m_stdOutputHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 	}
 	else if (_level > RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
 	{
-		::SetConsoleTextAttribute(m_stdErrHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+		::SetConsoleTextAttribute(_RzConsoleHandle::get()->m_stdErrHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 	}
 #else
 	const int MAX_BUFFLEN = 20480;
