@@ -141,6 +141,8 @@ int main(int argc, const char * argv[]) {
     {
         RZ_CONSOLE(WARN) << RZ_FORMAT("file is valid\n");
         //ret = file.Write("Hello File", 10);
+        CRzFile::FData data;
+        ret = file.ReadAll(data);
         char buff[20] = {0};
         ret = file.Read(buff, 20);
         printf("write size = %d, size = %ld, offset = %ld, eof = %d\n", ret, file.GetSize(), file.GetOffset(), (int)(file.IsEOF()));
