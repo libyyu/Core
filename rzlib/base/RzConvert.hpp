@@ -114,7 +114,7 @@ public:
     static stringtype UTF16ToUTF8(const wchar_t* ptext,int len)
 	{
 		stringtype sResult;
-#ifdef WIN32
+#if PLATFORM_TARGET == PLATFORM_WINDOWS
 		int nBufSize = ::WideCharToMultiByte(CP_UTF8,0,ptext,-1,NULL,0,0,FALSE);
 		char *szBuf = new char[nBufSize];
 		::WideCharToMultiByte(CP_UTF8,0,ptext,-1,szBuf,nBufSize,0,FALSE);
@@ -277,7 +277,7 @@ protected:
 	}
     static void _Gb2312ToUTF16ofChar(wchar_t* pOut,const char &gbBuffer)
 	{
-#ifdef WIN32
+#if PLATFORM_TARGET == PLATFORM_WINDOWS
 		::MultiByteToWideChar(CP_ACP,MB_PRECOMPOSED,&gbBuffer,2,pOut,1);
 #else
 		char* pcurLocale = setlocale(LC_ALL,NULL);// curLocale = "C";
@@ -288,7 +288,7 @@ protected:
 	}
     static void _UTF16ToGB2312ofChar(char* pOut,const wchar_t& uData)
 	{
-#ifdef WIN32
+#if PLATFORM_TARGET == PLATFORM_WINDOWS
 		::WideCharToMultiByte(CP_ACP,NULL,&uData,1,pOut,sizeof(uData),NULL,NULL);
 #else
 		char* pcurLocale = setlocale(LC_ALL,NULL);// curLocale = "C";
