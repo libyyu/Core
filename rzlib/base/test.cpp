@@ -88,10 +88,10 @@ int main(int argc, const char * argv[]) {
 	tg.joinAll();
 
     CRzString rzString;
-    rzString += " nihao ";
+    rzString += _T(" nihao ");
     rzString.Trim();
     rzString << 456 << endl;
-    const char* pBuf = rzString;
+    const Rzchar* pBuf = rzString;
     std::cout << rzString << std::endl;
     printf("rzString = %s, length=%d,\n", pBuf, rzString.GetLength());
     

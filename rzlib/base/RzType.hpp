@@ -6,16 +6,19 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+#include <string>
+#include <stddef.h>
 #include "RzPlatform.hpp"
-
+#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#include <tchar.h>
 #if defined( UNICODE ) || defined( _UNICODE )
     #define _T(type)            L##type
     #define _W(fun)             w##fun
     #define Rzchar              wchar_t
     #define Rzstring 	        std::wstring
+    #define Rzstringstream      std::wstringstream
     #define Rzstrftime          wcsftime
     #define Rzstrcat            wcscat      
-    #define Rzfopen             _wfopen
 
     #define Rzfprintf           fwprintf
 	#define Rzstrstr			wcsstr
@@ -30,15 +33,14 @@
     #define Rzvfprintf          vfwprintf
     #define Rzvsnprintf		    _vsnwprintf_s 
 	#define Rzsprintf	        swprintf
-	#define Rzsnprintf          _snwprintf
 #else
     #define _T(type)            type
     #define _W(fun)             fun
     #define Rzchar              char
     #define Rzstring			std::string
+    #define Rzstringstream      std::stringstream
     #define Rzstrftime          strftime
     #define Rzstrcat            strcat
-    #define Rzfopen             fopen
 
     #define Rzfprintf           fprintf
 	#define Rzstrstr			strstr
@@ -53,7 +55,54 @@
     #define Rzvfprintf          vfprintf
 	#define Rzvsnprintf			vsnprintf 
 	#define Rzsprintf	        sprintf
-	#define Rzsnprintf          snprintf
+#endif
+#else
+#include <wchar.h>
+#if defined( UNICODE ) || defined( _UNICODE )
+    #define _T(type)            L##type
+    #define _W(fun)             w##fun
+    #define Rzchar              wchar_t
+    #define Rzstring 	        std::wstring
+    #define Rzstringstream      std::wstringstream
+    #define Rzstrftime          wcsftime
+    #define Rzstrcat            wcscat      
+
+    #define Rzfprintf           fwprintf
+	#define Rzstrstr			wcsstr
+	#define Rzcsstr				wcschr
+    #define Rzstrrchr           wcsrchr
+    #define Rzstrncpy           wcsncpy
+	#define Rzcsicmp			wcscasecmp
+    #define Rzstrlen            wcslen
+    #define Rzstrcmp            wcscmp
+	#define Rzstrcpy            wcscpy
+	#define Rzcscspn			wcscspn
+    #define Rzvfprintf          vfwprintf
+    #define Rzvsnprintf		    vswprintf 
+	#define Rzsprintf	        swprintf
+#else
+    #define _T(type)            type
+    #define _W(fun)             fun
+    #define Rzchar              char
+    #define Rzstring			std::string
+    #define Rzstringstream      std::stringstream
+    #define Rzstrftime          strftime
+    #define Rzstrcat            strcat
+
+    #define Rzfprintf           fprintf
+	#define Rzstrstr			strstr
+    #define Rzstrrchr           strrchr
+	#define Rzcsstr				strchr
+    #define Rzstrncpy           strncpy
+	#define Rzcsicmp			strcasecmp
+    #define Rzstrlen            strlen
+    #define Rzstrcmp            strcmp
+    #define Rzstrcpy            strcpy
+	#define Rzcscspn			strcspn
+    #define Rzvfprintf          vfprintf
+	#define Rzvsnprintf			vsnprintf 
+	#define Rzsprintf	        sprintf
+#endif
 #endif
 
 #ifdef  _DEBUG

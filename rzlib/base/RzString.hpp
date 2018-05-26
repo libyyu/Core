@@ -116,11 +116,7 @@ public:
 
 	inline int CompareNoCase(const Rzchar* lpsz) const
 	{ 
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
-		return Rzcsicmp(m_pstr, lpsz);
-#else
-		return strcasecmp(m_pstr, lpsz); 
-#endif
+		return Rzcsicmp(m_pstr, lpsz); 
 	}
 
     inline CRzString Left(int iLength) const
@@ -345,12 +341,9 @@ public:
     inline CRzString& operator<<(bool v);
     inline CRzString& operator<<(float v);
     inline CRzString& operator<<(double v);
-    inline CRzString& operator<<(const char *str);
-	inline CRzString& operator<<(const wchar_t *str);
-	inline CRzString& operator<<(char v[]);
-	inline CRzString& operator<<(wchar_t v[]);
-	inline CRzString& operator<<(std::string& str);
-	inline CRzString& operator<<(std::wstring& str);
+    inline CRzString& operator<<(const Rzchar *str);
+	inline CRzString& operator<<(Rzchar v[]);
+	inline CRzString& operator<<(Rzstring& str);
     inline CRzString& operator<<(CRzString &v);
 	inline CRzString& operator<< (CRzString& (*_f)(CRzString&));
 
@@ -377,11 +370,7 @@ inline CRzString& operator<<(CRzString& str, const std::wstring &v)
 template<typename T>
 inline void CRzString::Write(const T &src)
 {
-#ifdef _UNICODE
-	std::wstringstream str;	
-#else
-	std::stringstream str;	
-#endif
+	Rzstringstream str;
 	str << src;
 	Append(str.str().c_str());
 }
@@ -440,46 +429,17 @@ CRzString& CRzString::operator<<(double v)
 	Write<double>(v);
 	return *this;
 }
-CRzString& CRzString::operator<<(const char *str)
+CRzString& CRzString::operator<<(const Rzchar *str)
 {
-#ifdef _UNICODE
-#else
 	Append(str);
-#endif
 	return *this;
 }
-CRzString& CRzString::operator<<(const wchar_t *str)
+CRzString& CRzString::operator<<(Rzchar str[])
 {
-#ifdef _UNICODE
 	Append(str);
-#else
-	
-#endif
 	return *this;
 }
-CRzString& CRzString::operator<<(char v[])
-{
-#ifdef _UNICODE
-#else
-	Append((char*)v);
-#endif
-	return *this;
-}
-CRzString& CRzString::operator<<(wchar_t v[])
-{
-#ifdef _UNICODE
-	Append((wchar_t*)v);
-#else
-	
-#endif
-	return *this;
-}
-CRzString& CRzString::operator<<(std::string& str)
-{
-	(*this) << (str.c_str());
-	return *this;
-}
-CRzString& CRzString::operator<<(std::wstring& str)
+CRzString& CRzString::operator<<(Rzstring& str)
 {
 	(*this) << (str.c_str());
 	return *this;
@@ -495,7 +455,7 @@ CRzString& CRzString::operator<< (CRzString& (*_f)(CRzString&))
 }
 inline CRzString& endl(CRzString& v)
 {
-	v += '\n';
+	v += _T('\n');
 	return v;
 }
 
