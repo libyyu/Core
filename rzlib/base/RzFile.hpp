@@ -18,6 +18,33 @@
 #endif
 _RzStdBegin
 
+class RzAutoData
+{
+    int ref;
+    char* pData;
+public:
+    RzAutoData(char* data = 0): pData(data),ref(0)
+    {
+        addref();
+    }
+    ~RzAutoData() 
+    { 
+        unref();
+        if(ref ==0) reset(); 
+    }
+    inline RzAutoData& operator = (RzAutoData& rhs)
+    {
+        rhs.addref();
+        pData = rhs.pData;
+        return *this;
+    }
+    inline operator char*() const{ return pData; }
+    void reset() { if(pData) delete[] pData; pData = NULL; }
+protected:
+    void addref() { ++ref; }
+    void unref() { --ref; }
+};
+
 class CRzFile
 {
 public:
@@ -35,32 +62,6 @@ public:
 	{
 		Close();
 	}
-    class FData
-    {
-        int ref;
-        char* pData;
-    public:
-        FData(char* data = 0): pData(data),ref(0)
-        {
-            addref();
-        }
-        ~FData() 
-        { 
-            unref();
-            if(ref ==0) reset(); 
-        }
-        inline FData& operator = (FData& rhs)
-        {
-            rhs.addref();
-            pData = rhs.pData;
-            return *this;
-        }
-        inline operator char*() const{ return pData; }
-        void reset() { if(pData) delete[] pData; pData = NULL; }
-    protected:
-        void addref() { ++ref; }
-        void unref() { --ref; }
-    };
 public:
     inline int Open(const char* filename, bool readonly = true);
     inline int Close();
@@ -74,7 +75,7 @@ public:
     inline int Delete();
 
     inline long ReadAll(void* p_buffer);
-    inline long ReadAll(FData& p_buffer);
+    inline long ReadAll(RzAutoData& p_buffer);
     inline long Read(void* p_buffer, unsigned long n_bytes_2_read);
     inline long Write(const void* p_buffer, unsigned long n_bytes_2_write);
 
@@ -277,13 +278,13 @@ int CRzFile::Seek(int offset, unsigned int mode)
 #endif
     return 0;
 }
-long CRzFile::ReadAll(CRzFile::FData& p_buffer)
+long CRzFile::ReadAll(RzAutoData& p_buffer)
 {
     long nSize = GetSize();
     char* pData = new char[nSize+1];
     long nRead = Read(pData, nSize);
     pData[nSize] = 0x0;
-    FData fd(pData);
+    RzAutoData fd(pData);
     p_buffer = fd;
     return nRead;
 }

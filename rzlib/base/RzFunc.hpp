@@ -12,6 +12,7 @@
 #include "RzType.hpp"
 #include <sys/types.h>  
 #include <sys/stat.h>
+#include <functional>
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 #include <windows.h>
 #include <direct.h>
@@ -242,7 +243,7 @@ inline bool RzDirExists(const char* path)
 #endif
 }
 
-inline int RzGetAllFiles(const char* path, std::vector<char*>& files) 
+inline int RzGetAllFiles(const char* path, bool reversal = true, const std::function<void(const char*, bool)>& action = nullptr) 
 {
 	assert(path);
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
@@ -263,10 +264,14 @@ inline int RzGetAllFiles(const char* path, std::vector<char*>& files)
 			{
 				char new_path[256] = { 0 };
 				sprintf(new_path, "%s\\%s", path, finddata.name);
-				ret = RzGetAllFiles(new_path, files);
-				if (ret != 0) 
+				if(action) action(new_path, true);
+				if(reversal)
 				{
-					break;
+					ret = RzGetAllFiles(new_path, reversal, action);
+					if (ret != 0) 
+					{
+						break;
+					}
 				}
 			}
 		}
@@ -274,7 +279,7 @@ inline int RzGetAllFiles(const char* path, std::vector<char*>& files)
 		{
 			char new_path[256] = { 0 };
 			sprintf(new_path, "%s\\%s", path, finddata.name);
-			files.push_back(new_path);
+			if(action) action(new_path, false);
 		}
 
 		if (_findnext(h, &finddata) != 0) 
@@ -301,7 +306,7 @@ inline int RzGetAllFiles(const char* path, std::vector<char*>& files)
 		{
 			char new_path[256] = { 0 };
 			sprintf(new_path, "%s/%s", path, ptr->d_name);
-			files.push_back(new_path);
+			if(action) action(new_path, false);
 		}
 		else if (ptr->d_type == 10) // link file
 			continue;
@@ -309,10 +314,14 @@ inline int RzGetAllFiles(const char* path, std::vector<char*>& files)
 		{
 			char new_path[256] = { 0 };
 			sprintf(new_path, "%s/%s", path, ptr->d_name);
-			ret = RzGetAllFiles(new_path, files);
-			if (ret != 0)
+			if(action) action(new_path, true);
+			if(reversal)
 			{
-				break;
+				ret = RzGetAllFiles(new_path, reversal, action);
+				if (ret != 0)
+				{
+					break;
+				}
 			}
 		}
 	}
