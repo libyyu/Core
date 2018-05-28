@@ -261,7 +261,7 @@ public:
 private:
 	CRzThreadPool(const CRzThreadPool&){}
     void operator=(const CRzThreadPool&){}
-	typedef std::vector<std::shared_ptr<CRzThread>> _RzThreadVector;
+	typedef std::vector<std::shared_ptr<CRzThread> > _RzThreadVector;
 	
 	class _RzTaskQueue
 	{
