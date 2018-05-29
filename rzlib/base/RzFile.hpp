@@ -89,7 +89,7 @@ public:
     }
 private:
     bool _readonly;
-    char _filename[100];
+    char _filename[256];
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
     HANDLE _file;
 #else
