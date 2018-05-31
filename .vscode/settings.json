@@ -17,6 +17,8 @@
         "sstream": "cpp",
         "ios": "cpp",
         "__mutex_base": "cpp",
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "fstream": "cpp",
+        "locale": "cpp"
     }
 }

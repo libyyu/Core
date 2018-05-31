@@ -17,11 +17,13 @@
 
 #include "lua.hpp"
 #include <assert.h>
-#include <sstream>
 #include <list>
 #include <set>
 #include <map>
 #include <vector>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 #define LUA_FUNC_DELC(name) int lua_##name(lua_State* l);
 #define LUA_FUNC_IMPL(name) int lua_##name(lua_State* l)
@@ -30,12 +32,6 @@
 
 #define SUPPORT_PARAMS 1
 
-#if defined (AZURE_CLIENT)
-extern void a_UnityLogError(const char* log);
-extern void a_UnityFormatLogError(const char* format, ...);
-extern void af_ReleaseFileBuffer(unsigned char* pBuffer);
-extern bool af_ReadFileAllBytes(const char* szFile, unsigned char** ppBuffer, unsigned int* nFileLength);
-#endif
 
 namespace lua
 {
@@ -51,31 +47,6 @@ namespace lua
 		std::string trace = lua_tostring(l, -1);
 		lua_settop(l, oldTop);
 		return trace;
-	}
-
-	inline int pcall_callback_err_fun(lua_State* l)  
-	{  
-	    //lua_Debug debug= {};  
-	    //lua_getstack(l, 2, &debug); // 0是pcall_callback_err_fun自己, 1是error函数, 2是真正出错的函数  
-	    //lua_getinfo(l, "Sln", &debug);
-
-		std::string traceback = gettraceback(l,"");
-	  
-	    std::string err = lua_tostring(l, -1);  
-	    lua_pop(l, 1);  
-	    std::stringstream msg;  
-	    
-		msg << " [" << err << "]"
-			<< std::endl
-			<< traceback.c_str();
- 
-#if defined( AZURE_CLIENT )
-		a_UnityFormatLogError("Error: %s\n", msg.str().c_str());
-#else
-		fprintf(stderr, "Error: %s\n", msg.str().c_str());
-#endif
-
-	    return 0;
 	}
 
 	#define LUA_CHECK_ERROR(expr, type, idx) error_report(l, (expr), type, idx, #expr, __FILE__, __LINE__);
@@ -724,6 +695,7 @@ namespace lua
 			{
 				return;
 			}
+
 			LUA_CHECK_ERROR(0 != lua_isstring(l, pos), LUA_TSTRING, pos);
 			const char* str = luaL_checkstring(l, pos);
 			*value = str;
@@ -1095,6 +1067,28 @@ namespace lua
 		pop(l, args...);
 	}
 #endif
+
+	inline bool pcall(lua_State* l, int nArgs, int nResults, int nErrorsRef = -1)
+	{
+		int oldTop = lua_gettop(l) - nArgs - 1;
+		int errPos = 0;
+		if (nErrorsRef != -1)
+		{
+			lua_rawgeti(l, LUA_REGISTRYINDEX, nErrorsRef);
+			lua_insert(l, oldTop + 1);
+			errPos = oldTop + 1;
+		}
+		if (lua_pcall(l, nArgs, nResults, errPos) == 0)
+		{
+			errPos ? lua_remove(l, errPos) : lua_pop(l, 1);
+			return true;
+		}
+		else
+		{
+			errPos ? lua_remove(l, errPos) : lua_pop(l, 1);
+			return false;
+		}
+	}
 	//////////////////////////////////////////////////////////////
 	struct lua_ref_t
 	{
@@ -1129,33 +1123,22 @@ namespace lua
 		template <typename ... Args>
 		inline bool call(const Args &... args)
 		{
-			if(!l)
-			{
-				printf("Error: lua env is nil\n");
-				return false;
-			}
-			lua_pushcfunction(l, pcall_callback_err_fun);
-			lua_pushvalue (l, -1);
-			luaL_ref (l, LUA_REGISTRYINDEX);
-			int pos_err = lua_gettop(l);  
+			assert(l);
+
+			lua_getglobal(l, "debug");
+			lua_getfield(l, -1, "traceback");
+			int tracebackFuncRef = luaL_ref(l, LUA_REGISTRYINDEX);
+			lua_pop(l, 1);
 
 			lua_rawgeti(l, (int)LUA_REGISTRYINDEX, this->ref_v);  //function
 			if (!lua_isfunction(l, -1))
 			{
 				lua_pop(l, 1);
-				lua_remove(l, pos_err);
 				luaL_error(l, "Error: %d is not a function\n", this->ref_v);
 				return false;
 			}
-			int n = push(l, args...);
-			if (0 != lua_pcall(l, n, -1, pos_err))
-			{
-				lua_pop(l, 1);
-				lua_remove(l, pos_err);
-				return false;
-			}
-			lua_remove(l, pos_err);
-			return true;
+
+			return pcall(l, push(l, args...), -1, tracebackFuncRef);
 		}
 #endif
 	};
@@ -1194,33 +1177,22 @@ namespace lua
 		template <typename ... Args>
 		inline bool call(const char* method, const Args &... args)
 		{
-			if(!l)
-			{
-				printf("Error: lua env is nil\n");
-				return false;
-			}
-			lua_pushcfunction(l, pcall_callback_err_fun);
-			lua_pushvalue (l, -1);
-			luaL_ref (l, LUA_REGISTRYINDEX);
-			int pos_err = lua_gettop(l);  
+			assert(l);
+
+			lua_getglobal(l, "debug");
+			lua_getfield(l, -1, "traceback");
+			int tracebackFuncRef = luaL_ref(l, LUA_REGISTRYINDEX);
+			lua_pop(l, 1);
 
 			lua_rawgeti(l, (int)LUA_REGISTRYINDEX, this->ref_v); //t
 			lua_getfield(l, -1, method);//t,func
 			if (!lua_isfunction(l, -1))
 			{
 				lua_pop(l, 1);
-				lua_remove(l, pos_err);
 				return false;
 			}
-			int n = push(l, args...);
-			if (0 != lua_pcall(l, n, -1, pos_err))
-			{
-				lua_pop(l, 1);
-				lua_remove(l, pos_err);
-				return false;
-			}
-			lua_remove(l, pos_err);
-			return true;
+
+			return pcall(l, push(l, args...), -1, tracebackFuncRef);
 		}
 #endif
 		template<typename T>
@@ -1376,120 +1348,148 @@ namespace lua
 	//////////////////////////////////////////////////////////////
 #if SUPPORT_PARAMS
 	template <typename ... Args>
-	inline bool call(lua_State* l, const char* method, const Args &... args)
+	inline bool callFunction(lua_State* l, const char* method, const Args &... args)
 	{
-		lua_pushcfunction(l, pcall_callback_err_fun);
-		lua_pushvalue (l, -1);
-		luaL_ref (l, LUA_REGISTRYINDEX);
-		int pos_err = lua_gettop(l);  
+		assert(l);
+
+		lua_getglobal(l, "debug");
+		lua_getfield(l, -1, "traceback");
+		int tracebackFuncRef = luaL_ref(l, LUA_REGISTRYINDEX);
+		lua_pop(l, 1);
 
 		lua_getglobal(l, method);
 		if (!lua_isfunction(l, -1))
 		{
 			lua_pop(l, 1);
-			lua_remove(l, pos_err);
 			return false;
 		}
-		int n = push(l, args...);
-		if (0 != lua_pcall(l, n, -1, pos_err))
-		{
-			lua_pop(l, 1);
-			lua_remove(l, pos_err);
-			return false;
-		}
-		lua_remove(l, pos_err);
-		return true;
+
+		return pcall(l, push(l, args...), -1, tracebackFuncRef);
 	}
 
 	template <typename ... Args>
-	inline bool call(lua_State* l, int refTable, const char* method, const Args &... args)
+	inline bool callFunction(lua_State* l, int refFunc, const Args &... args)
 	{
-		lua_pushcfunction(l, pcall_callback_err_fun);
-		lua_pushvalue (l, -1);
-		luaL_ref (l, LUA_REGISTRYINDEX);
-		int pos_err = lua_gettop(l);  
+		assert(l);
+
+		lua_getglobal(l, "debug");
+		lua_getfield(l, -1, "traceback");
+		int tracebackFuncRef = luaL_ref(l, LUA_REGISTRYINDEX);
+		lua_pop(l, 1);
+
+		lua_rawgeti(l, (int)LUA_REGISTRYINDEX, refFunc);  //function
+		if (!lua_isfunction(l, -1))
+		{
+			lua_pop(l, 1);
+			luaL_error(l, "Error: %d is not a function\n", refFunc);
+			return false;
+		}
+
+		return pcall(l, push(l, args...), -1, tracebackFuncRef);
+	}
+
+	template <typename ... Args>
+	inline bool callTableFunction(lua_State* l, const char* module, const char* method, const Args &... args)
+	{
+		assert(l);
+
+		lua_getglobal(l, "debug");
+		lua_getfield(l, -1, "traceback");
+		int tracebackFuncRef = luaL_ref(l, LUA_REGISTRYINDEX);
+		lua_pop(l, 1);
+
+		lua_getglobal(l, module);	//--> t
+		if (!lua_istable(l, -1))
+		{
+			lua_pop(l, 1);
+			return false;
+		}
+
+		lua_getfield(l, -1, method);//t,func
+		if (lua_isnil(l, -1))
+		{
+			lua_pop(l, 1);
+			return false;
+		}
+
+		return pcall(l, push(l, args...), -1, tracebackFuncRef);
+	}
+
+	template <typename ... Args>
+	inline bool callTableFunction(lua_State* l, int refTable, const char* method, const Args &... args)
+	{
+		assert(l);
+
+		lua_getglobal(l, "debug");
+		lua_getfield(l, -1, "traceback");
+		int tracebackFuncRef = luaL_ref(l, LUA_REGISTRYINDEX);
+		lua_pop(l, 1);
 
 		lua_rawgeti(l, (int)LUA_REGISTRYINDEX, refTable); //t
 		lua_getfield(l, -1, method);//t,func
 		if (lua_isnil(l, -1))
 		{
 			lua_pop(l, 1);
-			lua_remove(l, pos_err);
 			return false;
 		}
-		int n = push(l, args...);
-		if (0 != lua_pcall(l, n, -1, pos_err))
-		{
-			lua_pop(l, 1);
-			lua_remove(l, pos_err);
-			return false;
-		}
-		lua_remove(l, pos_err);
-		return true;
+
+		return pcall(l, push(l, args...), -1, tracebackFuncRef);
 	}
 #endif
 
 #if SUPPORT_PARAMS
 	template <typename ... Args>
-	inline bool run(lua_State* l, const char* filename, const Args &... args)
+	inline bool runFile(lua_State* l, const char* filename, const Args &... args)
 #else
-	inline bool run(lua_State* l, const char* filename)
+	inline bool runFile(lua_State* l, const char* filename)
 #endif
 	{
-		lua_pushcfunction(l, pcall_callback_err_fun);
-		lua_pushvalue (l, -1);
-		luaL_ref (l, LUA_REGISTRYINDEX);
-		int pos_err = lua_gettop(l);  
+		assert(l);
+		lua_getglobal(l, "debug");
+		lua_getfield(l, -1, "traceback");
+		int tracebackFuncRef = luaL_ref(l, LUA_REGISTRYINDEX);
+		lua_pop(l, 1);
 
-#if defined (AZURE_CLIENT)
-		unsigned char* pBuffer = NULL;
-		unsigned int   nLength = 0;
-		bool ret = af_ReadFileAllBytes(filename, &pBuffer, &nLength);
-		if (!ret || !nLength || !pBuffer)
-		{
-			a_UnityFormatLogError("Error: Can't ReadFileAllBytes %s\n", filename);
-			lua_remove(l, pos_err);
-			return false;
-		}
-		std::string chunk = std::string("@") + filename;
-		if( 0 != luaL_loadbuffer(l, (char*)pBuffer, nLength, chunk.c_str()))
-		{
-			af_ReleaseFileBuffer(pBuffer);
-			a_UnityFormatLogError("Error: luaL_loadbuffer %s\n", filename);
-			lua_remove(l, pos_err);
-			return false;
-		}
-		af_ReleaseFileBuffer(pBuffer);
-#else
 		if (0 != luaL_loadfile(l, filename))
 		{
-			const char* errmsg = lua_tostring(l, -1);
-#if defined( _CONSOLE )
-			fprintf(stderr, "Error: %s\n", errmsg);
-#else
-			luaL_error(l, "Error: %s\n", errmsg);
-#endif
-			lua_remove(l, pos_err);
+			lua_pop(l, 1);
 			return false;
 		}
-#endif
 
 #if SUPPORT_PARAMS
 		int n = push(l, args...);
 #else
 		int n = 0;
 #endif
-		int error = lua_pcall(l, n, -1, pos_err);
-		if( error != 0 )
-		{
-			lua_pop(l, 1);
-			lua_remove(l, pos_err);
-			return false;
-		}
-		lua_remove(l, pos_err);
-		return true;
+		return pcall(l, n, -1, tracebackFuncRef);
 	}
 
+#if SUPPORT_PARAMS
+	template <typename ... Args>
+	inline bool runString(lua_State* l, const char* buff, const Args &... args)
+#else
+	inline bool runString(lua_State* l, const char* buff)
+#endif
+	{
+		assert(l);
+		lua_getglobal(l, "debug");
+		lua_getfield(l, -1, "traceback");
+		int tracebackFuncRef = luaL_ref(l, LUA_REGISTRYINDEX);
+		lua_pop(l, 1);
+
+		if (0 != luaL_loadstring(l, buff))
+		{
+			lua_pop(l, 1);
+			return false;
+		}
+
+#if SUPPORT_PARAMS
+		int n = push(l, args...);
+#else
+		int n = 0;
+#endif
+		return pcall(l, n, -1, tracebackFuncRef);
+	}
 }
 
 
