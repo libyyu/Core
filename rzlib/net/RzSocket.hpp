@@ -87,7 +87,7 @@ class CRzSocket
 {
 public:
     typedef std::function<bool(void)> ExitWaitPred;
-    CRzSocket() : _s(INVALID_SOCKET){}
+    CRzSocket(SOCKET s = INVALID_SOCKET) : _s(s){}
 	virtual ~CRzSocket(){ Close(); }
 public:
     inline operator SOCKET() const { return _s;};
