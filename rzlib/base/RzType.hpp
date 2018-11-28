@@ -192,15 +192,24 @@ typedef __uint64_t        				uint64;
 typedef unsigned char byte;
 #endif
 
+typedef std::vector<uchar>              ByteArray;
+
+
 #undef RZ_DISALLOW_CONSTRUCTORS
 #define RZ_DISALLOW_CONSTRUCTORS(TypeName)    \
     TypeName(const TypeName&);            \
-    void operator= (const TypeName&)
+    void operator= (const TypeName&);
 
 
 #define lengthof(x)   (sizeof(x)/sizeof(*x))
 
 #define MIN(a,b) ((a)<(b)) ? (a) : (b)
 #define MAX(a,b) ((a)>(b)) ? (a) : (b)
+
+#define PROPERTY(varType, varName, funName) \
+    protected: varType varName; \
+    public: virtual varType get##funName(void) const { return varName; } \
+    public: virtual void set##funName(const varType& var) { varName = var; }
+
 
 #endif//__RZTYPE_HPP__

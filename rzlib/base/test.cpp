@@ -149,6 +149,17 @@ int main(int argc, const char * argv[]) {
         ret = file.Read(buff+ret, 10);
         file.Close();
     }
+    file.Open("/Users/lidengfeng/Documents/Workspace/Binary/Binary/bin/Debug/test.txt", true);
+    RzAutoData bytes;
+    long sz = file.GetSize();
+    file.ReadAll(bytes);
+    CRzBuffer br((const uint8 *)(char*)bytes, sz);
+    int32 i32;
+    int16 i16;
+    int64 i64;
+    char ib[1024] = {0};
+    br >> i32 >> i16 >> i64 >> ib;
+    RZ_CONSOLE(WARN) << i32 << "," << i16 << "," << i64 << "," << ib << endl;
 
     RZ_REPORT_MEMORY
     
