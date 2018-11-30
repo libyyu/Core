@@ -24,7 +24,9 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-
+#if PLATFORM_TARGET == PLATFORM_LINUX
+#include <string.h>
+#endif
 #define LUA_FUNC_DELC(name) int lua_##name(lua_State* l);
 #define LUA_FUNC_IMPL(name) int lua_##name(lua_State* l)
 #define LUA_FUNC_NAME(name) lua_##name
@@ -598,7 +600,7 @@ namespace lua
 				return false;
 		}
 	};
-
+#ifndef __LP64__
 	template<>
 	struct lua_op_t<int64>
 	{
@@ -680,6 +682,7 @@ namespace lua
 				return false;
 		}
 	};
+#endif
 
 	template<>
 	struct lua_op_t<std::string>
@@ -1080,12 +1083,12 @@ namespace lua
 		}
 		if (lua_pcall(l, nArgs, nResults, errPos) == 0)
 		{
-			errPos ? lua_remove(l, errPos) : lua_pop(l, 1);
+			errPos ? lua_remove(l, errPos) : lua_settop(l, oldTop);
 			return true;
 		}
 		else
 		{
-			errPos ? lua_remove(l, errPos) : lua_pop(l, 1);
+			errPos ? lua_remove(l, errPos) : lua_settop(l, oldTop);
 			return false;
 		}
 	}

@@ -6,6 +6,9 @@
 #include <iostream>
 #include <sstream> 
 #include "RzType.hpp"
+#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#include <Windows.h>
+#endif
 
 _RzStdBegin
 namespace ByteConverter
@@ -202,7 +205,7 @@ public:
 		return sResult;
 	}
 
-    static wstringtype UTF8ToUTF16(char* ptext,int len)  //?
+    static wstringtype UTF8ToUTF16(const char* ptext,int len)  //?
 	{
 		stringtype stmp = UTF8ToGB2312(ptext,len);
 		return GB2312ToUTF16(stmp.c_str(),stmp.length());

@@ -192,7 +192,7 @@ public:
 	{
 		// Do ordinary printf replacements
 		// NOTE: Documented max-length of wvsprintf() is 2048
-		Rzchar szBuffer[2049] = { 0 };
+		Rzchar szBuffer[20480] = { 0 };
 		va_list argList;
 		va_start(argList, pstrFormat);
 

@@ -19,6 +19,8 @@ public:
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
     static const uint32_t kInfinite = INFINITE;
     typedef HANDLE sem_t;
+#elif PLATFORM_TARGET == PLATFORM_LINUX
+    static const uint32_t kInfinite = UINTMAX_MAX;
 #else
     static const uint32_t kInfinite = UINT_MAX;
 #endif

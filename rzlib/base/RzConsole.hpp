@@ -94,47 +94,47 @@ protected:
 		_RzConsoleHandle::get()->RedirectIOToConsole();
 		lock_wrapper lock(&m_lock);
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
-		if (_level == RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
-		{
-			::SetConsoleTextAttribute(_RzConsoleHandle::get()->m_stdOutputHandle, FOREGROUND_RED | FOREGROUND_GREEN);
-		}
-		else if (_level > RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
-		{
-			::SetConsoleTextAttribute(_RzConsoleHandle::get()->m_stdErrHandle, FOREGROUND_RED);
-		}
-		if (_level <= RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
-		{
-			std::cout << _message.c_str();
-		}
-		else
-		{
-			std::cerr << _message.c_str();
-		}
-		if (_level == RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
-		{
-			::SetConsoleTextAttribute(_RzConsoleHandle::get()->m_stdOutputHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-		}
-		else if (_level > RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
-		{
-			::SetConsoleTextAttribute(_RzConsoleHandle::get()->m_stdErrHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-		}
+	if (_level == RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
+	{
+		::SetConsoleTextAttribute(_RzConsoleHandle::get()->m_stdOutputHandle, FOREGROUND_RED | FOREGROUND_GREEN);
+	}
+	else if (_level > RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
+	{
+		::SetConsoleTextAttribute(_RzConsoleHandle::get()->m_stdErrHandle, FOREGROUND_RED);
+	}
+	if (_level <= RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
+	{
+		std::cout << _message.c_str();
+	}
+	else
+	{
+		std::cerr << _message.c_str();
+	}
+	if (_level == RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
+	{
+		::SetConsoleTextAttribute(_RzConsoleHandle::get()->m_stdOutputHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+	}
+	else if (_level > RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
+	{
+		::SetConsoleTextAttribute(_RzConsoleHandle::get()->m_stdErrHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+	}
 #else
-		const int MAX_BUFFLEN = 20480;
-		char outbuff[MAX_BUFFLEN+1] = { 0 };
-		if (_level == RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
-		{
-			sprintf(outbuff, "\e[1;33m%s\e[0m", _message.c_str()); 
-			std::cout << outbuff;
-		}
-		else if(_level > RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
-		{
-			sprintf(outbuff, "\e[1;31m%s\e[0m", _message.c_str()); 
-			std::cerr << outbuff;
-		}
-		else
-		{
-			std::cout << _message.c_str();
-		}
+	const int MAX_BUFFLEN = 20480;
+	char outbuff[MAX_BUFFLEN+1] = { 0 };
+	if (_level == RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
+	{
+		sprintf(outbuff, "\e[1;33m%s\e[0m", _message.c_str()); 
+		std::cout << outbuff;
+	}
+	else if(_level > RZ_LOGLEVEL::RZ_LOGLEVEL_WARN)
+	{
+		sprintf(outbuff, "\e[1;31m%s\e[0m", _message.c_str()); 
+		std::cerr << outbuff;
+	}
+	else
+	{
+		std::cout << _message.c_str();
+	}
 #endif
 	}
 };

@@ -12,6 +12,7 @@
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 #include <tchar.h>
 #if defined( UNICODE ) || defined( _UNICODE )
+	#undef _T
     #define _T(type)            L##type
     #define _W(fun)             w##fun
     #define Rzchar              wchar_t
@@ -25,7 +26,7 @@
 	#define Rzcsstr				wcschr
     #define Rzstrrchr           wcsrchr
     #define Rzstrncpy           wcsncpy
-	#define Rzcsicmp			wcsicmp
+	#define Rzcsicmp			_wcsicmp
     #define Rzstrlen            wcslen
     #define Rzstrcmp            wcscmp
 	#define Rzstrcpy            wcscpy
@@ -47,7 +48,7 @@
     #define Rzstrrchr           strrchr
 	#define Rzcsstr				strchr
     #define Rzstrncpy           strncpy
-	#define Rzcsicmp			stricmp
+	#define Rzcsicmp			_stricmp
     #define Rzstrlen            strlen
     #define Rzstrcmp            strcmp
     #define Rzstrcpy            strcpy
