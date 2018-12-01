@@ -7,7 +7,7 @@
 #include <string>
 #include <sstream> 
 #include "FLock.hpp"
-#include "FLog.hpp"
+#include "FLogInterface.hpp"
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 #include <io.h>
 #include <fcntl.h>
@@ -15,11 +15,11 @@
 _FStdBegin
 
 
-class FConsole : public FILogMessage
+class FConsole : public FLogInterface
 {
 	class _FConsoleHandle
 	{
-		bool 		_isAlloced;
+		bool 	  m_isAlloced;
 		FLock     m_lock;
 	public:
 		//Console
@@ -28,7 +28,7 @@ class FConsole : public FILogMessage
 		HANDLE 	 	m_stdErrHandle;
 #endif
 	protected:
-		_FConsoleHandle() : _isAlloced(false)
+		_FConsoleHandle() : m_isAlloced(false)
 		{
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 			m_stdOutputHandle = 0;
@@ -45,7 +45,7 @@ class FConsole : public FILogMessage
 		void RedirectIOToConsole( )
 		{
 			lock_wrapper lock(&m_lock);
-			if(_isAlloced)
+			if(m_isAlloced)
 				return ;
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 			// 分配一个控制台，以便于输出一些有用的信息
@@ -72,16 +72,16 @@ class FConsole : public FILogMessage
 			// 这个调用确保 iostream 和 C run-time library 的操作在源代码中有序。 
 			std::ios::sync_with_stdio();
 #endif
-			_isAlloced = true;
+			m_isAlloced = true;
 		}
 	};
 public:
-	FConsole(F_LOGLEVEL level) : FILogMessage(level)
+	FConsole(F_LOGLEVEL level) : FLogInterface(level)
 	{
 		_FConsoleHandle::get()->RedirectIOToConsole();
 	}
 	FConsole(F_LOGLEVEL level, const char* filename, int line = -1)
-		:FILogMessage(level, filename, line)
+	:FLogInterface(level, filename, line)
 	{
 		_FConsoleHandle::get()->RedirectIOToConsole();
 	}
@@ -89,7 +89,7 @@ public:
 private:
 	FLock     m_lock;
 protected:
-    virtual void _LogHandle()
+    virtual void _LogImpl()
 	{
 		_FConsoleHandle::get()->RedirectIOToConsole();
 		lock_wrapper lock(&m_lock);
@@ -139,7 +139,7 @@ protected:
 	}
 };
 _FStdEnd
-
+//////////////////////////////////////////////////////////////////////
 _FStdBegin
 #define F_CONSOLE(LEVEL) \
 	FLogFinisher() = FConsole(F_LOGLEVEL::F_LOGLEVEL_##LEVEL)
@@ -147,7 +147,7 @@ _FStdBegin
 #define F_CONSOLE_TRACE  \
 	FConsole f_console_trace(F_LOGLEVEL::F_LOGLEVEL_TRACE, __FILE__, __LINE__);  \
 	FLogTraceFunction f_logTraceFunction(f_console_trace, __FUNCTION__, __FILE__, __LINE__); \
-	f_logTraceFunction = f_console_trace << __FUNCTION__ << "() begin " << endl;
+	f_logTraceFunction = f_console_trace << __FUNCTION__ << "() enter " << endl;
 
 _FStdEnd
 

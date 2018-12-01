@@ -9,7 +9,7 @@
 #ifndef _LUA_SCRIPT_HPP__
 #define _LUA_SCRIPT_HPP__
 
-#include "../../base/RzType.hpp"
+#include "../../base/FType.hpp"
 
 //#if !SUPPORT_PARAMS
 //#warning "This library needs at least a C++11 compliant compiler, so some functions can not used."

@@ -19,7 +19,7 @@ _FStdBegin
 class FPlugin
 {
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
-	typedef HINSTANCE  plugin_t;
+	typedef HINSTANCE   plugin_t;
 #else
 	typedef void*		plugin_t;
 #endif
@@ -73,15 +73,24 @@ public:
 		return IsLoaded() && !!GetSymbol(symbol_name);
 	}
 
-	template <typename T>
-	inline T Get(const char* symbol_name)
+	template <typename FUNC>
+	inline FUNC Get(const char* symbol_name)
 	{
 		void* addr = GetSymbol(symbol_name);
 		if (!addr)
 		{
 			return NULL;
 		}
-		return (T)(addr);
+		return (FUNC)(addr);
+	}
+
+	template <typename R, typename ... Args>
+	inline R Call(const char* symbol_name, const Args &... args)
+	{
+		typedef R(*function_t)(Args...);
+		function_t function_ = Get<function_t>(symbol_name);
+		if(!function_) return R();
+		return function_(args...);
 	}
 
 	inline bool IsLoaded()

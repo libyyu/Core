@@ -220,7 +220,7 @@ bool FSocket::Connect(const FSockAddr* pRemoteaddr)
 	if(!IsCreate()) return false;
 
 	assert(pRemoteaddr);
-	int ret = ::connect(_s,(sockaddr*)pRemoteaddr,(pRemoteaddr ? pRemoteaddr->addlen : NULL));
+	int ret = ::connect(_s,(sockaddr*)pRemoteaddr, pRemoteaddr->addlen);
     if(SOCKET_ERROR == ret
 #if PLATFORM_TARGET == PLATFORM_WINDOWS  
         && WSAEWOULDBLOCK != ::WSAGetLastError()
@@ -239,7 +239,7 @@ bool FSocket::ConnectEx(const FSockAddr* pRemoteaddr,int nTimeOut /* = 10 */,FSo
 	assert(pRemoteaddr);
 	unsigned long ul = 1; 
 	this->Ioctl(FIONBIO, &ul);//设置阻塞模式<0为阻塞，1非阻塞>  
-	int nRet = ::connect(_s,(sockaddr*)pRemoteaddr,(pRemoteaddr ? pRemoteaddr->addlen : NULL)); 
+	int nRet = ::connect(_s,(sockaddr*)pRemoteaddr,pRemoteaddr->addlen); 
 	if(SOCKET_ERROR == nRet)
 	{
 #if PLATFORM_TARGET == PLATFORM_WINDOWS  
@@ -351,14 +351,14 @@ int FSocket::RecvFrom(char* buf,size_t cnt,FSockAddr* pRemoteaddr)
 {
 	assert(IsCreate());
 	assert(pRemoteaddr);   
-	return ::recvfrom(_s,buf,cnt,0,(sockaddr*)pRemoteaddr,(pRemoteaddr ? &pRemoteaddr->addlen : NULL));
+	return ::recvfrom(_s,buf,cnt,0,(sockaddr*)pRemoteaddr, &pRemoteaddr->addlen);
 }
 int FSocket::SendTo(char* buf,size_t cnt,FSockAddr* pRemoteaddr)
 {
 	assert(IsCreate());
 	assert(pRemoteaddr);
 
-	return ::sendto(_s,buf,cnt,0,(sockaddr*)pRemoteaddr,(pRemoteaddr ? pRemoteaddr->addlen : NULL));
+	return ::sendto(_s,buf,cnt,0,(sockaddr*)pRemoteaddr,pRemoteaddr->addlen);
 }
 _FNameSpaceEnd
 _FStdEnd

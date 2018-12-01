@@ -19,9 +19,11 @@
 #include "FMD5.hpp"
 #include "FBase64.hpp"
 #include "FMemTrack.hpp"
+#include "FLogFile.hpp"
+#include "FPlugin.hpp"
 _FUsing(std)
 _FUsing(FStd)
-
+static FAutoFile fGlobalLog("log.txt");
 int CalcDistance(int x, int z, int x2, int z2)
 {
     int d = x - x2;
@@ -49,14 +51,19 @@ void testbase64()
 }
 void testmd5()
 {
+    F_LOGFILE_TRACE(fGlobalLog)
     char buff[200];
     FMD5String("hello world", buff);
     F_CONSOLE(DEBUG) << buff << endl;
+    F_LOGFILE(DEBUG, fGlobalLog) << "test md5" << endl;
 }
 
 int main(int argc, const char * argv[]) {
     // insert code here...
     F_CONSOLE_TRACE
+    F_LOGFILE_TRACE(fGlobalLog)
+    F_LOGFILE(DEBUG, fGlobalLog) << "LOGFILE" << endl;
+
     int * pT = new int(8);
     std::cout << "Hello, World!\n";
 #if PLATFORM_TARGET == PLATFORM_MACOSX
@@ -161,7 +168,9 @@ int main(int argc, const char * argv[]) {
     br >> i32 >> i16 >> i64 >> ib;
     F_CONSOLE(WARN) << i32 << "," << i16 << "," << i64 << "," << ib << endl;
 
+    FPlugin plugin("/Volumes/SHARED/WorkSpace/wLuaDemo/Demo/libwLua2.dylib");
+    typedef int(*wlua_makecsindex)(void * , int);
+    wlua_makecsindex pf = plugin.Get<wlua_makecsindex>("wlua_makecsindex");
     F_REPORT_MEMORY
-    
     return 0;
 }
