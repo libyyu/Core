@@ -21,6 +21,7 @@
 #include "FMemTrack.hpp"
 #include "FLogFile.hpp"
 #include "FPlugin.hpp"
+#include "test.h"
 _FUsing(std)
 _FUsing(FStd)
 static FAutoFile fGlobalLog("log.txt");
@@ -171,6 +172,9 @@ int main(int argc, const char * argv[]) {
     FPlugin plugin("/Volumes/SHARED/WorkSpace/wLuaDemo/Demo/libwLua2.dylib");
     typedef int(*wlua_makecsindex)(void * , int);
     wlua_makecsindex pf = plugin.Get<wlua_makecsindex>("wlua_makecsindex");
+
+    testprocess();
+
     F_REPORT_MEMORY
     return 0;
 }
