@@ -1,8 +1,8 @@
 #ifndef __FSEMAPHORE_HPP__
 #define __FSEMAPHORE_HPP__
 #pragma once
-#include <time.h>
 #include "FLock.hpp"
+#include <time.h>
 #include <functional>
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
     #include <Windows.h>
@@ -11,8 +11,11 @@
     #include <sys/time.h>
     #include <limits>
 #endif
+#if MINGW32
+#include <limits.h>
+#endif
 _FStdBegin
-//�� -lrt �� -pthread һ������
+//锟斤拷 -lrt 锟斤拷 -pthread 一锟斤拷锟斤拷锟斤拷
 class FSemaphore
 {
 public:

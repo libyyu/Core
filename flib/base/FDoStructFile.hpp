@@ -2,10 +2,9 @@
 #ifndef __FDOSTRUCTFILE_HPP__
 #define __FDOSTRUCTFILE_HPP__
 #pragma once
-#include <fstream>
-#include <vector>
-#include <algorithm>
 #include "FDReadAWriteLock.hpp"
+#include <fstream>
+#include <algorithm>
 
 using namespace std;
 _FStdBegin

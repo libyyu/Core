@@ -1,11 +1,8 @@
 #ifndef _FBASE64_HPP__
 #define _FBASE64_HPP__
 #pragma once
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <iostream>
 #include "FType.hpp"
+#include <iostream>
 
 _FStdBegin
 static const std::string _F_base64_chars = 

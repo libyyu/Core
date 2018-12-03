@@ -1,11 +1,10 @@
 #ifndef __FLOCK_HPP__
 #define __FLOCK_HPP__
 #pragma once
+#include "FType.hpp"
 #include <time.h>
 #include <sstream>
 #include <iostream>
-#include "FType.hpp"
-
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 #include <windows.h>
 #else

@@ -1,9 +1,9 @@
 #ifndef  __FMEMPOOL_HPP__
 #define  __FMEMPOOL_HPP__
 #pragma once
-#include <assert.h>
 #include "FDReadAWriteLock.hpp"
 #include <iostream>
+
 _FUsing(std)
 /*****************************************************************************************************
   ±¾ÀàÎªÄÚ´æ³ØÀà£¬ÒÔÁ´±íÐÎÊ½¹ÜÀí£¬ÊµÔòÕ»Ê½£¬´ÓÁ´±íÍ·´¦²åÈëÓëÒÆ³ý£¬

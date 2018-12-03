@@ -2,7 +2,6 @@
 #define __FFILE_HPP__
 #pragma once
 #include "FConsole.hpp"
-#include <stdio.h>
 #include <functional>
 #include <memory>
 #if PLATFORM_TARGET == PLATFORM_WINDOWS

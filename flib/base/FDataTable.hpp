@@ -1,13 +1,10 @@
 /*
-һ���򵥵Ķ�ά�ı�����з���
+一锟斤拷锟津单的讹拷维锟侥憋拷锟斤拷锟斤拷蟹锟斤拷锟�
 */
 #ifndef __FDATATABLE_HPP__
 #define __FDATATABLE_HPP__
-#include <sstream>
-#include <vector>
-#include <string>
-#include <cassert>
 #include "FType.hpp"
+#include <sstream>
 
 _FStdBegin
 class FDataTable

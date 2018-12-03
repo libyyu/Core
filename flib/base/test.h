@@ -2,7 +2,9 @@
 #include <iostream>
 
 using namespace FStd;
-
+#if MINGW32
+int testprocess() { return 0; }
+#else
 int testprocess() {
 #if !defined(_WIN32) || defined(MSYS_PROCESS_USE_SH)
   //The following examples are for Unix-like systems and Windows through MSYS2
@@ -174,3 +176,5 @@ int testprocess() {
 
   return 0;
 }
+
+#endif

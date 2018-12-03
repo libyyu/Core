@@ -1,13 +1,11 @@
 #ifndef __FPLUGIN_HPP__
 #define __FPLUGIN_HPP__
 #pragma once
-#include <string>
+#include "FType.hpp"
 #include <locale.h>
-#include <assert.h>
 #include <iostream>
 #include <sstream> 
 #include <stdarg.h>
-#include "FType.hpp"
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 #include <Windows.h>
 #else

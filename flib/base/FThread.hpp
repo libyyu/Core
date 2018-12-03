@@ -1,10 +1,9 @@
 #ifndef __FTHREAD_HPP__
 #define __FTHREAD_HPP__
 #pragma once
-#include <vector>
-#include <queue>
 #include "FLock.hpp"
 #include "FSemaphore.hpp"
+#include <queue>
 #include <functional>
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 	#include <Windows.h>

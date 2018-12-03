@@ -6,9 +6,6 @@
 
 #include "FType.hpp"
 #include <typeinfo>
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <algorithm>
 #include <new>
 

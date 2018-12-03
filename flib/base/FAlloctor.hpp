@@ -1,9 +1,8 @@
 #ifndef __FALLOCTOR_HPP__
 #define __FALLOCTOR_HPP__
-
 #pragma once
-#include <stdlib.h>
 #include "FLock.hpp"
+
 _FStdBegin
 template<size_t T,size_t MAXSIZE,typename LOCK = FLock,size_t C = 16> 
 class FAlloctorPool

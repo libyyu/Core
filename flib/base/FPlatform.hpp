@@ -25,9 +25,13 @@
 #else
 #define PLATFORM_TARGET        PLATFORM_UNKNOW
 #endif
+#ifdef __MINGW32__
+#define MINGW32 1
+#else
+#define MINGW32 0
+#endif
 /********************************************************************************/
 /*END PLATFORM*/
 /********************************************************************************/
-
 
 #endif//__FPLATFORM_HPP__

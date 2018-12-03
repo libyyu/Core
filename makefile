@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -std=c++0x -g -Wno-deprecated
+CFLAGS = -std=c++0x -g -Wno-deprecated -fpermissive -Wconversion-null
 INCLUDE = -I.
 LIBRARY = #-lstdc++ -lpthread
 BOOST_SDK = -I/Volumes/SHARED/WorkSpace/boost_1_67_0

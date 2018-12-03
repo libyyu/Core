@@ -2,13 +2,24 @@
 #define __FTYPE_HPP__
 #pragma once
 
+#if MINGW32
+#undef __STRICT_ANSI__
 #include <stdio.h>
+#define __STRICT_ANSI__
+#else
+#include <stdio.h>
+#endif
+
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
 #include <string>
+#include <vector>
 #include <stddef.h>
 #include "FPlatform.hpp"
+#if MINGW32
+#include <string.h>
+#endif
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 #include <tchar.h>
 #if defined( UNICODE ) || defined( _UNICODE )
@@ -26,7 +37,7 @@
 	#define Fcsstr			   wcschr
     #define Fstrrchr           wcsrchr
     #define Fstrncpy           wcsncpy
-	#define Fcsicmp			   _wcsicmp
+	#define Fcsncasecmp		   _wcsnicmp
     #define Fstrlen            wcslen
     #define Fstrcmp            wcscmp
 	#define Fstrcpy            wcscpy
@@ -35,6 +46,7 @@
     #define Fvsnprintf		   _vsnwprintf_s 
 	#define Fsprintf	       swprintf
 #else
+    #undef _T
     #define _T(type)           type
     #define _W(fun)            fun
     #define Fchar              char
@@ -48,7 +60,7 @@
     #define Fstrrchr           strrchr
 	#define Fcsstr			   strchr
     #define Fstrncpy           strncpy
-	#define Fcsicmp			   _stricmp
+	#define Fcsncasecmp		   _strnicmp
     #define Fstrlen            strlen
     #define Fstrcmp            strcmp
     #define Fstrcpy            strcpy
@@ -60,6 +72,7 @@
 #else
 #include <wchar.h>
 #if defined( UNICODE ) || defined( _UNICODE )
+    #undef _T
     #define _T(type)           L##type
     #define _W(fun)            w##fun
     #define Fchar              wchar_t
@@ -73,7 +86,7 @@
 	#define Fcsstr			   wcschr
     #define Fstrrchr           wcsrchr
     #define Fstrncpy           wcsncpy
-	#define Fcsicmp			   wcscasecmp
+	#define Fstrncasecmp	   wcsncasecmp
     #define Fstrlen            wcslen
     #define Fstrcmp            wcscmp
 	#define Fstrcpy            wcscpy
@@ -82,6 +95,7 @@
     #define Fvsnprintf		   vswprintf 
 	#define Fsprintf	       swprintf
 #else
+    #undef _T
     #define _T(type)           type
     #define _W(fun)            fun
     #define Fchar              char
@@ -95,7 +109,7 @@
     #define Fstrrchr           strrchr
 	#define Fcsstr			   strchr
     #define Fstrncpy           strncpy
-	#define Fcsicmp			   strcasecmp
+	#define Fstrncasecmp	   strncasecmp
     #define Fstrlen            strlen
     #define Fstrcmp            strcmp
     #define Fstrcpy            strcpy
@@ -181,7 +195,7 @@ typedef unsigned long                   uint32;
 #endif
 
 
-#ifdef _MSC_VER
+#if PLATFORM_TARGET == PLATFORM_WINDOWS //&& !MINGW32
 typedef __int64           				int64;
 typedef unsigned __int64  				uint64;
 #else
@@ -207,10 +221,20 @@ typedef std::vector<uchar>              ByteArray;
 #define MIN(a,b) ((a)<(b)) ? (a) : (b)
 #define MAX(a,b) ((a)>(b)) ? (a) : (b)
 
+#define JOIN( X, Y ) DO_JOIN( X, Y )
+#define DO_JOIN( X, Y ) DO_JOIN2(X,Y)
+#define DO_JOIN2( X, Y ) X##Y
+
 #define PROPERTY(varType, varName, funName) \
     protected: varType varName; \
     public: virtual varType get##funName(void) const { return varName; } \
     public: virtual void set##funName(const varType& var) { varName = var; }
 
+#if MINGW32
+//_CRTIMP FILE* __cdecl __MINGW_NOTHROW   _fdopen (int, const char*);
+_CRTIMP FILE* __cdecl __MINGW_NOTHROW   fdopen (int, const char*);
+_CRTIMP int __cdecl __MINGW_NOTHROW _strnicmp (const char*, const char*, size_t);
+#define _fdopen fdopen
+#endif
 
 #endif//__FTYPE_HPP__

@@ -1,11 +1,10 @@
-#ifndef __FCONVERT_HPP__
+﻿#ifndef __FCONVERT_HPP__
 #define __FCONVERT_HPP__
 #pragma once
-#include <string>
+#include "FType.hpp"
 #include <locale.h>
 #include <iostream>
 #include <sstream> 
-#include "FType.hpp"
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 #include <Windows.h>
 #endif
@@ -65,15 +64,15 @@ public:
     static bool IsTextUTF8(char* str,unsigned long long length)
 	{
 		  int i;   
-		  unsigned long nBytes=0;                       //UFT8����1-6���ֽڱ���,ASCII��һ���ֽ�   
+		  unsigned long nBytes=0;                       //UFT8锟斤拷锟斤拷1-6锟斤拷锟街节憋拷锟斤拷,ASCII锟斤拷一锟斤拷锟街斤拷   
 		  unsigned char chr;   
-		  bool bAllAscii = true; //���ȫ������ASCII, ˵������UTF-8  
+		  bool bAllAscii = true; //锟斤拷锟饺拷锟斤拷锟斤拷锟紸SCII, 说锟斤拷锟斤拷锟斤拷UTF-8  
 		  for(i=0;i<length;i++)   
 		  {
 			  chr= *(str+i);
-			  if( (chr&0x80) != 0 ) // �ж��Ƿ�ASCII����,�������,˵���п�����UTF-8,ASCII��7λ����,����һ���ֽڴ�,���λ���Ϊ0,o0xxxxxxx  
+			  if( (chr&0x80) != 0 ) // 锟叫讹拷锟角凤拷ASCII锟斤拷锟斤拷,锟斤拷锟斤拷锟斤拷锟�,说锟斤拷锟叫匡拷锟斤拷锟斤拷UTF-8,ASCII锟斤拷7位锟斤拷锟斤拷,锟斤拷锟斤拷一锟斤拷锟街节达拷,锟斤拷锟轿伙拷锟斤拷为0,o0xxxxxxx  
 				  bAllAscii = false; 
-			  if(nBytes==0) //�������ASCII��,Ӧ���Ƕ��ֽڷ�,�����ֽ���
+			  if(nBytes==0) //锟斤拷锟斤拷锟斤拷锟紸SCII锟斤拷,应锟斤拷锟角讹拷锟街节凤拷,锟斤拷锟斤拷锟街斤拷锟斤拷
 			  {   
 				  if(chr>=0x80)
 				  {   
@@ -94,7 +93,7 @@ public:
 					  nBytes--;   
 				  }
 			  }   
-			  else //���ֽڷ��ķ����ֽ�,ӦΪ 10xxxxxx   
+			  else //锟斤拷锟街节凤拷锟侥凤拷锟斤拷锟街斤拷,应为 10xxxxxx   
 			  {   
 				  if( (chr&0xC0) != 0x80 )  
 				  {
@@ -103,11 +102,11 @@ public:
 				  nBytes--; 
 			  }
 		  } 
-		  if( nBytes > 0 ) //Υ������
+		  if( nBytes > 0 ) //违锟斤拷锟斤拷锟斤拷
 		  {  
 			  return false; 
 		  }
-		  if( bAllAscii ) //���ȫ������ASCII, ˵������UTF-8 
+		  if( bAllAscii ) //锟斤拷锟饺拷锟斤拷锟斤拷锟紸SCII, 说锟斤拷锟斤拷锟斤拷UTF-8 
 		  {  
 			  return false; 
 		  } 
@@ -264,7 +263,7 @@ public:
 protected:
     static void _UTF16ToUTF8ofChar(char* pOut, const wchar_t* pText)
 	{
-		// ע�� WCHAR�ߵ��ֵ�˳��,���ֽ���ǰ�����ֽ��ں�
+		// 注锟斤拷 WCHAR锟竭碉拷锟街碉拷顺锟斤拷,锟斤拷锟街斤拷锟斤拷前锟斤拷锟斤拷锟街斤拷锟节猴拷
 		char* pchar = (char *)pText;
 
 		pOut[0] = (0xE0 | ((pchar[1] & 0xF0) >> 4));

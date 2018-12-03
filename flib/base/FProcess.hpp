@@ -1,19 +1,17 @@
 #ifndef __FPROCESS_HPP__
 #define __FPROCESS_HPP__
 #pragma once
-#include <string>
-#include <assert.h>
+#include "FType.hpp"
 #include <iostream>
 #include <sstream> 
 #include <functional>
-#include <vector>
 #include <mutex>
 #include <thread>
 #include <memory>
 #include <stdexcept>
-#include "FType.hpp"
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 #include <Windows.h>
+#include <TLHelp32.h>
 #else
 #include <pthread.h>
 #include <sys/wait.h>

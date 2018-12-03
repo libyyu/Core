@@ -1,14 +1,13 @@
 #ifndef __FSTRING_HPP__
 #define __FSTRING_HPP__
 #pragma once
-#include <string>
+#include "FType.hpp"
 #include <locale.h>
 #include <assert.h>
 #include <iostream>
 #include <sstream> 
 #include <stdarg.h>
-#include "FType.hpp"
-
+#include <string.h>
 _FStdBegin
 
 class FString
@@ -116,7 +115,7 @@ public:
 
 	inline int CompareNoCase(const Fchar* lpsz) const
 	{ 
-		return Fcsicmp(m_pstr, lpsz); 
+		return Fstrncasecmp(m_pstr, lpsz, Fstrlen(lpsz)); 
 	}
 
     inline FString Left(int iLength) const

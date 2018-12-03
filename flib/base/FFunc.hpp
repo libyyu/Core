@@ -1,15 +1,12 @@
 #ifndef __FFUNC_HPP__
 #define __FFUNC_HPP__
 #pragma once
+#include "FType.hpp"
 #include <time.h>
 #include <sstream>
 #include <iostream>
-#include <assert.h>
-#include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <vector>
-#include "FType.hpp"
 #include <sys/types.h>  
 #include <sys/stat.h>
 #include <functional>
@@ -66,7 +63,9 @@ inline std::string FFormat(const char* format, ...)
 	va_start(va, format);
 	const int MAX_BUFFLEN = 20480;
 	char buff[MAX_BUFFLEN+1] = { 0 };
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if MINGW32
+	vsnprintf(buff, MAX_BUFFLEN, format, va);
+#elif PLATFORM_TARGET == PLATFORM_WINDOWS
 	_vsnprintf_s(buff, MAX_BUFFLEN, format, va);
 #else
 	vsnprintf(buff, MAX_BUFFLEN, format, va);
@@ -174,7 +173,6 @@ inline const char* FGetModulePath()
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
     static char modulepath[MAX_PATH] = { 0 };
     ::GetModuleFileNameA(NULL, modulepath, MAX_PATH);
-    strrchr(modulepath,  '/');
     return modulepath;
 #elif PLATFORM_TARGET == PLATFORM_MACOSX
     pid_t pid = getpid();
@@ -195,7 +193,11 @@ inline const char* FGetModuleName()
     static char name[100] = {0};
     const char* modulepath = FGetModulePath();
     if(!modulepath) return NULL;
-    const char* path_end = strrchr(modulepath,  '/');
+#if PLATFORM_TARGET == PLATFORM_WINDOWS
+    const char* path_end = strrchr(modulepath,  '\\');
+#else
+	const char* path_end = strrchr(modulepath, '/');
+#endif
     if(path_end == NULL) return NULL;
     ++path_end;
     strcpy(name, path_end);
@@ -208,8 +210,13 @@ inline bool FFileExists(const char* filename)
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
     if (filename != NULL && strlen(filename) > 0)
     {
+#if MINGW32
+        struct _stat stat_info;
+        return _stat(filename, &stat_info) == 0;
+#else
         struct _stat32 stat_info;
         return _stat32(filename, &stat_info) == 0;
+#endif
     }
     else
         return false;

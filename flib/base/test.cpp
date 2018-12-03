@@ -6,7 +6,6 @@
 //  Copyright © 2017年 Dengfeng Li. All rights reserved.
 //
 
-#include <iostream>
 #include "FBuffer.hpp"
 #include "FString.hpp"
 #include "FObserver.hpp"

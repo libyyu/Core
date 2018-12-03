@@ -3,9 +3,7 @@
 #pragma once
 #include "FType.hpp"
 #include <map> 
-#include <string>
 #include <fstream>
-#include <vector>
 #include <iostream>
 #include <functional>
 #include <memory>
@@ -137,11 +135,11 @@ public:
  private:  
    stringtype DoSwitchALine(const stringtype &aLineStr,stringtype &curSection)
    {
-	   if(aLineStr.empty()) return curSection;  //���� 
-	   if(';' == aLineStr.at(0)) return curSection; //ע����
+	   if(aLineStr.empty()) return curSection;  //锟斤拷锟斤拷 
+	   if(';' == aLineStr.at(0)) return curSection; //注锟斤拷锟斤拷
 
 	   stringtype::size_type n;	
-	   if('[' == aLineStr.at(0))//section�� 
+	   if('[' == aLineStr.at(0))//section锟斤拷 
 	   {
 		   n = aLineStr.find(']',1);
 		   curSection = aLineStr.substr(1,n-1);
@@ -153,10 +151,10 @@ public:
 	   stringtype strKey;
 	   stringtype strVaule;
 	   n = aLineStr.find('=',0);
-	   if(stringtype::npos == n) return curSection; //û��=�� 
+	   if(stringtype::npos == n) return curSection; //没锟斤拷=锟斤拷 
 
 	   strKey = aLineStr.substr(0,n);
-	   if(stringtype::npos == n+1)   //=�ź������� 
+	   if(stringtype::npos == n+1)   //=锟脚猴拷锟斤拷锟斤拷锟斤拷 
 		   strVaule = "";  
 	   else   
 		   strVaule = aLineStr.substr(n+1);

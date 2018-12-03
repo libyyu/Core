@@ -1,13 +1,12 @@
 #ifndef __FCONSOLE_HPP
 #define __FCONSOLE_HPP
 #pragma once
+#include "FLock.hpp"
+#include "FLogInterface.hpp"
 #include <iostream>
 #include <stdarg.h>
 #include <time.h>
-#include <string>
 #include <sstream> 
-#include "FLock.hpp"
-#include "FLogInterface.hpp"
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 #include <io.h>
 #include <fcntl.h>

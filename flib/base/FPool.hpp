@@ -1,7 +1,6 @@
 #ifndef __FPOOL_HPP__
 #define __FPOOL_HPP__
 #pragma once
-#include <string>
 #include "FLock.hpp"
 
 _FStdBegin
@@ -15,9 +14,9 @@ template <class T, unsigned int nInitCount = 10>
 class FPool
 {
 private:
-    _F_Node<T>*           m_pHead;	                 //ͷ���
-    unsigned long       m_nOutCount;            //�׳�����
-    unsigned long       m_nInCount;             //���и���	
+    _F_Node<T>*           m_pHead;	                 //头锟斤拷锟�
+    unsigned long       m_nOutCount;            //锟阶筹拷锟斤拷锟斤拷
+    unsigned long       m_nInCount;             //锟斤拷锟叫革拷锟斤拷	
     FLock             m_lock;
 public:
     FPool();
@@ -73,9 +72,9 @@ T* FPool<T,nInitCount>::GetBuf()
     _Node<T>* p_Node = NULL;
 
     m_lock.lock();
-    if (m_pHead)                           //ע�ⲻ����ͷ�ڵ�Ϊ�յ����
-    {                                  //Ϊ��ʱ����������������������룬���ֱ�ӷ���NULL
-        p_Node = m_pHead;                   //�ڴ��ͷ�ʱֱ����ӵ�ͷ�ڵ㴦,��FreeBuf ����
+    if (m_pHead)                           //注锟解不锟斤拷锟斤拷头锟节碉拷为锟秸碉拷锟斤拷锟�
+    {                                  //为锟斤拷时锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷耄拷锟斤拷直锟接凤拷锟斤拷NULL
+        p_Node = m_pHead;                   //锟节达拷锟酵凤拷时直锟斤拷锟斤拷拥锟酵凤拷诘愦�,锟斤拷FreeBuf 锟斤拷锟斤拷
         m_pHead = m_pHead->pNext;			
         pResult = &(p_Node->data);
         --m_nInCount;
@@ -120,7 +119,7 @@ void FPool<T,nInitCount>::FreeBuf(T* p,bool bDelete /* = false */)
 
 template <class T,unsigned int nInitCount>
 void FPool<T,nInitCount>::DeleteAll_Node()
-{                                       //��������˽�У����������������ã������������Դ˴����ü���
+{                                       //锟斤拷锟斤拷锟斤拷锟斤拷私锟叫ｏ拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟矫ｏ拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟皆此达拷锟斤拷锟矫硷拷锟斤拷
     _Node<T>* p_Node = NULL;
     while(1)
     {

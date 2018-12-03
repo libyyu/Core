@@ -1,11 +1,10 @@
 #ifndef __FLogInterface_HPP__
 #define __FLogInterface_HPP__
 #pragma once
-#include <iostream>
-#include <string>
-#include <sstream> 
 #include "FType.hpp"
 #include "FFunc.hpp"
+#include <iostream>
+#include <sstream> 
 
 _FStdBegin
 enum F_LOGLEVEL 
@@ -71,9 +70,9 @@ public:
         _message.clear();
     }
     template<typename T>
-    inline FLogInterface& operator<<(T v); // will generate link error
+    inline FLogInterface& operator<< (T v); // will generate link error
 #define TRMPLATE_DECLARE(T) \
-    inline FLogInterface& operator<<(T v);
+    inline FLogInterface& operator<< (T v);
 
     TRMPLATE_DECLARE(int8)
     TRMPLATE_DECLARE(int16)
