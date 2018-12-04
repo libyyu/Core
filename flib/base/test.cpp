@@ -5,7 +5,6 @@
 //  Created by Dengfeng Li on 2017/11/26.
 //  Copyright © 2017年 Dengfeng Li. All rights reserved.
 //
-
 #include "FBuffer.hpp"
 #include "FString.hpp"
 #include "FObserver.hpp"
@@ -17,7 +16,6 @@
 #include "FThread.hpp"
 #include "FMD5.hpp"
 #include "FBase64.hpp"
-#include "FMemTrack.hpp"
 #include "FLogFile.hpp"
 #include "FPlugin.hpp"
 #include "test.h"
@@ -157,22 +155,24 @@ int main(int argc, const char * argv[]) {
         file.Close();
     }
     file.Open("/Users/lidengfeng/Documents/Workspace/Binary/Binary/bin/Debug/test.txt", true);
-    FAutoData bytes;
-    long sz = file.GetSize();
-    file.ReadAll(bytes);
-    FBuffer br((const uint8 *)(char*)bytes, sz);
-    int32 i32;
-    int16 i16;
-    int64 i64;
-    char ib[1024] = {0};
-    br >> i32 >> i16 >> i64 >> ib;
-    F_CONSOLE(WARN) << i32 << "," << i16 << "," << i64 << "," << ib << endl;
-
+	if (file)
+	{
+		FAutoData bytes;
+		long sz = file.GetSize();
+		file.ReadAll(bytes);
+		FBuffer br((const uint8 *)(char*)bytes, sz);
+		int32 i32;
+		int16 i16;
+		int64 i64;
+		char ib[1024] = { 0 };
+		br >> i32 >> i16 >> i64 >> ib;
+		F_CONSOLE(WARN) << i32 << "," << i16 << "," << i64 << "," << ib << endl;
+	}
     FPlugin plugin("/Volumes/SHARED/WorkSpace/wLuaDemo/Demo/libwLua2.dylib");
     typedef int(*wlua_makecsindex)(void * , int);
     wlua_makecsindex pf = plugin.Get<wlua_makecsindex>("wlua_makecsindex");
 
-    testprocess();
+   // testprocess();
 
     F_REPORT_MEMORY
     return 0;

@@ -7,6 +7,7 @@
 #include <functional>
 #include <memory>
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <winsock2.h>
 #include <windows.h>
 #pragma comment(lib,"ws2_32.lib")

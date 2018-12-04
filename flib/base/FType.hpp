@@ -2,14 +2,7 @@
 #define __FTYPE_HPP__
 #pragma once
 
-#if MINGW32
-#undef __STRICT_ANSI__
 #include <stdio.h>
-#define __STRICT_ANSI__
-#else
-#include <stdio.h>
-#endif
-
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
@@ -18,8 +11,11 @@
 #include <stddef.h>
 #include "FPlatform.hpp"
 #if MINGW32
+#include <cstring>
+#else
 #include <string.h>
 #endif
+#include "FMemTrack.hpp"
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 #include <tchar.h>
 #if defined( UNICODE ) || defined( _UNICODE )
@@ -37,7 +33,7 @@
 	#define Fcsstr			   wcschr
     #define Fstrrchr           wcsrchr
     #define Fstrncpy           wcsncpy
-	#define Fcsncasecmp		   _wcsnicmp
+	#define Fstrncasecmp	   _wcsnicmp
     #define Fstrlen            wcslen
     #define Fstrcmp            wcscmp
 	#define Fstrcpy            wcscpy
@@ -60,7 +56,7 @@
     #define Fstrrchr           strrchr
 	#define Fcsstr			   strchr
     #define Fstrncpy           strncpy
-	#define Fcsncasecmp		   _strnicmp
+	#define Fstrncasecmp	   _strnicmp
     #define Fstrlen            strlen
     #define Fstrcmp            strcmp
     #define Fstrcpy            strcpy
@@ -230,11 +226,11 @@ typedef std::vector<uchar>              ByteArray;
     public: virtual varType get##funName(void) const { return varName; } \
     public: virtual void set##funName(const varType& var) { varName = var; }
 
-#if MINGW32
-//_CRTIMP FILE* __cdecl __MINGW_NOTHROW   _fdopen (int, const char*);
-_CRTIMP FILE* __cdecl __MINGW_NOTHROW   fdopen (int, const char*);
-_CRTIMP int __cdecl __MINGW_NOTHROW _strnicmp (const char*, const char*, size_t);
-#define _fdopen fdopen
-#endif
+// #if MINGW32
+// //_CRTIMP FILE* __cdecl __MINGW_NOTHROW   _fdopen (int, const char*);
+// _CRTIMP FILE* __cdecl __MINGW_NOTHROW   fdopen (int, const char*);
+// _CRTIMP int __cdecl __MINGW_NOTHROW _strnicmp (const char*, const char*, size_t);
+// #define _fdopen fdopen
+// #endif
 
 #endif//__FTYPE_HPP__

@@ -2,7 +2,7 @@
 #include <iostream>
 
 using namespace FStd;
-#if MINGW32
+#if 0
 int testprocess() { return 0; }
 #else
 int testprocess() {

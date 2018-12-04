@@ -3,14 +3,15 @@
 #pragma once
 
 #ifdef _F_USE_MEMTRACK
-
-#include "FType.hpp"
+#include <sstream>
 #include <typeinfo>
 #include <algorithm>
 #include <new>
 
-_FStdBegin
-_FNameSpaceBegin(MemTrack)
+//#undef new    // IMPORTANT!
+namespace FStd {
+namespace MemTrack {
+
 class FMemStamp
 {
 public:
@@ -21,112 +22,106 @@ public:
         : filename(filename), lineNum(lineNum) { }
     ~FMemStamp() { }
 };
-_FNameSpaceEnd
-_FStdEnd
-
-//#undef new    // IMPORTANT!
-_FStdBegin
-_FNameSpaceBegin(MemTrack)
 /* ------------------------------------------------------------ */
 /* --------------------- class BlockHeader -------------------- */
 /* ------------------------------------------------------------ */
-class BlockHeader
+class FBlockHeader
 {
 public:
     friend class BlockHeaderStatic;
-        class BlockHeaderStatic
+    class BlockHeaderStatic
+    {
+    protected:
+        BlockHeaderStatic():ourFirstNode(NULL){}
+    public:
+        FBlockHeader* ourFirstNode;
+        inline static BlockHeaderStatic& Get()
         {
-        protected:
-            BlockHeaderStatic():ourFirstNode(NULL){}
-        public:
-            BlockHeader* ourFirstNode;
-            inline static BlockHeaderStatic& Get()
+            static BlockHeaderStatic instance;
+            return instance;
+        }
+
+        inline void AddNode(FBlockHeader *node)
+        {
+            assert(node != NULL);
+            assert(node->myPrevNode == NULL);
+            assert(node->myNextNode == NULL);
+
+            // If we have at least one node in the list ...        
+            if (ourFirstNode != NULL)
             {
-                static BlockHeaderStatic instance;
-                return instance;
+                // ... make the new node the first node's predecessor.
+                assert(ourFirstNode->myPrevNode == NULL);
+                ourFirstNode->myPrevNode = node;
             }
 
-            inline void AddNode(BlockHeader *node)
+            // Make the first node the new node's succesor.
+            node->myNextNode = ourFirstNode;
+
+            // Make the new node the first node.
+            ourFirstNode = node;
+        }
+        inline void RemoveNode(FBlockHeader *node)
+        {
+            assert(node != NULL);
+            assert(ourFirstNode != NULL);
+
+            // If target node is the first node in the list...
+            if (ourFirstNode == node)
             {
-                assert(node != NULL);
-                assert(node->myPrevNode == NULL);
-                assert(node->myNextNode == NULL);
-
-                // If we have at least one node in the list ...        
-                if (ourFirstNode != NULL)
-                {
-                    // ... make the new node the first node's predecessor.
-                    assert(ourFirstNode->myPrevNode == NULL);
-                    ourFirstNode->myPrevNode = node;
-                }
-
-                // Make the first node the new node's succesor.
-                node->myNextNode = ourFirstNode;
-
-                // Make the new node the first node.
-                ourFirstNode = node;
+                // ... make the target node's successor the first node.
+                assert(ourFirstNode->myPrevNode == NULL);
+                ourFirstNode = node->myNextNode;
             }
-            inline void RemoveNode(BlockHeader *node)
+            
+            // Link target node's predecessor, if any, to its successor.
+            if (node->myPrevNode != NULL)
             {
-                assert(node != NULL);
-                assert(ourFirstNode != NULL);
-
-                // If target node is the first node in the list...
-                if (ourFirstNode == node)
-                {
-                    // ... make the target node's successor the first node.
-                    assert(ourFirstNode->myPrevNode == NULL);
-                    ourFirstNode = node->myNextNode;
-                }
-                
-                // Link target node's predecessor, if any, to its successor.
-                if (node->myPrevNode != NULL)
-                {
-                    node->myPrevNode->myNextNode = node->myNextNode;
-                }
-                
-                // Link target node's successor, if any, to its predecessor.
-                if (node->myNextNode != NULL)
-                {
-                    node->myNextNode->myPrevNode = node->myPrevNode;
-                }
-
-                // Clear target node's previous and next pointers.
-                node->myPrevNode = NULL;
-                node->myNextNode = NULL;
+                node->myPrevNode->myNextNode = node->myNextNode;
             }
-            inline size_t CountBlocks()
+            
+            // Link target node's successor, if any, to its predecessor.
+            if (node->myNextNode != NULL)
             {
-                size_t count = 0;
-                BlockHeader *currNode = ourFirstNode;
-                while (currNode != NULL)
-                {
-                    count++;
-                    currNode = currNode->myNextNode;
-                }
-                return count;
+                node->myNextNode->myPrevNode = node->myPrevNode;
             }
-            inline void GetBlocks(BlockHeader **blockHeaderPP)
+
+            // Clear target node's previous and next pointers.
+            node->myPrevNode = NULL;
+            node->myNextNode = NULL;
+        }
+        inline size_t CountBlocks()
+        {
+            size_t count = 0;
+            FBlockHeader *currNode = ourFirstNode;
+            while (currNode != NULL)
             {
-                BlockHeader *currNode = ourFirstNode;
-                while (currNode != NULL)
-                {
-                    *blockHeaderPP = currNode;
-                    blockHeaderPP++;
-                    currNode = currNode->myNextNode;
-                }
+                count++;
+                currNode = currNode->myNextNode;
             }
-        };
+            return count;
+        }
+        inline void GetBlocks(FBlockHeader **blockHeaderPP)
+        {
+            FBlockHeader *currNode = ourFirstNode;
+            while (currNode != NULL)
+            {
+                *blockHeaderPP = currNode;
+                blockHeaderPP++;
+                currNode = currNode->myNextNode;
+            }
+        }
+    };
     private:    // member variables
-        BlockHeader *myPrevNode;
-        BlockHeader *myNextNode;
+        FBlockHeader *myPrevNode;
+        FBlockHeader *myNextNode;
         size_t myRequestedSize;
         char const *myFilename;
         int myLineNum;
         char const *myTypeName;
 
     public:     // members
-        BlockHeader(size_t requestedSize)
+        FBlockHeader(size_t requestedSize)
         {
             myPrevNode = NULL;
             myNextNode = NULL;
@@ -135,7 +130,7 @@ public:
             myLineNum = 0;
             myTypeName = "[unknown]";
         }
-        ~BlockHeader(){}
+        ~FBlockHeader(){}
     
         inline size_t GetRequestedSize() const { return myRequestedSize; }
         inline char const *GetFilename() const { return myFilename; }
@@ -148,16 +143,16 @@ public:
             myLineNum = lineNum;
             myTypeName = typeName;
         }
-        static bool TypeGreaterThan(BlockHeader *header1, BlockHeader *header2)
+        static bool TypeGreaterThan(FBlockHeader *header1, FBlockHeader *header2)
         {
             return (strcmp(header1->myTypeName, header2->myTypeName) > 0);
         }
 };
 
 /* ------------------------------------------------------------ */
-/* ---------------------- class Signature --------------------- */
+/* ---------------------- class FSignature --------------------- */
 /* ------------------------------------------------------------ */
-class Signature
+class FSignature
 {
     private:    // constants
         static const unsigned int SIGNATURE1 = 0xCAFEBABE;
@@ -168,11 +163,11 @@ class Signature
         unsigned int mySignature2;
         
     public:        // construction/destruction
-        Signature() : mySignature1(SIGNATURE1), mySignature2(SIGNATURE2) {};
-        ~Signature() { mySignature1 = 0; mySignature2 = 0; }
+        FSignature() : mySignature1(SIGNATURE1), mySignature2(SIGNATURE2) {};
+        ~FSignature() { mySignature1 = 0; mySignature2 = 0; }
         
     public:        // static member functions
-        static bool IsValidSignature(const Signature *pProspectiveSignature)
+        static bool IsValidSignature(const FSignature *pProspectiveSignature)
         {
             try
             {
@@ -197,66 +192,66 @@ class Signature
     */
 
 /* ---------------------------------------- alignment */
-static const size_t ALIGNMENT = 4;
+static const size_t FALIGNMENT = 4;
 
 /* If "value" (a memory size or offset) falls on an alignment boundary,
 * then just return it.  Otherwise return the smallest number larger
 * than "value" that falls on an alignment boundary.
 */    
-#define PAD_TO_ALIGNMENT_BOUNDARY(value) \
-    ((value) + ((ALIGNMENT - ((value) % ALIGNMENT)) % ALIGNMENT))
+#define FPAD_TO_ALIGNMENT_BOUNDARY(value) \
+    ((value) + ((FALIGNMENT - ((value) % FALIGNMENT)) % FALIGNMENT))
 
 /* ---------------------------------------- chunk structs */
 /* We declare incomplete structures for each chunk, just to 
     * provide type safety.
     */
 
-struct PrologChunk;
-struct UserChunk;
+struct FPrologChunk;
+struct FUserChunk;
 
 /* ---------------------------------------- chunk sizes and offsets */
-static const size_t SIZE_BlockHeader = PAD_TO_ALIGNMENT_BOUNDARY(sizeof(BlockHeader));
-static const size_t SIZE_Signature = PAD_TO_ALIGNMENT_BOUNDARY(sizeof(Signature));
+static const size_t FSIZE_BlockHeader = FPAD_TO_ALIGNMENT_BOUNDARY(sizeof(FBlockHeader));
+static const size_t FSIZE_Signature = FPAD_TO_ALIGNMENT_BOUNDARY(sizeof(FSignature));
 
-static const size_t OFFSET_BlockHeader = 0;
-static const size_t OFFSET_Signature = OFFSET_BlockHeader + SIZE_BlockHeader;
-static const size_t OFFSET_UserChunk = OFFSET_Signature + SIZE_Signature;
+static const size_t FOFFSET_BlockHeader = 0;
+static const size_t FOFFSET_Signature = FOFFSET_BlockHeader + FSIZE_BlockHeader;
+static const size_t FOFFSET_UserChunk = FOFFSET_Signature + FSIZE_Signature;
 
-static const size_t SIZE_PrologChunk = OFFSET_UserChunk;
+static const size_t FSIZE_PrologChunk = FOFFSET_UserChunk;
 
 /* ---------------------------------------- GetUserAddress */
-static UserChunk *GetUserAddress(PrologChunk *pProlog)
+static FUserChunk *FGetUserAddress(FPrologChunk *pProlog)
 {
     char *pchProlog = reinterpret_cast<char *>(pProlog);
-    char *pchUser = pchProlog + OFFSET_UserChunk;
-    UserChunk *pUser = reinterpret_cast<UserChunk *>(pchUser);
+    char *pchUser = pchProlog + FOFFSET_UserChunk;
+    FUserChunk *pUser = reinterpret_cast<FUserChunk *>(pchUser);
     return pUser;
 }
 
 /* ---------------------------------------- GetPrologAddress */
-static PrologChunk *GetPrologAddress(UserChunk *pUser)
+static FPrologChunk *FGetPrologAddress(FUserChunk *pUser)
 {
     char *pchUser = reinterpret_cast<char *>(pUser);
-    char *pchProlog = pchUser - OFFSET_UserChunk;
-    PrologChunk *pProlog = reinterpret_cast<PrologChunk *>(pchProlog);
+    char *pchProlog = pchUser - FOFFSET_UserChunk;
+    FPrologChunk *pProlog = reinterpret_cast<FPrologChunk *>(pchProlog);
     return pProlog;
 }
 
 /* ---------------------------------------- GetHeaderAddress */
-static BlockHeader *GetHeaderAddress(PrologChunk *pProlog)
+static FBlockHeader *FGetHeaderAddress(FPrologChunk *pProlog)
 {
     char *pchProlog = reinterpret_cast<char *>(pProlog);
-    char *pchHeader = pchProlog + OFFSET_BlockHeader;
-    BlockHeader *pHeader = reinterpret_cast<BlockHeader *>(pchHeader);
+    char *pchHeader = pchProlog + FOFFSET_BlockHeader;
+    FBlockHeader *pHeader = reinterpret_cast<FBlockHeader *>(pchHeader);
     return pHeader;
 }
 
 /* ---------------------------------------- GetSignatureAddress */
-static Signature *GetSignatureAddress(PrologChunk *pProlog)
+static FSignature *FGetSignatureAddress(FPrologChunk *pProlog)
 {
     char *pchProlog = reinterpret_cast<char *>(pProlog);
-    char *pchSignature = pchProlog + OFFSET_Signature;
-    Signature *pSignature = reinterpret_cast<Signature *>(pchSignature);
+    char *pchSignature = pchProlog + FOFFSET_Signature;
+    FSignature *pSignature = reinterpret_cast<FSignature *>(pchSignature);
     return pSignature;
 }
 
@@ -264,51 +259,51 @@ static Signature *GetSignatureAddress(PrologChunk *pProlog)
 /* -------------- memory allocation and stamping -------------- */
 /* ------------------------------------------------------------ */
 /* ---------------------------------------- TrackMalloc */
-inline void *TrackMalloc(size_t size)
+inline void *FTrackMalloc(size_t size)
 {
     // Allocate the memory, including space for the prolog.
-    PrologChunk *pProlog = (PrologChunk *)malloc(SIZE_PrologChunk + size);
+    FPrologChunk *pProlog = (FPrologChunk *)malloc(FSIZE_PrologChunk + size);
     
     // If the allocation failed, then return NULL.
     if (pProlog == NULL) return NULL;
     
     // Use placement new to construct the block header in place.
-    BlockHeader *pBlockHeader = new (pProlog) BlockHeader(size);
+    FBlockHeader *pBlockHeader = new (pProlog) FBlockHeader(size);
     
     // Link the block header into the list of extant block headers.
-    BlockHeader::BlockHeaderStatic::Get().AddNode(pBlockHeader);
+    FBlockHeader::BlockHeaderStatic::Get().AddNode(pBlockHeader);
     
     // Use placement new to construct the signature in place.
-    Signature *pSignature = new (GetSignatureAddress(pProlog)) Signature;
+    FSignature *pSignature = new (FGetSignatureAddress(pProlog)) FSignature;
     
     // Get the offset to the user chunk and return it.
-    UserChunk *pUser = GetUserAddress(pProlog);
+    FUserChunk *pUser = FGetUserAddress(pProlog);
     
     return pUser;
 }
 
 /* ---------------------------------------- TrackFree */
-inline void TrackFree(void *p)
+inline void FTrackFree(void *p)
 {
     // It's perfectly valid for "p" to be null; return if it is.
     if (p == NULL) return;
 
     // Get the prolog address for this memory block.
-    UserChunk *pUser = reinterpret_cast<UserChunk *>(p);    
-    PrologChunk *pProlog = GetPrologAddress(pUser);
+    FUserChunk *pUser = reinterpret_cast<FUserChunk *>(p);    
+    FPrologChunk *pProlog = FGetPrologAddress(pUser);
     
     // Check the signature, and if it's invalid, return immediately.
-    Signature *pSignature = GetSignatureAddress(pProlog);
-    if (!Signature::IsValidSignature(pSignature)) return;
+    FSignature *pSignature = FGetSignatureAddress(pProlog);
+    if (!FSignature::IsValidSignature(pSignature)) return;
     
     // Destroy the signature.
-    pSignature->~Signature();
+    pSignature->~FSignature();
     pSignature = NULL;
 
     // Unlink the block header from the list and destroy it.
-    BlockHeader *pBlockHeader = GetHeaderAddress(pProlog);
-    BlockHeader::BlockHeaderStatic::Get().RemoveNode(pBlockHeader);
-    pBlockHeader->~BlockHeader();
+    FBlockHeader *pBlockHeader = FGetHeaderAddress(pProlog);
+    FBlockHeader::BlockHeaderStatic::Get().RemoveNode(pBlockHeader);
+    pBlockHeader->~FBlockHeader();
     pBlockHeader = NULL;
 
     // Free the memory block.    
@@ -316,71 +311,82 @@ inline void TrackFree(void *p)
 }
 
 /* ---------------------------------------- TrackStamp */
-inline void TrackStamp(void *p, const FMemStamp &stamp, char const *typeName)
+inline void FTrackStamp(void *p, const FMemStamp &stamp, char const *typeName)
 {
     // Get the header and signature address for this pointer.
-    UserChunk *pUser = reinterpret_cast<UserChunk *>(p);
-    PrologChunk *pProlog = GetPrologAddress(pUser);
-    BlockHeader *pHeader = GetHeaderAddress(pProlog);
-    Signature *pSignature = GetSignatureAddress(pProlog);
+    FUserChunk *pUser = reinterpret_cast<FUserChunk *>(p);
+    FPrologChunk *pProlog = FGetPrologAddress(pUser);
+    FBlockHeader *pHeader = FGetHeaderAddress(pProlog);
+    FSignature *pSignature = FGetSignatureAddress(pProlog);
 
     // If the signature is not valid, then return immediately.
-    if (!Signature::IsValidSignature(pSignature)) return;
+    if (!FSignature::IsValidSignature(pSignature)) return;
 
     // "Stamp" the information onto the header.
     pHeader->Stamp(stamp.filename, stamp.lineNum, typeName);
 }
 
 /* ---------------------------------------- TrackDumpBlocks */
-inline void TrackDumpBlocks()
+inline void FTrackDumpBlocks()
 {
     // Get an array of pointers to all extant blocks.
-    size_t numBlocks = BlockHeader::BlockHeaderStatic::Get().CountBlocks();
-    BlockHeader **ppBlockHeader =
-        (BlockHeader **)calloc(numBlocks, sizeof(*ppBlockHeader));
-    BlockHeader::BlockHeaderStatic::Get().GetBlocks(ppBlockHeader);
+    size_t numBlocks = FBlockHeader::BlockHeaderStatic::Get().CountBlocks();
+    FBlockHeader **ppBlockHeader =
+        (FBlockHeader **)calloc(numBlocks, sizeof(*ppBlockHeader));
+    FBlockHeader::BlockHeaderStatic::Get().GetBlocks(ppBlockHeader);
 
+    std::stringstream message;
     // Dump information about the memory blocks.
-    printf("\n");
-    printf("=====================\n");
-    printf("Current Memory Blocks\n");
-    printf("=====================\n");
-    printf("\n");
+    message << ("\n");
+    message << ("==========================================\n");
+    message << ("            Current Memory Blocks         \n");
+    message << ("==========================================\n");
+    message << ("\n");
     int index = 0;
     for (size_t i = 0; i < numBlocks; i++)
     {
-        BlockHeader *pBlockHeader = ppBlockHeader[i];
+        FBlockHeader *pBlockHeader = ppBlockHeader[i];
         char const *typeName = pBlockHeader->GetTypeName();
         size_t size = pBlockHeader->GetRequestedSize();
         char const *fileName = pBlockHeader->GetFilename();
         int lineNum = pBlockHeader->GetLineNum();
         if(0 != strcmp(typeName, "[unknown]"))
         {
-            printf("*** #%-6d %5d bytes %-50s\n", ++index, size, typeName);
-            printf("... %s:%d\n", fileName, lineNum);
+            char buf[200] = {0};
+            sprintf(buf, "*** #%-6d %5d bytes %-50s\n", ++index, size, typeName);
+            message << buf;
+            buf[0] = 0x0;
+            sprintf(buf, "... %s:%d\n", fileName, lineNum);
+            message << buf;
+            buf[0] = 0x0;
         }
     }
-
     // Clean up.
     free(ppBlockHeader);
+
+    printf(message.str().c_str());
+    FILE* fp = fopen("MemoryBlocks.txt", "w");
+    fwrite(message.str().c_str(), message.str().size(), sizeof(char), fp);
+    fclose(fp);
+    message.clear();
 }
 
 /* ---------------------------------------- struct MemDigest */
-struct MemDigest
+struct FMemDigest
 {
     char const *typeName;
     int blockCount;
     size_t totalSize;
 
-    static bool TotalSizeGreaterThan(const MemDigest &md1, const MemDigest &md2)
+    static bool TotalSizeGreaterThan(const FMemDigest &md1, const FMemDigest &md2)
         { return md1.totalSize > md2.totalSize; }
 };
 
 
 /* ---------------------------------------- SummarizeMemoryUsageForType */
-inline void SummarizeMemoryUsageForType(
-    MemDigest *pMemDigest,
-    BlockHeader **ppBlockHeader,
+inline void FSummarizeMemoryUsageForType(
+    FMemDigest *pMemDigest,
+    FBlockHeader **ppBlockHeader,
     size_t startPost,
     size_t endPost
 )
@@ -397,22 +403,22 @@ inline void SummarizeMemoryUsageForType(
 }
 
 /* ---------------------------------------- TrackListMemoryUsage */
-inline void TrackListMemoryUsage()
+inline void FTrackListMemoryUsage()
 {
     // If there are no allocated blocks, then return now.
-    size_t numBlocks = BlockHeader::BlockHeaderStatic::Get().CountBlocks();
+    size_t numBlocks = FBlockHeader::BlockHeaderStatic::Get().CountBlocks();
     if (numBlocks == 0) return;
 
     // Get an array of pointers to all extant blocks.
-    BlockHeader **ppBlockHeader =
-        (BlockHeader **)calloc(numBlocks, sizeof(*ppBlockHeader));
-    BlockHeader::BlockHeaderStatic::Get().GetBlocks(ppBlockHeader);
+    FBlockHeader **ppBlockHeader =
+        (FBlockHeader **)calloc(numBlocks, sizeof(*ppBlockHeader));
+    FBlockHeader::BlockHeaderStatic::Get().GetBlocks(ppBlockHeader);
 
     // Sort the blocks by type name.
     std::sort(
         ppBlockHeader,
         ppBlockHeader + numBlocks,
-        BlockHeader::TypeGreaterThan
+        FBlockHeader::TypeGreaterThan
     );
 
     // Find out how many unique types we have.
@@ -427,8 +433,8 @@ inline void TrackListMemoryUsage()
     // Create an array of "digests" summarizing memory usage by type.
     size_t startPost = 0;
     size_t uniqueTypeIndex = 0;
-    MemDigest *pMemDigestArray =
-        (MemDigest *)calloc(numUniqueTypes, sizeof(*pMemDigestArray));
+    FMemDigest *pMemDigestArray =
+        (FMemDigest *)calloc(numUniqueTypes, sizeof(*pMemDigestArray));
     for (size_t i = 1; i <= numBlocks; i++)    // yes, less than or *equal* to
     {
         char const *prevTypeName = ppBlockHeader[i - 1]->GetTypeName();
@@ -436,7 +442,7 @@ inline void TrackListMemoryUsage()
         if (strcmp(prevTypeName, currTypeName) != 0)
         {
             size_t endPost = i;
-            SummarizeMemoryUsageForType(
+            FSummarizeMemoryUsageForType(
                 pMemDigestArray + uniqueTypeIndex,
                 ppBlockHeader,
                 startPost,
@@ -452,7 +458,7 @@ inline void TrackListMemoryUsage()
     std::sort(
         pMemDigestArray,
         pMemDigestArray + numUniqueTypes,
-        MemDigest::TotalSizeGreaterThan
+        FMemDigest::TotalSizeGreaterThan
     );
 
     // Compute the grand total memory usage.
@@ -466,16 +472,16 @@ inline void TrackListMemoryUsage()
 
     // Dump the memory usage statistics.
     printf("\n");
-    printf("-----------------------\n");
-    printf("Memory Usage Statistics\n");
-    printf("-----------------------\n");
+    printf("----------------------------------------------\n");
+    printf("            Memory Usage Statistics           \n");
+    printf("----------------------------------------------\n");
     printf("\n");
     printf("%-50s%5s  %5s %7s %s \n", "allocated type", "blocks", "", "bytes", "");
     printf("%-50s%5s  %5s %7s %s \n", "--------------", "------", "", "-----", "");
 
     for (size_t i = 0; i < numUniqueTypes; i++)
     {
-        MemDigest *pMD = pMemDigestArray + i;
+        FMemDigest *pMD = pMemDigestArray + i;
         size_t blockCount = pMD->blockCount;
         double blockCountPct = 100.0 * blockCount / grandTotalNumBlocks;
         size_t totalSize = pMD->totalSize;
@@ -501,12 +507,12 @@ inline void TrackListMemoryUsage()
 template <class T> 
 inline T *operator*(const FMemStamp &stamp, T *p)
 {
-    TrackStamp(p, stamp, typeid(T).name());
+    FTrackStamp(p, stamp, typeid(T).name());
     return p;
 }
 
-_FNameSpaceEnd
-_FStdEnd
+}
+}
 
 /* ------------------------------------------------------------ */
 /* ---------------------- new and delete ---------------------- */
@@ -515,7 +521,7 @@ _FStdEnd
 /* ---------------------------------------- operator new */
 inline void *operator new(size_t size)
 {
-    void *p = FStd::MemTrack::TrackMalloc(size);
+    void *p = FStd::MemTrack::FTrackMalloc(size);
     if (p == NULL) throw std::bad_alloc();
     return p;
 }
@@ -523,13 +529,13 @@ inline void *operator new(size_t size)
 /* ---------------------------------------- operator delete */
 inline void operator delete(void *p)
 {
-    FStd::MemTrack::TrackFree(p);
+    FStd::MemTrack::FTrackFree(p);
 }
 
 /* ---------------------------------------- operator new[] */
 inline void *operator new[](size_t size)
 {
-    void *p = FStd::MemTrack::TrackMalloc(size);
+    void *p = FStd::MemTrack::FTrackMalloc(size);
     if (p == NULL) throw std::bad_alloc();
     return p;
 }
@@ -537,16 +543,16 @@ inline void *operator new[](size_t size)
 /* ---------------------------------------- operator delete[] */
 inline void operator delete[](void *p)
 {
-    FStd::MemTrack::TrackFree(p);
+    FStd::MemTrack::FTrackFree(p);
 }
-
+///////////////////////////////////////////////////////////////////////////
 #define MEMTRACK_NEW FStd::MemTrack::FMemStamp(__FILE__, __LINE__) * new
 #define new MEMTRACK_NEW
 
 #endif//_F_USE_MEMTRACK
 
 #ifdef _F_USE_MEMTRACK
-#define F_REPORT_MEMORY FStd::MemTrack::TrackListMemoryUsage();
+#define F_REPORT_MEMORY { FStd::MemTrack::FTrackDumpBlocks(); FStd::MemTrack::FTrackListMemoryUsage(); }
 #else
 #define F_REPORT_MEMORY
 #endif

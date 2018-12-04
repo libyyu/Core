@@ -1,13 +1,9 @@
 #ifndef _FFDSET_HPP__
 #define _FFDSET_HPP__
 #pragma once
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <assert.h>
+#include "../base/FType.hpp"
 #include <algorithm>  
 #include <iostream>
-#include "../base/FType.hpp"
 
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 #include <winsock2.h>

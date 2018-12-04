@@ -2,7 +2,6 @@
 #define _FMD5_HPP__
 #pragma once
 #include "FType.hpp"
-#include <string.h>
 
 _FStdBegin
 static const unsigned int _F_TMD5[] = {

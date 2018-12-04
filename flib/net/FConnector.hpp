@@ -1,15 +1,15 @@
 #ifndef _FCONNECTOR_HPP__
 #define _FCONNECTOR_HPP__
 #pragma once
+#include "FSocket.hpp"
+#include "FFDSet.hpp"
+#include "FEventLoop.hpp"
 #include <algorithm>  
 #include <iostream>
 #include <map>
 #include <set>
 #include <future>
 #include <thread>
-#include "FSocket.hpp"
-#include "FFDSet.hpp"
-#include "FEventLoop.hpp"
 _FStdBegin
 _FNameSpaceBegin(Net)
 class FConnector
