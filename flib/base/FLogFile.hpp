@@ -1,6 +1,7 @@
 #ifndef __FLOGFILE_HPP__
 #define __FLOGFILE_HPP__
 #pragma once
+#include "FLock.hpp"
 #include "FLogInterface.hpp"
 
 _FStdBegin
@@ -21,8 +22,10 @@ public:
         }
     }
     inline operator FILE*(){ return _file; }
+    inline operator FLock*() { return &_lock; }
 private:
     FILE* _file;
+    FLock _lock;
 };
 class FLogFile : public FLogInterface
 {
@@ -38,6 +41,7 @@ public:
 protected:
     virtual void _LogImpl()
     {
+        lock_wrapper lock(_flog);
         FILE* fp = _flog;
         assert(fp && "log file handle is null.");
         fwrite(_message.c_str(), _message.size(), sizeof(char), fp);

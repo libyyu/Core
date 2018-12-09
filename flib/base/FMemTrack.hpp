@@ -2,7 +2,6 @@
 #define _FMEMTRACK_HPP__
 #pragma once
 
-#ifdef _F_USE_MEMTRACK
 #include <sstream>
 #include <typeinfo>
 #include <algorithm>
@@ -16,10 +15,11 @@ class FMemStamp
 {
 public:
     char const * const filename;
+    char const * const func;
     int const lineNum;
 public:
-    FMemStamp(char const *filename, int lineNum)
-        : filename(filename), lineNum(lineNum) { }
+    FMemStamp(char const *filename, char const *func, int lineNum)
+        : filename(filename), func(func), lineNum(lineNum) { }
     ~FMemStamp() { }
 };
 /* ------------------------------------------------------------ */
@@ -117,6 +117,7 @@ public:
         FBlockHeader *myNextNode;
         size_t myRequestedSize;
         char const *myFilename;
+        char const *myFuncname;
         int myLineNum;
         char const *myTypeName;
 
@@ -127,6 +128,7 @@ public:
             myNextNode = NULL;
             myRequestedSize = requestedSize;
             myFilename = "[unknown]";
+            myFuncname = "[unknown]";
             myLineNum = 0;
             myTypeName = "[unknown]";
         }
@@ -134,12 +136,14 @@ public:
     
         inline size_t GetRequestedSize() const { return myRequestedSize; }
         inline char const *GetFilename() const { return myFilename; }
+        inline char const *GetFuncname() const { return myFuncname; }
         inline int GetLineNum() const { return myLineNum; }
         inline char const *GetTypeName() const { return myTypeName; }
     
-        inline void Stamp(char const *filename, int lineNum, char const *typeName)
+        inline void Stamp(char const *filename, char const *funcname, int lineNum, char const *typeName)
         {
             myFilename = filename;
+            myFuncname = funcname;
             myLineNum = lineNum;
             myTypeName = typeName;
         }
@@ -323,7 +327,7 @@ inline void FTrackStamp(void *p, const FMemStamp &stamp, char const *typeName)
     if (!FSignature::IsValidSignature(pSignature)) return;
 
     // "Stamp" the information onto the header.
-    pHeader->Stamp(stamp.filename, stamp.lineNum, typeName);
+    pHeader->Stamp(stamp.filename, stamp.func, stamp.lineNum, typeName);
 }
 
 /* ---------------------------------------- TrackDumpBlocks */
@@ -338,9 +342,9 @@ inline void FTrackDumpBlocks()
     std::stringstream message;
     // Dump information about the memory blocks.
     message << ("\n");
-    message << ("==========================================\n");
-    message << ("            Current Memory Blocks         \n");
-    message << ("==========================================\n");
+    message << ("=============================================\n");
+    message << ("            Current Memory Blocks            \n");
+    message << ("=============================================\n");
     message << ("\n");
     int index = 0;
     for (size_t i = 0; i < numBlocks; i++)
@@ -349,6 +353,7 @@ inline void FTrackDumpBlocks()
         char const *typeName = pBlockHeader->GetTypeName();
         size_t size = pBlockHeader->GetRequestedSize();
         char const *fileName = pBlockHeader->GetFilename();
+        char const *funcName = pBlockHeader->GetFuncname();
         int lineNum = pBlockHeader->GetLineNum();
         if(0 != strcmp(typeName, "[unknown]"))
         {
@@ -356,7 +361,7 @@ inline void FTrackDumpBlocks()
             sprintf(buf, "*** #%-6d %5d bytes %-50s\n", ++index, size, typeName);
             message << buf;
             buf[0] = 0x0;
-            sprintf(buf, "... %s:%d\n", fileName, lineNum);
+            sprintf(buf, "... %s:%d:%s\n", fileName, lineNum, funcName);
             message << buf;
             buf[0] = 0x0;
         }
@@ -364,7 +369,7 @@ inline void FTrackDumpBlocks()
     // Clean up.
     free(ppBlockHeader);
 
-    printf(message.str().c_str());
+    printf("%s\n", message.str().c_str());
     FILE* fp = fopen("MemoryBlocks.txt", "w");
     fwrite(message.str().c_str(), message.str().size(), sizeof(char), fp);
     fclose(fp);
@@ -512,8 +517,21 @@ inline T *operator*(const FMemStamp &stamp, T *p)
 }
 
 }
+
+class FMemWtacher
+{
+public:
+    ~FMemWtacher()
+    {
+#ifdef _F_USE_MEMTRACK
+        MemTrack::FTrackDumpBlocks(); 
+        MemTrack::FTrackListMemoryUsage();
+#endif
+    }
+};
 }
 
+#ifdef _F_USE_MEMTRACK
 /* ------------------------------------------------------------ */
 /* ---------------------- new and delete ---------------------- */
 /* ------------------------------------------------------------ */
@@ -546,16 +564,8 @@ inline void operator delete[](void *p)
     FStd::MemTrack::FTrackFree(p);
 }
 ///////////////////////////////////////////////////////////////////////////
-#define MEMTRACK_NEW FStd::MemTrack::FMemStamp(__FILE__, __LINE__) * new
+#define MEMTRACK_NEW FStd::MemTrack::FMemStamp(__FILE__, __func__, __LINE__) * new
 #define new MEMTRACK_NEW
-
 #endif//_F_USE_MEMTRACK
-
-#ifdef _F_USE_MEMTRACK
-#define F_REPORT_MEMORY { FStd::MemTrack::FTrackDumpBlocks(); FStd::MemTrack::FTrackListMemoryUsage(); }
-#else
-#define F_REPORT_MEMORY
-#endif
-
 
 #endif//_FMEMTRACK_HPP__

@@ -88,9 +88,7 @@ inline void  FUnitPath(char *path)
 	for (size_t i = 0; i < strlen(path); ++i)
 	{
 		if (path[i] == '\\') 
-		{
 			path[i] = '/';
-		}
 	}
 }
 

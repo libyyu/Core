@@ -152,12 +152,17 @@ public:
     ~FThreadGroup()
     {
         joinAll();
+        dispose();
+        printf("FThreadGroup::dispose\n");
+    }
+
+    void dispose()
+    {
         for (size_t i = 0; i < _threads.size(); ++i) 
         {
             if(_threads[i]._isHeap)
                 delete _threads[i]._pThread;
-        }
-        
+        }     
         _threads.clear();
     }
     
@@ -168,7 +173,7 @@ public:
         return thread;
     }
     
-    void addThread(FThread *thread, bool isHeap) 
+    void addThread(FThread *thread, bool isHeap = false) 
     {
         _FThreadNode node;
         node._isHeap = isHeap;

@@ -1,8 +1,7 @@
 #ifndef __traits_hpp__
 #define __traits_hpp__
-#include "RzType.hpp"
 
-_RzStdBegin
+namespace FStd {
 namespace trait
 {
 	template<typename T>
@@ -53,6 +52,6 @@ namespace trait
 		typedef const void*            const_pointer;
 	};
 }
-_RzStdEnd
+}
 
 #endif//__traits_hpp__

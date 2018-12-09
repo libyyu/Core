@@ -19,9 +19,11 @@
 #include "FLogFile.hpp"
 #include "FPlugin.hpp"
 #include "test.h"
+#include "FMemTrack.hpp"
 _FUsing(std)
 _FUsing(FStd)
 static FAutoFile fGlobalLog("log.txt");
+static FMemWtacher __mem_watcher;
 int CalcDistance(int x, int z, int x2, int z2)
 {
     int d = x - x2;
@@ -86,7 +88,7 @@ int main(int argc, const char * argv[]) {
     printf("--- ThreadGroup ---\r\n");
 	FThreadGroup tg;
 	FThread t1(&foo);
-	tg.addThread(&t1, false);
+	tg.addThread(&t1);
 	tg.createThread(&foo);
 	tg.createThread(&foo);
 	tg.startAll();
@@ -172,8 +174,7 @@ int main(int argc, const char * argv[]) {
     typedef int(*wlua_makecsindex)(void * , int);
     wlua_makecsindex pf = plugin.Get<wlua_makecsindex>("wlua_makecsindex");
 
-   // testprocess();
+    testprocess();
 
-    F_REPORT_MEMORY
     return 0;
 }

@@ -19,7 +19,7 @@ int testprocess() {
   std::this_thread::sleep_for(std::chrono::seconds(5));
   
   
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(_F_USE_MEMTRACK)
   std::cout << std::endl << "Example 1b - Hello World through a function on Unix-like systems" << std::endl;
   FProcess process1b([] {
     std::cout << "Hello World" << std::endl;

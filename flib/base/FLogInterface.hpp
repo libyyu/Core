@@ -40,8 +40,8 @@ public:
             aTm->tm_min,
             aTm->tm_sec);
         *this << "[" 
+        << FLogLevelName[_level] << "|" 
 		<< FGetCurrentThreadId() << "|"
-		<< FLogLevelName[_level] << "|" 
         << buff << "|"
         << "]";
     }
@@ -58,8 +58,8 @@ public:
             aTm->tm_min,
             aTm->tm_sec);
         *this << "[" 
+        << FLogLevelName[_level] << "|" 
 		<< FGetCurrentThreadId() << "|"
-		<< FLogLevelName[_level] << "|" 
         << buff << "|"
 		<< (filename ? filename : "<unknow source>") << ":" 
         << line
