@@ -12,7 +12,11 @@ static void __mtrace_init(void)
     char path[256] = {0};
     FSplitpath(__FILE__, path, NULL, NULL);
     std::string example_path = path;
+#if PLATFORM_TARGET == PLATFORM_WINDOWS
+    std::string dll_path = example_path + "/../libs/windows/sm.dll";
+#else
     std::string dll_path = example_path + "/../libs/macosx/libsm.dylib";
+#endif
     FPlugin plugin(dll_path.c_str(), false);
     real_malloc = plugin.Get<sys_malloc>("sys_malloc");
     real_free = plugin.Get<sys_free>("sys_free");

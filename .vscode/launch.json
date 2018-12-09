@@ -5,7 +5,7 @@
             "name": "C++ Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/build",
+            "program": "${workspaceRoot}/test_sm",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}",
@@ -26,7 +26,7 @@
             "name": "C++ Attach",
             "type": "cppdbg",
             "request": "attach",
-            "program": "${workspaceRoot}/test_base",
+            "program": "${workspaceRoot}/test_sm",
             "processId": "${command:pickProcess}",
             "linux": {
                 "MIMode": "gdb"
