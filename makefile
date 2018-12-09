@@ -21,12 +21,19 @@ ifeq ($(PLAT),windows)
 	CFLAGS += -D_WIN32_WINNT=0x0603
 endif
 
-all : test_base test_process test_net test_boost test_3rd
+all : test_base test_process test_net test_boost test_3rd test_sm
 
 test_base : test_base.o
 	@echo $(PLAT) link $@
 	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY) -D_F_USE_MEMTRACK
 test_base.o : flib/example/test_base.cpp
+	@echo $(PLAT) compile $@
+	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY) -D_F_USE_MEMTRACK
+
+test_sm : test_sm.o
+	@echo $(PLAT) link $@
+	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY) -D_F_USE_MEMTRACK
+test_sm.o : flib/example/test_sm.cpp
 	@echo $(PLAT) compile $@
 	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY) -D_F_USE_MEMTRACK
 
@@ -53,5 +60,7 @@ test_3rd : test_3rd.o
 	$(CC) $(CFLAGS) $(LUA_CFLAGS) -o $@ $^ $(LUA_INCLUDE) $(LUA_LIB)
 test_3rd.o : flib/example/test_3rd.cpp
 	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LUA_INCLUDE)
+	
 clean :
-	rm -rf *.o test_base test_process test_net test_boost test_3rd
+	rm -rf *.o test_base test_process test_net test_boost test_3rd test_sm
+	

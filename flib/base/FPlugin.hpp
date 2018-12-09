@@ -22,14 +22,15 @@ class FPlugin
 	typedef void*		plugin_t;
 #endif
 public:
-	FPlugin() :_plugin(NULL) {}
-	FPlugin(const char* plugin_name) :_plugin(NULL)
+	FPlugin(bool auto_unload = true) :_plugin(NULL), _auto_unload(auto_unload) {}
+	FPlugin(const char* plugin_name, bool auto_unload = true) :_plugin(NULL), _auto_unload(auto_unload)
 	{
 		LoadPlugin(plugin_name);
 	}
 	~FPlugin()
 	{
-		Unload();
+		if(_auto_unload)
+			Unload();
 	}
 	inline void Unload()
 	{
@@ -103,6 +104,7 @@ public:
 protected:
 private:
 	plugin_t _plugin;
+	bool _auto_unload;
 };
 
 
