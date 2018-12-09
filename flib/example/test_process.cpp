@@ -178,3 +178,9 @@ int testprocess() {
 }
 
 #endif
+
+int main()
+{
+  testprocess();
+  return 0;
+}

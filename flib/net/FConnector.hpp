@@ -109,7 +109,6 @@ public:
     ~FConnector()
     {
         stopWorkerThread();
-        printf("Delete ...\n");
     }
     inline void                startWorkerThread();
     inline void                stopWorkerThread();

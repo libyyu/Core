@@ -1,7 +1,7 @@
-#include "FSocket.hpp"
-#include "FConnector.hpp"
-#include "../base/FFunc.hpp"
-#include "../base/FThread.hpp"
+#include "net/FSocket.hpp"
+#include "net/FConnector.hpp"
+#include "FFunc.hpp"
+#include "FThread.hpp"
 #include <iostream>
 #include <functional>
 using namespace FStd;
@@ -64,20 +64,26 @@ protected:
     }
 };
 
-void TestSock()
+void TestSyncSock()
 {
-    // FSockAddr addr(8002);
-    // FSocket client;
-    // client.Create();
-    // bool b = client.Connect(&addr);
-    // printf("Connect b = %d\n", b);
+    printf("TestSyncSock\n");
     int timeout = 10;
     auto socket = Net::SyncConnect(NULL, 8002, timeout);
 }
 
+void TestSock()
+{
+    printf("TestSock\n");
+    Net::FSockAddr addr(8002);
+    Net::FSocket client;
+    client.Create();
+    bool b = client.Connect(&addr);
+    printf("Connect b = %d\n", b);
+}
+
 int main()
 {
-    /*TestAsync test;
+    TestAsync test;
     test.DoA("hello");
     new FAsync([]
     {
@@ -90,6 +96,7 @@ int main()
     });
     AsyncCallback(&TestSock)();
     
+    TestSyncSock();
     
     char tmp;
     while(1)
@@ -102,7 +109,7 @@ int main()
         {
             break;
         }   
-    }*/
-    TestSock();
+    }
+    
     return 0;
 }

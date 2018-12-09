@@ -18,7 +18,6 @@
 #include "FBase64.hpp"
 #include "FLogFile.hpp"
 #include "FPlugin.hpp"
-#include "test.h"
 #include "FMemTrack.hpp"
 _FUsing(std)
 _FUsing(FStd)
@@ -173,8 +172,6 @@ int main(int argc, const char * argv[]) {
     FPlugin plugin("/Volumes/SHARED/WorkSpace/wLuaDemo/Demo/libwLua2.dylib");
     typedef int(*wlua_makecsindex)(void * , int);
     wlua_makecsindex pf = plugin.Get<wlua_makecsindex>("wlua_makecsindex");
-
-    testprocess();
 
     return 0;
 }
