@@ -153,7 +153,6 @@ public:
     {
         joinAll();
         dispose();
-        printf("FThreadGroup::dispose\n");
     }
 
     void dispose()
