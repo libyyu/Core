@@ -1,3 +1,11 @@
+# platform
+PLAT 		:=$(if $(PLAT),$(PLAT),$(if ${shell uname | egrep -i linux},linux,))
+PLAT 		:=$(if $(PLAT),$(PLAT),$(if ${shell uname | egrep -i darwin},macosx,))
+PLAT 		:=$(if $(PLAT),$(PLAT),$(if ${shell uname | egrep -i cygwin},cygwin,))
+PLAT 		:=$(if $(PLAT),$(PLAT),$(if ${shell uname | egrep -i mingw},mingw,))
+PLAT 		:=$(if $(PLAT),$(PLAT),$(if ${shell uname | egrep -i windows},windows,))
+PLAT 		:=$(if $(PLAT),$(PLAT),linux)
+
 CC = g++
 CFLAGS = -std=c++0x -g -Wno-deprecated -fpermissive -Wconversion-null
 INCLUDE = -Iflib -Iflib/base 
@@ -9,21 +17,31 @@ LUA_INCLUDE = -I/Volumes/SHARED/WorkSpace/AzureEngine/lua51/src
 LUA_LIB = -L/Volumes/SHARED/WorkSpace/AzureEngine/Projects/macosx/x86_64
 LUA_CFLAGS = -llua51
 
+ifeq ($(PLAT),windows)
+	CFLAGS += -D_WIN32_WINNT=0x0603
+endif
+
 all : test_base test_process test_net test_boost test_3rd
 
 test_base : test_base.o
+	@echo $(PLAT) link $@
 	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY) -D_F_USE_MEMTRACK
 test_base.o : flib/example/test_base.cpp
+	@echo $(PLAT) compile $@
 	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY) -D_F_USE_MEMTRACK
 
 test_process : test_process.o
+	@echo $(PLAT) link $@
 	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY)
 test_process.o : flib/example/test_process.cpp
+	@echo $(PLAT) compile $@
 	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY)
 
 test_net : test_net.o
+	@echo $(PLAT) link $@
 	$(CC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY)
 test_net.o : flib/example/test_net.cpp
+	@echo $(PLAT) compile $@
 	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LIBRARY)
 
 test_boost : test_boost.o
