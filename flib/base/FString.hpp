@@ -202,6 +202,48 @@ public:
 		return iRet;
 	}
 
+	static FString Printf(const Fchar* pstrFormat, ...)
+	{
+		FString strOut;
+		Fchar szBuffer[20480] = { 0 };
+		va_list argList;
+		va_start(argList, pstrFormat);
+
+		Fvsnprintf(szBuffer, sizeof(szBuffer) / sizeof(szBuffer[0]) - 2, pstrFormat, argList);
+		
+		va_end(argList);
+		strOut.Assign(szBuffer);
+		return strOut;
+	}
+
+	inline void SplitToArray(std::vector<FString>& OutArr, const Fchar* pattern)
+	{
+		if (IsEmpty() || !pattern || pattern[0] == 0x0)
+			return;
+
+		int nCount = 0;
+		FString temp;
+		size_t pos = 0, offset = 0;
+
+		// 分割第1~n-1个
+		while((pos = Find(pattern, offset)) != -1)
+		{
+			temp = Mid(offset, pos - offset);
+			if (temp.GetLength() > 0)
+			{
+				OutArr.push_back(temp);
+			}
+			offset = pos + 1;
+		}
+
+		// 分割第n个
+		temp = Mid(offset, GetLength() - offset);
+		if (temp.GetLength() > 0)
+		{
+			OutArr.push_back(temp);
+		}
+	}
+
     inline void TrimLeft()
     {
 		const Fchar* p = m_pstr;

@@ -185,5 +185,14 @@ int main(int argc, const char * argv[]) {
     {
         std::cout << textArr[i].c_str() << std::endl;
     }
+
+    std::vector<FString> strArray;
+    FString fs("ajfdiej\najsifje\nasfe");
+    fs.SplitToArray(strArray, "\n");
+    for(size_t i=0; i<strArray.size(); ++i)
+    {
+        std::cout << strArray[i] << std::endl;
+    }
+
     return 0;
 }
