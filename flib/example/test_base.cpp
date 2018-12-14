@@ -173,5 +173,17 @@ int main(int argc, const char * argv[]) {
     typedef int(*wlua_makecsindex)(void * , int);
     wlua_makecsindex pf = plugin.Get<wlua_makecsindex>("wlua_makecsindex");
 
+    std::vector<std::string> textArr;
+    FReadTextToArray("hello.txt", textArr);
+    for(size_t i=0; i<textArr.size(); ++i)
+    {
+        std::cout << textArr[i].c_str() << std::endl;
+    }
+    FStringSplit(textArr, "adfiejfie\nsjdfiejf\nsifef你好\nasjfi", "\n");
+    std::cout << "size = " << textArr.size() << std::endl;
+    for(size_t i=0; i<textArr.size(); ++i)
+    {
+        std::cout << textArr[i].c_str() << std::endl;
+    }
     return 0;
 }

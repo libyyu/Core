@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <string>
 #include <vector>
+#include <set>
 #include <stddef.h>
 #include "FPlatform.hpp"
 #if MINGW32
@@ -202,8 +203,9 @@ typedef __uint64_t        				uint64;
 typedef unsigned char byte;
 #endif
 
-typedef std::vector<uchar>              ByteArray;
-
+typedef std::set<std::string> StringSet;
+typedef std::vector<std::string> StringVec;
+typedef std::vector<uchar> ByteArray;
 
 #undef F_DISALLOW_CONSTRUCTORS
 #define F_DISALLOW_CONSTRUCTORS(TypeName)    \
@@ -219,6 +221,12 @@ typedef std::vector<uchar>              ByteArray;
 #define JOIN( X, Y ) DO_JOIN( X, Y )
 #define DO_JOIN( X, Y ) DO_JOIN2(X,Y)
 #define DO_JOIN2( X, Y ) X##Y
+
+#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#define SEP '\\'
+#else
+#define SEP '/'
+#endif
 
 #define PROPERTY(varType, varName, funName) \
     protected: varType varName; \

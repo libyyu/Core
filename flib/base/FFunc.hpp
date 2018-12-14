@@ -83,15 +83,6 @@ inline uint32 FGetCurrentThreadId()
 #endif
 }
 
-inline void  FUnitPath(char *path) 
-{
-	for (size_t i = 0; i < strlen(path); ++i)
-	{
-		if (path[i] == '\\') 
-			path[i] = '/';
-	}
-}
-
 inline char* FGetPwd(char *buffer)
 {
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
@@ -105,7 +96,7 @@ inline void FMakeDir(const char* path) {
 	char* p = (char*)path;
 	char* pd = (char*)path;
 	char ch;
-	char dir[256] = { 0 };
+	char dir[1024] = { 0 };
 	while ((ch = *p++))
 	{
 		if (ch == '\\' || ch == '/')
@@ -334,6 +325,203 @@ inline int FGetAllFiles(const char* path, bool reversal = true, const std::funct
 	return ret;
 #endif
 }
+
+inline void  FUnitPath(char *path) 
+{
+	assert(path);
+	for (size_t i = 0; i < strlen(path); ++i)
+	{
+		if (path[i] == '\\') 
+			path[i] = '/';
+	}
+}
+
+inline void  FUnitPath(std::string& path) 
+{
+	std::replace(path.begin(), path.end(), '\\', '/');
+}
+
+inline const std::string FJoinPath(const std::string& path1, const std::string& path2) 
+{
+	std::string lp = path1;
+	std::string rp = path2;
+	if (lp.back() == SEP)
+		lp.erase(lp.size() - 1);
+	if (rp.front() == SEP)
+		rp.erase(0);
+	
+	return lp + SEP + rp;
+}
+
+inline const std::string FNormalize(const char* path) 
+{
+	assert(path);
+	std::string normalized(path);
+	for (size_t i = 0; i < normalized.size(); ++i) 
+	{
+#if PLATFORM_TARGET == PLATFORM_WINDOWS
+		if (normalized[i] == '/') 
+		{
+			normalized[i] = '\\';
+		}
+#else
+		if (normalized[i] == '\\') 
+		{
+			normalized[i] = '/';
+		}
+#endif
+	}
+	return normalized;
+}
+
+inline const std::string FGetDirectory(const char* path) 
+{
+	std::string normalized = FNormalize(path);
+	auto pos = normalized.rfind(SEP);
+	if (pos == std::string::npos) 
+	{
+		return ".";
+	}
+
+	return normalized.substr(0, pos);
+}
+
+inline const std::string FGetFilename(const char* path) 
+{
+	std::string normalized = FNormalize(path);
+	auto pos = normalized.rfind(SEP);
+	if (pos == std::string::npos) 
+	{
+		return path;
+	}
+
+	return normalized.substr(pos + 1);
+}
+
+inline const std::string FGetExtension(const char* path) 
+{
+	std::string normalized = FNormalize(path);
+	auto pos1 = normalized.rfind(SEP);
+	auto pos2 = normalized.rfind('.');
+	if (pos2 == std::string::npos) 
+	{
+		return "";
+	}
+
+	if (pos1 == std::string::npos || pos2 > pos1) 
+	{
+		return normalized.substr(pos2 + 1);
+	}
+
+	return "";
+}
+
+inline void FStringReplace(std::string &strBase, const std::string& strSrc, const std::string& strDes) 
+{
+	std::string::size_type srcLen = strSrc.size();
+	std::string::size_type desLen = strDes.size();
+	std::string::size_type pos = 0;
+
+	pos = strBase.find(strSrc, pos);
+	while (pos != std::string::npos)
+	{
+		strBase.replace(pos, srcLen, strDes);
+		pos = strBase.find(strSrc, pos + desLen);
+	}
+}
+
+inline void FStringSplit(StringVec& outArr, const std::string &str, const std::string &pattern)
+{
+	if (str.empty() || pattern.empty())
+        return;
+
+    std::string strs = str + pattern;
+
+	size_t pos = strs.find(pattern);
+	size_t size = strs.size();
+
+	while (pos != std::string::npos)
+	{
+		std::string x = strs.substr(0, pos);
+		outArr.push_back(x);
+		strs = strs.substr(pos + 1, size);
+		pos = strs.find(pattern);
+	}
+}
+
+inline bool FReadAllBytes(const char* filename, ByteArray& buffer) 
+{
+#if PLATFORM_TARGET == PLATFORM_WINDOWS
+	FILE* fp = NULL;
+	fopen_s(&fp, filename, "rb");
+#else
+	FILE* fp = fopen(filename, "rb");
+#endif
+	if (!fp) 
+		return false;
+
+	fseek(fp, 0, SEEK_END);
+	ulong size = (ulong)ftell(fp);
+	if (size == 0) 
+	{
+		fclose(fp);
+		return true;
+	}
+
+	buffer.reserve(size);
+	buffer.clear();
+	fseek(fp, 0, SEEK_SET);
+	fread(&buffer[0], sizeof(uchar), size, fp);
+	fclose(fp);
+	return true;
+}
+
+inline bool FWriteAllBytes(const char* filename, uchar* bytes, size_t size) 
+{
+#if PLATFORM_TARGET == PLATFORM_WINDOWS
+	FILE* fp = NULL;
+	fopen_s(&fp, filename, "wb");
+#else
+	FILE* fp = fopen(filename, "wb");
+#endif
+	if (!fp) 
+	{
+		return false;
+	}
+
+	if (fwrite(bytes, size, 1, fp) != 1) 
+	{
+		fclose(fp);
+		return true;
+	}
+
+	fclose(fp);
+	return false;
+}
+
+inline bool FReadAllText(const char* filename, std::string& text)
+{
+	ByteArray buffer;
+	if(FReadAllBytes(filename, buffer))
+	{
+		const uchar* ptr = &buffer[0];
+		text.append((const char*)ptr);
+		return true;
+	}
+	return false;
+}
+
+inline bool FReadTextToArray(const char* filename, std::vector<std::string>& resVec)
+{
+	std::string text;
+	if(FReadAllText(filename, text))
+	{
+		FStringSplit(resVec, text, "\n");
+		return true;
+	}
+	return false;
+}
+
 _FStdEnd
 
 _FStdBegin
