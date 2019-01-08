@@ -61,59 +61,116 @@ public:
     typedef std::string stringtype;
 	typedef std::wstring wstringtype;
 public:
-    static bool IsTextUTF8(char* str,unsigned long long length)
+    static bool IsTextUTF8(const char* str)
 	{
-		  int i;   
-		  unsigned long nBytes=0;                       //UFT8锟斤拷锟斤拷1-6锟斤拷锟街节憋拷锟斤拷,ASCII锟斤拷一锟斤拷锟街斤拷   
-		  unsigned char chr;   
-		  bool bAllAscii = true; //锟斤拷锟饺拷锟斤拷锟斤拷锟紸SCII, 说锟斤拷锟斤拷锟斤拷UTF-8  
-		  for(i=0;i<length;i++)   
-		  {
-			  chr= *(str+i);
-			  if( (chr&0x80) != 0 ) // 锟叫讹拷锟角凤拷ASCII锟斤拷锟斤拷,锟斤拷锟斤拷锟斤拷锟�,说锟斤拷锟叫匡拷锟斤拷锟斤拷UTF-8,ASCII锟斤拷7位锟斤拷锟斤拷,锟斤拷锟斤拷一锟斤拷锟街节达拷,锟斤拷锟轿伙拷锟斤拷为0,o0xxxxxxx  
-				  bAllAscii = false; 
-			  if(nBytes==0) //锟斤拷锟斤拷锟斤拷锟紸SCII锟斤拷,应锟斤拷锟角讹拷锟街节凤拷,锟斤拷锟斤拷锟街斤拷锟斤拷
-			  {   
-				  if(chr>=0x80)
-				  {   
-					  if(chr>=0xFC&&chr<=0xFD) 
-						  nBytes=6;  
-					  else if(chr>=0xF8)
-						  nBytes=5;   
-					  else if(chr>=0xF0)   
-						  nBytes=4;   
-					  else if(chr>=0xE0)
-						  nBytes=3;   
-					  else if(chr>=0xC0) 
-						  nBytes=2;
-					  else 
-					  {   
-						  return false; 
-					  }   
-					  nBytes--;   
-				  }
-			  }   
-			  else //锟斤拷锟街节凤拷锟侥凤拷锟斤拷锟街斤拷,应为 10xxxxxx   
-			  {   
-				  if( (chr&0xC0) != 0x80 )  
-				  {
-					  return false;
-				  }   
-				  nBytes--; 
-			  }
-		  } 
-		  if( nBytes > 0 ) //违锟斤拷锟斤拷锟斤拷
-		  {  
-			  return false; 
-		  }
-		  if( bAllAscii ) //锟斤拷锟饺拷锟斤拷锟斤拷锟紸SCII, 说锟斤拷锟斤拷锟斤拷UTF-8 
-		  {  
-			  return false; 
-		  } 
-		  return true;
+		assert(str);
+		unsigned long nBytes = 0; //UFT8可用1-6个字节编码,ASCII用一个字节 
+		unsigned char chr;  
+		bool bAllAscii = true;
+		for (unsigned int i = 0; str[i] != '\0'; ++i) 
+		{
+			chr= *(str+i);
+			//判断是否ASCII编码,如果不是,说明有可能是UTF8,ASCII用7位编码,最高位标记为0,0xxxxxxx 
+			if( nBytes == 0 && (chr & 0x80) != 0 )
+				bAllAscii = false; 
+			if(nBytes==0)
+			{   
+				//如果不是ASCII码,应该是多字节符,计算字节数
+				if(chr >= 0x80)
+				{   
+					if(chr>=0xFC&&chr<=0xFD) 
+						nBytes=6;  
+					else if(chr>=0xF8)
+						nBytes=5;   
+					else if(chr>=0xF0)   
+						nBytes=4;   
+					else if(chr>=0xE0)
+						nBytes=3;   
+					else if(chr>=0xC0) 
+						nBytes=2;
+					else 
+					{   
+						return false; 
+					}   
+					nBytes--;   
+				}
+			}   
+			else
+			{   
+				//多字节符的非首字节,应为 10xxxxxx 
+				if( (chr&0xC0) != 0x80 )  
+				{
+					return false;
+				}   
+				//减到为零为止
+				nBytes--; 
+			}
+		} 
+		//违返UTF8编码规则 
+		if( nBytes > 0 )
+		{  
+			return false; 
+		}
+		if( bAllAscii ) //如果全部都是ASCII, 也是UTF8
+		{  
+			return true; 
+		} 
+		return true;
 	} 
 
-    static stringtype UTF16ToUTF8(const wchar_t* ptext,int len)
+	static bool IsTextGBK(const char* str)
+	{
+		unsigned int nBytes = 0;//GBK可用1-2个字节编码,中文两个 ,英文一个 
+		unsigned char chr = *str;
+		bool bAllAscii = true; //如果全部都是ASCII,  
+	
+		for (unsigned int i = 0; str[i] != '\0'; ++i)
+		{
+			chr = *(str + i);
+			if ((chr & 0x80) != 0 && nBytes == 0)
+			{// 判断是否ASCII编码,如果不是,说明有可能是GBK
+				bAllAscii = false;
+			}
+	
+			if (nBytes == 0) 
+			{
+				if (chr >= 0x80) 
+				{
+					if (chr >= 0x81 && chr <= 0xFE)
+					{
+						nBytes = +2;
+					}
+					else{
+						return false;
+					}
+	
+					nBytes--;
+				}
+			}
+			else
+			{
+				if (chr < 0x40 || chr>0xFE)
+				{
+					return false;
+				}
+				nBytes--;
+			}//else end
+		}
+	
+		if (nBytes != 0)  
+		{		//违返规则 
+			return false;
+		}
+	
+		if (bAllAscii)
+		{ //如果全部都是ASCII, 也是GBK
+			return true;
+		}
+	
+		return true;
+	}
+
+    static stringtype UTF16ToUTF8(const wchar_t* ptext)
 	{
 		stringtype sResult;
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
@@ -124,7 +181,8 @@ public:
 		delete []szBuf;
 		szBuf = NULL;
 #else
-		for (int i=0;i<len;++i)
+		int len = wcslen(ptext);
+		for (int i = 0;i < len; ++i)
 		{
 			char c;
 			_UTF16ToUTF8ofChar(&c, &(ptext[i]));
@@ -134,18 +192,18 @@ public:
 		return sResult;
 	} 
 
-    static stringtype UTF16ToGB2312(const wchar_t* ptext,int len)
+    static stringtype UTF16ToGB2312(const wchar_t* ptext)
 	{
  		stringtype sResult;
 
 		stringtype curLocale = setlocale(LC_ALL,NULL);// curLocale = "C";
 		setlocale(LC_ALL,"chs");
 
+		size_t len = wcslen(ptext);
 		size_t size = 2*len + 1;
 		char* p = new char[size];
 		memset(p,0,size);
 		wcstombs(p,ptext,size);
-
 		sResult = p;
 		delete []p;
 
@@ -154,13 +212,14 @@ public:
 		return sResult;
 	}
 
-    static wstringtype GB2312ToUTF16(const char* ptext,int len)
+    static wstringtype GB2312ToUTF16(const char* ptext)
 	{
 		wstringtype sResult;
 
 		stringtype curLocale = setlocale(LC_ALL,NULL);// curLocale = "C";
 		setlocale(LC_ALL,"chs");
 
+		size_t len = strlen(ptext);
 		size_t size = len + 1;
 		wchar_t *p = new wchar_t[size];
 		wmemset(p, 0, size);
@@ -173,13 +232,14 @@ public:
 		return sResult;
 	}
 
-    static stringtype GB2312ToUTF8(const char* ptext,int len)
+    static stringtype GB2312ToUTF8(const char* ptext)
 	{
 		stringtype sResult;
 		char buf[4];
 		memset(buf,0,4);
 
 		int i = 0;
+		int len = strlen(ptext);
 		while(i < len)
 		{
 			if( ptext[i] >= 0)
@@ -204,16 +264,16 @@ public:
 		return sResult;
 	}
 
-    static wstringtype UTF8ToUTF16(const char* ptext,int len)  //?
+    static wstringtype UTF8ToUTF16(const char* ptext)  //?
 	{
-		stringtype stmp = UTF8ToGB2312(ptext,len);
-		return GB2312ToUTF16(stmp.c_str(),stmp.length());
+		stringtype stmp = UTF8ToGB2312(ptext);
+		return GB2312ToUTF16(stmp.c_str());
 	}
 
-    static stringtype UTF8ToGB2312(const char* ptext,int nlen)
+    static stringtype UTF8ToGB2312(const char* ptext)
 	{
 		stringtype sResult;
-
+		int nlen = strlen(ptext);
 		char buf[4];
 		memset(buf,0,4);
 		char* rst = new char[nlen + (nlen >> 2) + 2];		
@@ -221,7 +281,7 @@ public:
 
 		int i =0;
 		int j = 0;
-
+		
 		while(i < nlen)
 		{
 			if(*(ptext + i) >= 0)
@@ -254,16 +314,13 @@ public:
 	template <class Out_type,class In_type>
 	static Out_type Convert(In_type &t)
 	{
-		std::stringstream str;	
-		str<<t;
 		Out_type out_result;
-		str>>out_result;
+		_Convert_<Out_type, In_type>(t, &out_result);
 		return out_result;
 	}
 protected:
     static void _UTF16ToUTF8ofChar(char* pOut, const wchar_t* pText)
 	{
-		// 注锟斤拷 WCHAR锟竭碉拷锟街碉拷顺锟斤拷,锟斤拷锟街斤拷锟斤拷前锟斤拷锟斤拷锟街斤拷锟节猴拷
 		char* pchar = (char *)pText;
 
 		pOut[0] = (0xE0 | ((pchar[1] & 0xF0) >> 4));
