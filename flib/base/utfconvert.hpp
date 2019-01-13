@@ -266,6 +266,7 @@ namespace utfconvert
 
 	static inline std::string utf8_to_utf8bom(const std::string& u8str)
 	{
+		if(u8str.empty()) return "";
 		std::string u8bom;
 		u8bom.reserve(u8str.size());
 		u8bom.push_back(static_cast<unsigned char>(0xEF));
@@ -282,6 +283,22 @@ namespace utfconvert
 		u8bom.append(p);
 
 		return u8bom;
+	}
+
+	static inline std::string utf8bom_to_utf8(const std::string& u8bom)
+	{
+		if(u8bom.empty()) return "";
+		std::string u8str;
+		std::string::size_type len = u8bom.length();
+		const char* p = (const char*)(u8bom.data());
+		// 判断是否具有BOM(判断长度小于3字节的情况)
+		if (len > 3 && p[0] == 0xEF && p[1] == 0xBB && p[2] == 0xBF) {
+			p += 3;
+			len -= 3;
+		}
+		u8str.append(p);
+
+		return u8str;
 	}
 }
 #endif //! __UTFCONVERT_H__
