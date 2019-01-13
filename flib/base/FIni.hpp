@@ -4,6 +4,7 @@
 #include "FType.hpp"
 #include <map> 
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <functional>
 #include <memory>
@@ -12,34 +13,94 @@ _FStdBegin
 class FIni
 {
 public:
+	typedef char														chartype;
 	typedef std::string                                                 stringtype;
 	typedef std::ifstream                                               ifstreamtype;
+	typedef std::ofstream                                               ofstreamtype;
 
-	typedef std::map<stringtype,stringtype,std::less<stringtype> >      KeyMap;
-	typedef KeyMap::iterator                                            KeyMapItor;
+	struct FINI_KEYVALUE
+	{
+		bool			hasComment;	//	true, Comment
+		stringtype		strComment;	//	comment
+		stringtype		strKey;		//	Key name
+		stringtype		strValue;	//	Value string
 
-	typedef std::map<stringtype,KeyMap,std::less<stringtype> >          SectionMap;
-	typedef SectionMap::iterator                                        SectionMapItor;
+		stringtype ToString()
+		{
+			stringtype result;
+			if (hasComment)
+			{
+				result += ";";
+				result += strComment;
+				result += "\n";
+			}
+			result += strKey + "=" + strValue;
+			return result;
+		}
+	};
 
+	struct FINI_SECTION
+	{
+		bool					hasComment;
+		stringtype				strComment;	
+		stringtype				strSession;
+		std::vector<FINI_KEYVALUE*>	values;	//	Keys
+		
+		stringtype ToString()
+		{
+			stringtype result;
+			if (hasComment)
+			{
+				result += ";";
+				result += strComment;
+				result += "\n";
+			}
+			result += "[" + strSession + "]";
+			result += "\n";
+
+			size_t cursor = 0;
+			for (std::vector<FINI_KEYVALUE*>::const_iterator it = values.begin(); it != values.end(); ++it, ++cursor)
+			{
+				result += (*it)->ToString();
+				/*if(cursor < values.size()-1) */result += "\n";
+			}
+
+			return result;
+		}
+	};
+
+	typedef std::map<stringtype, FINI_SECTION*, std::less<stringtype> >          FINI_SectionMap;
 private:
-   SectionMap  _SectionMap;
+    FINI_SectionMap _SessionArr;
 public:
 	FIni(){};
-	~FIni(){};   
+	~FIni() { Clear(); };
+	inline void Clear()
+	{
+		for (FINI_SectionMap::iterator itor = _SessionArr.begin(); itor != _SessionArr.end(); ++itor)
+		{
+			FINI_SECTION * pKeyMap = (itor->second);
+			for (std::vector<FINI_KEYVALUE*>::iterator it = pKeyMap->values.begin(); it != pKeyMap->values.end(); ++it)
+			{
+				FINI_KEYVALUE* pKV = *it;
+				delete pKV;
+			}
+			pKeyMap->values.clear();
+			delete pKeyMap;
+		}
+		_SessionArr.clear();
+	}
 public:
-	KeyMap& operator[] (const char* psection)
+	inline FINI_SECTION* operator[] (const char* psection)
 	{
-		return (*this)[stringtype(psection)];
+		return GetSession(psection);
 	}
-	KeyMap& operator[](const stringtype& section)
+	inline FINI_SECTION* operator[](const stringtype& section)
 	{
-		return _SectionMap[section];
+		return (*this)[section.c_str()];
 	}
-	const stringtype& operator()(const char* psection,const char* pkey)
-	{
-		return (*this)[psection][pkey];		
-	}
-	bool OpenIni(const char* pFile)
+
+	inline bool OpenIni(const char* pFile)
 	{
 		assert(pFile);
 		if(NULL == pFile)
@@ -49,7 +110,7 @@ public:
 		if(!ifs.is_open())
 			return false;
 
-		_SectionMap.clear();
+		Clear();
 
 		std::vector<stringtype> filebuf;
 		std::vector<stringtype>::const_iterator itor;
@@ -60,114 +121,250 @@ public:
 			filebuf.push_back(buf);
 		}
 		stringtype curSection = "";
+		stringtype curComment = "";
+		bool bComment = false;
 		for(itor=filebuf.begin(); itor!=filebuf.end(); ++itor)
 		{
-			curSection = DoSwitchALine(*itor,curSection);
+			curSection = DoSwitchALine(*itor, curSection, curComment, bComment);
 		}	
 		return true;
 	}
-   const stringtype&  GetStr(const stringtype &SectionStr,const stringtype &KeyStr,const stringtype &DefaultStr="") 
-   {
-	   SectionMapItor itor;
-	   itor = _SectionMap.find(SectionStr);
-	   if(_SectionMap.end() == itor) 
-		   return DefaultStr;
+	inline bool OpenFromString(const char* content)
+	{
+		assert(content);
+		if (!content) return false;
+		Clear();
+		const chartype* p = content;
+		const chartype* prev = content;
+		std::vector<stringtype> filebuf;
+		std::vector<stringtype>::const_iterator itor;
+		while (*p)
+		{
+			if (*p == '\n')
+			{
+				stringtype buf(prev, p - prev);
+				p++;
+				prev = p;
+				filebuf.push_back(buf);
+			}
+			p++;
+		}
+		stringtype curSection = "";
+		stringtype curComment = "";
+		bool bComment = false;
+		for (itor = filebuf.begin(); itor != filebuf.end(); ++itor)
+		{
+			curSection = DoSwitchALine(*itor, curSection, curComment, bComment);
+		}
+		return true;
+	}
+	inline bool SaveIni(const char* pFile)
+	{
+		assert(pFile);
+		if (NULL == pFile)
+			return false;
 
-	   KeyMapItor n;
-	   n = itor->second.find(KeyStr);
-	   if(itor->second.end() == n)
-		   return DefaultStr;
+		ofstreamtype ofs(pFile);
+		if (!ofs.is_open())
+			return false;
 
-	   return _SectionMap[SectionStr][KeyStr];
-   }
-   const stringtype& GetStr(const char *pSection,const char *pKey,const char *pDefaultStr = "")
-   {
-	   return GetStr(stringtype(pSection),stringtype(pKey),stringtype(pDefaultStr));
-   }
+		stringtype content = ToString();
+		ofs << content.c_str();
 
-//    int  GetInt(const char* pSection,const char* pKey,int nDefault = 0)
-//    {
-// 
-//    }
-// 
-//    bool GetBool(const char* pSection,const char* pKey,int bDefault = false)
-//    {
-// 
-//    }
-// 
-//    bool WriteStr()
-//    {
-// 
-//    }
-// 
-//    bool WriteInt()
-//    {
-// 
-//    }
-// 
-//    bool WriteBool()
-//    {
-// 
-//    }
+		ofs.flush();
+		ofs.close();
+		return true;
+	}
+	
+	inline const stringtype& GetStr(const chartype* SectionStr,const chartype* KeyStr,const chartype* DefaultStr = "")
+    {
+		stringtype value;
+		if (!GetString(SectionStr, KeyStr, value) || value.empty())
+			return DefaultStr;
 
-   void PrintIni()
-   {
-	   for (SectionMapItor itor = _SectionMap.begin();itor!=_SectionMap.end();++itor)
-	   {
-		   std::cout
-			   <<"["
-			   <<itor->first
-			   <<"]"
-			   <<std::endl;
+		return value;
+    }
 
-		   KeyMap * pKeyMap = &(itor->second);
-		   for (KeyMapItor keyitor = pKeyMap->begin();keyitor!=pKeyMap->end();++keyitor)
-		   {
-			   std::cout
-				   <<keyitor->first
-				   <<"="
-				   <<keyitor->second
-				   <<std::endl;
-		   }
-	   }
-   }
+	inline int GetInt(const chartype* pSection, const chartype* pKey, int nDefault = 0)
+	{
+		stringtype value;
+		if (!GetString(pSection, pKey, value) || value.empty())
+			return nDefault;
+
+		return atoi(value.c_str());
+	}
+	inline bool GetBool(const chartype* pSection, const chartype* pKey, bool bDefault = false)
+	{
+		return GetInt(pSection, pKey, bDefault ? 1 : 0) != 0 ? true : false;
+	}
+	inline float GetFloat(const chartype* pSection, const chartype* pKey, float fDefault = 0.0f)
+	{
+		stringtype value;
+		if (!GetString(pSection, pKey, value) || value.empty())
+			return fDefault;
+
+		return (float)atof(value.c_str());
+	}
+
+	inline void AddStr(const chartype* pSection, const chartype* pKey, const chartype* pValue, const chartype* strSessionComment = NULL, const chartype* strValueComment = NULL)
+	{
+		AddSection(pSection, strSessionComment);
+		AddKey(pSection, pKey, pValue, strValueComment);
+	}
+	inline void AddInt(const chartype* pSection, const chartype* pKey, int iValue, const chartype* strSessionComment = NULL, const chartype* strValueComment = NULL)
+	{
+		AddSection(pSection, strSessionComment);
+		stringtype str = std::to_string(iValue);
+		AddKey(pSection, pKey, str.c_str(), strValueComment);
+	}
+	inline void AddFloat(const chartype* pSection, const chartype* pKey, float fValue, const chartype* strSessionComment = NULL, const chartype* strValueComment = NULL)
+	{
+		stringtype str = std::to_string(fValue);
+		AddSection(pSection, strSessionComment);
+		AddKey(pSection, pKey, str.c_str(), strValueComment);
+	}
+	inline void AddBool(const chartype* pSection, const chartype* pKey, bool bValue, const chartype* strSessionComment = NULL, const chartype* strValueComment = NULL)
+	{
+		stringtype sValue = bValue ? "1" : "0";
+		AddSection(pSection, strSessionComment);
+		AddKey(pSection, pKey, sValue.c_str(), strValueComment);
+	}
+
+	inline FINI_SECTION* GetSession(const chartype* SectionStr)
+	{
+		return FindSession(SectionStr);
+	}
+	inline FINI_SECTION* CreateIfNoSession(const chartype* SectionStr, const chartype* strComment = NULL)
+	{
+		return AddSection(SectionStr, strComment);
+	}
+
+	stringtype ToString()
+	{
+		size_t cursor = 0;
+		std::stringstream str;
+		for (FINI_SectionMap::iterator itor = _SessionArr.begin(); itor != _SessionArr.end(); ++itor, ++cursor)
+		{
+			FINI_SECTION * pKeyMap = (itor->second);
+			str << pKeyMap->ToString();
+			if(cursor < _SessionArr.size()-1) str << std::endl;
+		}
+		
+		return str.str();
+	}
+
+#ifdef _DEBUG
+    inline void PrintIni()
+    { 
+		std::cout << ToString().c_str() << std::endl;
+    }
+#endif
 
  private:  
-   stringtype DoSwitchALine(const stringtype &aLineStr,stringtype &curSection)
+   inline stringtype DoSwitchALine(const stringtype &aLineStr, stringtype &curSection, stringtype& curComment, bool& bComment)
    {
-	   if(aLineStr.empty()) return curSection;  //锟斤拷锟斤拷 
-	   if(';' == aLineStr.at(0)) return curSection; //注锟斤拷锟斤拷
-
-	   stringtype::size_type n;	
-	   if('[' == aLineStr.at(0))//section锟斤拷 
+	   if(aLineStr.empty()) return curSection;  //空行，不考虑
+	   if (';' == aLineStr.at(0)) //注释
 	   {
-		   n = aLineStr.find(']',1);
-		   curSection = aLineStr.substr(1,n-1);
-		   AddSection(curSection);
-		   return curSection;		
+		   bComment = true;
+		   curComment = aLineStr.substr(1);
+		   return curSection;
 	   }
 
-	   //key & vaule     
+	   stringtype::size_type n;	
+	   if('[' == aLineStr.at(0)) //section开始
+	   {
+			n = aLineStr.find(']', 1);
+			curSection = aLineStr.substr(1, n-1);
+			AddSection(curSection.c_str(), bComment ? curComment.c_str() : NULL);
+			bComment = false;
+			curComment = "";
+			return curSection;		
+	   }
+ 
 	   stringtype strKey;
 	   stringtype strVaule;
-	   n = aLineStr.find('=',0);
-	   if(stringtype::npos == n) return curSection; //没锟斤拷=锟斤拷 
+	   n = aLineStr.find('=', 0);
+	   if(stringtype::npos == n) return curSection; //不是一个正确的key=value 
 
 	   strKey = aLineStr.substr(0,n);
-	   if(stringtype::npos == n+1)   //=锟脚猴拷锟斤拷锟斤拷锟斤拷 
-		   strVaule = "";  
+	   if(stringtype::npos == n+1)
+		  strVaule = "";  
 	   else   
-		   strVaule = aLineStr.substr(n+1);
-	   AddKey(curSection,strKey,strVaule);
+		  strVaule = aLineStr.substr(n+1);
+	   AddKey(curSection.c_str(), strKey.c_str(), strVaule.c_str(), bComment ? curComment.c_str() : NULL);
+	   bComment = false;
+	   curComment = "";
 	   return curSection;		
    }
-   void AddSection(stringtype &SectionStr)
+  
+   inline FINI_SECTION* FindSession(const chartype* SectionStr)
    {
-	   _SectionMap[SectionStr];
+	   std::string strSession(SectionStr);
+	   FINI_SECTION* pSession = nullptr;
+	   auto it = _SessionArr.find(strSession);
+	   if (it != _SessionArr.end())
+	   {
+		   pSession = it->second;
+	   }
+	   return pSession;
    }
-   void AddKey(stringtype &SectionStr,stringtype &KeyStr,stringtype &vauleStr)
+
+   inline FINI_SECTION* AddSection(const chartype* SectionStr, const chartype* CommentStr = NULL)
    {
-	   _SectionMap[SectionStr][KeyStr] = vauleStr;
+	   std::string strSession(SectionStr);
+	   FINI_SECTION* pSession = FindSession(SectionStr);
+	   if (!pSession)
+	   {
+		   pSession = new FINI_SECTION;
+		   _SessionArr.insert(std::pair<stringtype, FINI_SECTION*>(strSession, pSession));
+	   }
+
+	   if (CommentStr) {
+		   pSession->strComment = CommentStr;
+		   pSession->hasComment = true;
+	   }
+	   else {
+		   pSession->strComment = "";
+		   pSession->hasComment = false;
+	   }
+	   pSession->strSession = strSession;
+
+	   return pSession;
+   }
+   
+   inline FINI_KEYVALUE* AddKey(const chartype *SectionStr, const chartype* KeyStr, const chartype* VauleStr, const chartype* strComment = NULL)
+   {
+	   FINI_SECTION* pSession = FindSession(SectionStr);
+	   if (!pSession) return nullptr;
+	   FINI_KEYVALUE* pKV = new FINI_KEYVALUE;
+	   pKV->strKey = KeyStr;
+	   pKV->strValue = VauleStr;
+	   pKV->hasComment = !!strComment;
+	   if (!!strComment) pKV->strComment = strComment;
+
+	   pSession->values.push_back(pKV);
+
+	   return pKV;
+   }
+
+   inline const bool GetString(const chartype* SectionStr, const chartype* KeyStr, stringtype &value)
+   {
+	   FINI_SECTION* pSession = FindSession(SectionStr);
+	   if(!pSession)
+		   return false;
+
+	   for (std::vector<FINI_KEYVALUE*>::iterator it=pSession->values.begin(); it != pSession->values.end(); ++it)
+	   {
+		   if ((*it)->strKey.compare(KeyStr) == 0)
+		   {
+			   value = (*it)->strValue;
+			   return true;
+		   }
+
+	   }
+
+	   return false;
    }
 };
 typedef std::shared_ptr<FIni> spFIniT;
