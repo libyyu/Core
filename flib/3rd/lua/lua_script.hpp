@@ -33,6 +33,7 @@
 #define LUA_FUNC_REG(name) { #name, lua_##name }
 
 #define SUPPORT_PARAMS 1
+#define SUPPORT_CXX11 0
 
 
 namespace lua
@@ -770,42 +771,42 @@ namespace lua
 				return false;
 		}
 	};
-#if !SUPPORT_CXX11
-	template<typename T>
-	struct lua_op_t < T* >
-	{
-		static int push_stack(lua_State* l, T* value)
-		{
-			if (value)
-				lua_pushlightuserdata(l, (void*)value);
-			else
-				lua_pushnil(l);
-			return 1;
-		}
-		static void from_stack(lua_State* l, int pos, T** value)
-		{
-			if (lua_isnil(l, pos))
-			{
-				*value = 0;
-				return;
-			}
-			LUA_CHECK_ERROR(0 != lua_isuserdata(l, pos), LUA_TUSERDATA, pos);
-			*value = static_cast<T *>(lua_touserdata(l, pos));
-		}
-		static bool try_get(lua_State * l, int pos, T** value)
-		{
-			if (lua_isnil(l, pos) || lua_isuserdata(l, pos))
-			{
-				from_stack(l, pos, value);
-				return true;
-			}
-			else
-				return false;
-		}
-	};
-#else
-#include "lua_wrapper.cxx"
-#endif
+// #if !SUPPORT_CXX11
+// 	template<typename T>
+// 	struct lua_op_t < T* >
+// 	{
+// 		static int push_stack(lua_State* l, T* value)
+// 		{
+// 			if (value)
+// 				lua_pushlightuserdata(l, (void*)value);
+// 			else
+// 				lua_pushnil(l);
+// 			return 1;
+// 		}
+// 		static void from_stack(lua_State* l, int pos, T** value)
+// 		{
+// 			if (lua_isnil(l, pos))
+// 			{
+// 				*value = 0;
+// 				return;
+// 			}
+// 			LUA_CHECK_ERROR(0 != lua_isuserdata(l, pos), LUA_TUSERDATA, pos);
+// 			*value = static_cast<T *>(lua_touserdata(l, pos));
+// 		}
+// 		static bool try_get(lua_State * l, int pos, T** value)
+// 		{
+// 			if (lua_isnil(l, pos) || lua_isuserdata(l, pos))
+// 			{
+// 				from_stack(l, pos, value);
+// 				return true;
+// 			}
+// 			else
+// 				return false;
+// 		}
+// 	};
+// #else
+// #include "lua_wrapper.cxx"
+// #endif
 
 	template<>
 	struct lua_op_t < lua_CFunction >
@@ -1047,6 +1048,11 @@ namespace lua
 	inline void get(lua_State* l, int pos, T* value)
 	{
 		lua_op_t<T>::from_stack(l, pos, value);
+	}
+	template<typename T>
+	inline bool tryget(lua_State* l, int pos, T* value)
+	{
+		return lua_op_t<T>::try_get(l, pos, value);
 	}
 #if SUPPORT_PARAMS
 	template <typename T, typename ... Args>

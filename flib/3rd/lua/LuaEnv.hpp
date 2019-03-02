@@ -242,22 +242,22 @@ protected:
 	}
 	static int error_traceback(lua_State* l)
 	{
-		/*int oldTop = lua_gettop(l);
+		int oldTop = lua_gettop(l);
 		lua_checkstack(l, 3);
-		lua_getglobal(l, "debug");
-		lua_getfield(l, -1, "traceback");
-		lua_pushstring(l, "Lua traceback:");
-		lua_pushnumber(l, 1);
-		lua_call(l, 2, 1);
+		lua_getglobal(l, "debug"); //t
+		lua_getfield(l, -1, "traceback");//t,func
+		lua_pushstring(l, "");//func,s
+		lua_pushnumber(l, 1); //func,s,n
+		lua_call(l, 2, 1);//s
 		std::string traceback = lua_tostring(l, -1);
-		lua_settop(l, oldTop);*/
+		lua_settop(l, oldTop);
 
 		std::string err = lua_tostring(l, -1);
 		lua_pop(l, 1);
+
 		std::stringstream msg;
 
-		msg << " [" << err << "]"
-			<< std::endl;
+		msg << err << std::endl << traceback;
 
 		on_error_handler(msg.str().c_str());
 
@@ -265,7 +265,7 @@ protected:
 	}
 	static void on_error_handler(const char* msg)
 	{
-		if(msg) std::cerr << msg;
+		if(msg) std::cerr << msg << std::endl;
 	}
 private:
 	static std::string on_print_handler(lua_State* l)
