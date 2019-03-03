@@ -40,7 +40,7 @@ local function testFoo()
 	f.writeonly = 10
 	printwriteonly()
 	print(f.writeonly)
-	f.flag = 1
+	--f.flag = 1
 	print("end test foo_t")
 end
 

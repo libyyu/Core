@@ -111,7 +111,6 @@ public:
 			lua_remove(L, oldTop + 1);	//pop errorFunc
 			const char* errmsg = lua_tostring(L, -1);
 			on_error_handler(errmsg);
-			lua_pop(L, 1);
 			return false;
 		}
 	}
@@ -253,7 +252,6 @@ protected:
 		lua_settop(l, oldTop);
 
 		std::string err = lua_tostring(l, -1);
-		lua_pop(l, 1);
 
 		std::stringstream msg;
 
@@ -261,7 +259,7 @@ protected:
 
 		on_error_handler(msg.str().c_str());
 
-		return 0;
+		return 1;
 	}
 	static void on_error_handler(const char* msg)
 	{

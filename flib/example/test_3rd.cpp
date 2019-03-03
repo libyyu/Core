@@ -144,7 +144,7 @@ void test_base()
 
 int main()
 {
-    test_base();
+    //test_base();
 
 
 	test_cplus_lua();
