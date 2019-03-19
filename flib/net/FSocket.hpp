@@ -243,11 +243,7 @@ bool FSocket::ConnectEx(const FSockAddr* pRemoteaddr,int nTimeOut /* = 10 */,FSo
 	int nRet = ::connect(_s,(sockaddr*)pRemoteaddr,pRemoteaddr->addlen); 
 	if(SOCKET_ERROR == nRet)
 	{
-#if PLATFORM_TARGET == PLATFORM_WINDOWS  
-        int nError = ::WSAGetLastError();
-#else
-        int nError = errno;
-#endif
+        int nError = F_ERRNO;
 #if PLATFORM_TARGET == PLATFORM_WINDOWS  
 		if(WSAEWOULDBLOCK != nError && 
 			WSAEALREADY != nError &&
