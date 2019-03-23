@@ -24,6 +24,22 @@ public:
 	{
 		close();
 	}
+	LuaEnv(lua_State* L)
+	{
+		close();
+		m_L = L;
+		luaL_openlibs(m_L);
+		lua_atpanic(m_L, panic);
+
+		lua_pushcfunction(m_L, print);
+		lua_setfield(m_L, LUA_GLOBALSINDEX, "print");
+
+		lua_pushcfunction(m_L, warn);
+		lua_setfield(m_L, LUA_GLOBALSINDEX, "warn");
+
+		lua_pushcfunction(m_L, error_traceback);
+		m_errRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
+	}
 	bool open()
 	{
 		close();
