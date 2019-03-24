@@ -13,10 +13,54 @@
 #include <dirent.h>
 #endif
 
+typedef void (*PLuaOutFunc) (const char* message);
+
+class LuaOutHandler
+{
+    PLuaOutFunc m_print_func = nullptr;
+    PLuaOutFunc m_warn_func = nullptr;
+    PLuaOutFunc m_error_func = nullptr;
+public:
+    void SetPrintHandler(PLuaOutFunc pfunc, int flag)
+    {
+        if(flag == 0)
+            m_print_func = (PLuaOutFunc)pfunc;
+        else if(flag == 1)
+            m_warn_func = (PLuaOutFunc)pfunc;
+        else
+            m_error_func = (PLuaOutFunc)pfunc;
+    }
+    
+    void Stdout(const char* message, bool warning)
+    {
+        if(warning){
+            if(m_warn_func) m_warn_func(message);
+            else std::cout << message << std::endl;
+        }
+        else {
+            if(m_print_func) m_print_func(message);
+            else std::cout << message << std::endl;
+        }
+    }
+    void Stderr(const char* message)
+    {
+        if(m_error_func) m_error_func(message);
+        else std::cerr << message << std::endl;
+    }
+    
+    static LuaOutHandler& Get()
+    {
+        static LuaOutHandler handler;
+        return handler;
+    }
+};
+
 class LuaEnv
 {
 public:
-	LuaEnv(bool open_ = true):m_L(nullptr), m_errRef(-1)
+	LuaEnv(bool open_ = true)
+    : m_L(nullptr)
+    , m_errRef(-1)
 	{
 		if (open_) open();
 	}
@@ -31,11 +75,11 @@ public:
 		luaL_openlibs(m_L);
 		lua_atpanic(m_L, panic);
 
-		lua_pushcfunction(m_L, print);
+		/*lua_pushcfunction(m_L, print);
 		lua_setfield(m_L, LUA_GLOBALSINDEX, "print");
 
 		lua_pushcfunction(m_L, warn);
-		lua_setfield(m_L, LUA_GLOBALSINDEX, "warn");
+		lua_setfield(m_L, LUA_GLOBALSINDEX, "warn");*/
 
 		lua_pushcfunction(m_L, error_traceback);
 		m_errRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
@@ -108,7 +152,7 @@ public:
 
 		lua_settop(L, top);
 	}
-
+    
 	bool doCall(int nArgs, int nResults = -1)
 	{
 		lua_State* L = m_L;
@@ -245,14 +289,14 @@ protected:
 	}
 	static int print(lua_State* l)
 	{
-		std::string s = on_print_handler(l);
-		std::cout << "[LUA]" << s.c_str() << std::endl;
+		std::string s = "[LUA]" + on_print_handler(l);
+        LuaOutHandler::Get().Stdout(s.c_str(), false);
 		return 0;
 	}
 	static int warn(lua_State* l)
 	{
-		std::string s = on_print_handler(l);
-		std::cout << "[LUA][Warn]" << s.c_str() << std::endl;
+		std::string s = "[LUA][Warn]" + on_print_handler(l);
+		LuaOutHandler::Get().Stdout(s.c_str(), true);
 		return 0;
 	}
 	static int error_traceback(lua_State* l)
@@ -279,7 +323,7 @@ protected:
 	}
 	static void on_error_handler(const char* msg)
 	{
-		if(msg) std::cerr << msg << std::endl;
+        if(msg) LuaOutHandler::Get().Stderr(msg);
 	}
 private:
 	static std::string on_print_handler(lua_State* l)
