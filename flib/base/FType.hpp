@@ -218,14 +218,30 @@ typedef std::vector<uchar> ByteArray;
 #define MIN(a,b) ((a)<(b)) ? (a) : (b)
 #define MAX(a,b) ((a)>(b)) ? (a) : (b)
 
+#define min2(a, b) (((a) > (b)) ? (b) : (a))
+#define min3(a, b, c) (min2(min2((a), (b)), (c)))
+#define max2(a, b) (((a) > (b)) ? (a) : (b))
+#define max3(a, b, c) (max2(max2((a), (b)), (c)))
+#define min4(a, b, c, d) (min2(min2((a), (b)), min2((c), (d))))
+#define max4(a, b, c, d) (max2(max2((a), (b)), max2((c), (d))))
+
 #define JOIN( X, Y ) DO_JOIN( X, Y )
 #define DO_JOIN( X, Y ) DO_JOIN2(X,Y)
 #define DO_JOIN2( X, Y ) X##Y
 
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
-#define SEP '\\'
+#define SEP               '\\'
+#define PRId64            "I64d"
+#define PRIu64            "I64u"
+#define PRIx64            "I64x"
+#define _STDCALL          __stdcall
 #else
-#define SEP '/'
+#define SEP               '/'
+#define PRId64            "lld"
+#define PRIu64            "llu"
+#define PRIx64            "llx"
+#define INFINITE          0xFFFFFFFF
+#define _STDCALL
 #endif
 
 #define PROPERTY(varType, varName, funName) \

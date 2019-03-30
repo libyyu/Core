@@ -17,33 +17,6 @@
 #endif
 _FStdBegin
 
-class FAutoData
-{
-    int ref;
-    char* pData;
-public:
-    FAutoData(char* data = 0): pData(data),ref(0)
-    {
-        addref();
-    }
-    ~FAutoData() 
-    { 
-        unref();
-        if(ref ==0) reset(); 
-    }
-    inline FAutoData& operator = (FAutoData& rhs)
-    {
-        rhs.addref();
-        pData = rhs.pData;
-        return *this;
-    }
-    inline operator char*() const{ return pData; }
-    void reset() { if(pData) delete[] pData; pData = NULL; }
-protected:
-    void addref() { ++ref; }
-    void unref() { --ref; }
-};
-
 class FFile
 {
 public:
@@ -74,7 +47,6 @@ public:
     inline int Delete();
 
     inline long ReadAll(void* p_buffer);
-    inline long ReadAll(FAutoData& p_buffer);
     inline long Read(void* p_buffer, unsigned long n_bytes_2_read);
     inline long Write(const void* p_buffer, unsigned long n_bytes_2_write);
 
@@ -113,6 +85,7 @@ int FFile::Open(const char* filename, bool readonly)
             F_CONSOLE(ERROR) << F_FORMAT("Filed open file, errno = %d \n", ::GetLastError());
             return -1;
         }
+#elif PLATFORM_TARGET == PLATFORM_ANDROID
 #else
         if((_file = open(filename, O_RDONLY)) < 0)
         {
@@ -130,6 +103,7 @@ int FFile::Open(const char* filename, bool readonly)
             F_CONSOLE(ERROR) << F_FORMAT("Filed open file, errno = %d \n", ::GetLastError());
             return -1;
         }
+#elif PLATFORM_TARGET == PLATFORM_ANDROID
 #else
         if((_file = open(filename, O_RDWR)) < 0)
         {
@@ -276,16 +250,6 @@ int FFile::Seek(int offset, unsigned int mode)
     }
 #endif
     return 0;
-}
-long FFile::ReadAll(FAutoData& p_buffer)
-{
-    long nSize = GetSize();
-    char* pData = new char[nSize+1];
-    long nRead = Read(pData, nSize);
-    pData[nSize] = 0x0;
-    FAutoData fd(pData);
-    p_buffer = fd;
-    return nRead;
 }
 long FFile::ReadAll(void* p_buffer)
 {

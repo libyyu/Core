@@ -147,8 +147,6 @@ int main(int argc, const char * argv[]) {
     {
         F_CONSOLE(WARN) << F_FORMAT("file is valid\n");
         //ret = file.Write("Hello File", 10);
-        FAutoData data;
-        ret = file.ReadAll(data);
         char buff[20] = {0};
         ret = file.Read(buff, 20);
         printf("write size = %d, size = %ld, offset = %ld, eof = %d\n", ret, file.GetSize(), file.GetOffset(), (int)(file.IsEOF()));
@@ -158,9 +156,11 @@ int main(int argc, const char * argv[]) {
     file.Open("/Users/lidengfeng/Documents/Workspace/Binary/Binary/bin/Debug/test.txt", true);
 	if (file)
 	{
-		FAutoData bytes;
+        long nSize = file.GetSize();
+        char* bytes = new char[nSize+1];
 		long sz = file.GetSize();
 		file.ReadAll(bytes);
+        bytes[nSize] = 0x0;
 		FBuffer br((const uint8 *)(char*)bytes, sz);
 		int32 i32;
 		int16 i16;
@@ -168,6 +168,7 @@ int main(int argc, const char * argv[]) {
 		char ib[1024] = { 0 };
 		br >> i32 >> i16 >> i64 >> ib;
 		F_CONSOLE(WARN) << i32 << "," << i16 << "," << i64 << "," << ib << endl;
+        delete []bytes;
 	}
     FPlugin plugin("/Volumes/SHARED/WorkSpace/wLuaDemo/Demo/libwLua2.dylib");
     typedef int(*wlua_makecsindex)(void * , int);

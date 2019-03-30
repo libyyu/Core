@@ -144,8 +144,8 @@ public:
 
 		for (size_t e = lua_objlen(L, loaderTable) + 1; e > 1; e--)
 		{
-			lua_rawgeti(L, loaderTable, e - 1);
-			lua_rawseti(L, loaderTable, e);
+			lua_rawgeti(L, loaderTable, int(e - 1));
+			lua_rawseti(L, loaderTable, int(e));
 		}
 		lua_pushvalue(L, loaderFunc);
 		lua_rawseti(L, loaderTable, 1);
