@@ -85,7 +85,6 @@ int FFile::Open(const char* filename, bool readonly)
             F_CONSOLE(ERROR) << F_FORMAT("Filed open file, errno = %d \n", ::GetLastError());
             return -1;
         }
-#elif PLATFORM_TARGET == PLATFORM_ANDROID
 #else
         if((_file = open(filename, O_RDONLY)) < 0)
         {
@@ -103,7 +102,6 @@ int FFile::Open(const char* filename, bool readonly)
             F_CONSOLE(ERROR) << F_FORMAT("Filed open file, errno = %d \n", ::GetLastError());
             return -1;
         }
-#elif PLATFORM_TARGET == PLATFORM_ANDROID
 #else
         if((_file = open(filename, O_RDWR)) < 0)
         {
@@ -166,7 +164,7 @@ long FFile::GetSize()
     if(_file == -1) return 0;
     long offset = GetOffset();
     long filelen = lseek(_file,0L,SEEK_END);    
-    lseek(_file,offset,SEEK_SET);
+    lseek(_file, offset,SEEK_SET);
     return filelen;
 #endif
 }
