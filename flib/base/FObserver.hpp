@@ -135,7 +135,7 @@ protected:
 	typedef std::vector<FReceiverImplBase<ReturnT, ParamT>*> ReceiversVector;
 	ReceiversVector receivers_;
 };
-/*
+
 template <typename ReturnT, typename ParamT>
 class FReceiverImpl : public FReceiverImplBase<ReturnT, ParamT>
 {
@@ -172,7 +172,7 @@ public:
 protected:
 	typedef std::vector<FObserverImplBase<ReturnT, ParamT>*> ObserversVector;
 	ObserversVector observers_;
-};*/
+};
 _FStdEnd
 
 #endif // __FOBSERVER_HPP__
