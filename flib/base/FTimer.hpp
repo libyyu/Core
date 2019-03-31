@@ -16,7 +16,7 @@ class FTimerMgr
     public:
         typedef std::shared_ptr<FTimer>          spFTimer;
         typedef std::weak_ptr<FTimer>            wpFTimer;
-        typedef std::function<void(void)>       Callback;
+        typedef std::function<void(void)>        Callback;
 
         FTimer(std::chrono::steady_clock::time_point startTime, 
             std::chrono::nanoseconds lastTime, 
@@ -32,16 +32,16 @@ class FTimerMgr
         {
             return mStartTime;
         }
-        inline const std::chrono::nanoseconds&         getLastTime() const
+        inline const std::chrono::nanoseconds&                 getLastTime() const
         {
             return mLastTime;
         }
 
-        inline std::chrono::nanoseconds                getLeftTime() const
+        inline std::chrono::nanoseconds                        getLeftTime() const
         {
             return getLastTime() - (std::chrono::steady_clock::now() - getStartTime());
         }
-        inline void                                    cancel()
+        inline void                                            cancel()
         {
             mActive = false;
         }
@@ -56,10 +56,10 @@ class FTimerMgr
         }
 
     private:
-        bool                                    mActive;
-        Callback                                mCallback;
+        bool                                        mActive;
+        Callback                                    mCallback;
         const std::chrono::steady_clock::time_point mStartTime;
-        std::chrono::nanoseconds                mLastTime;
+        std::chrono::nanoseconds                    mLastTime;
 
         friend class FTimerMgr;
     };
