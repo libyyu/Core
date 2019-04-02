@@ -342,9 +342,9 @@ inline void FTrackDumpBlocks()
     std::stringstream message;
     // Dump information about the memory blocks.
     message << ("\n");
-    message << ("=============================================\n");
-    message << ("            Current Memory Blocks            \n");
-    message << ("=============================================\n");
+    message << ("==================================================================\n");
+    message << ("                      Current Memory Blocks                       \n");
+    message << ("==================================================================\n");
     message << ("\n");
     int index = 0;
     for (size_t i = 0; i < numBlocks; i++)
@@ -477,9 +477,9 @@ inline void FTrackListMemoryUsage()
 
     // Dump the memory usage statistics.
     printf("\n");
-    printf("----------------------------------------------\n");
-    printf("            Memory Usage Statistics           \n");
-    printf("----------------------------------------------\n");
+    printf("-------------------------------------------------------------------\n");
+    printf("                     Memory Usage Statistics                       \n");
+    printf("-------------------------------------------------------------------\n");
     printf("\n");
     printf("%-50s%5s  %5s %7s %s \n", "allocated type", "blocks", "", "bytes", "");
     printf("%-50s%5s  %5s %7s %s \n", "--------------", "------", "", "-----", "");

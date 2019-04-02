@@ -152,7 +152,7 @@ public:
 
 	virtual void RemoveObserver()
 	{
-		ObserversVector::iterator it = observers_.begin();
+		typename ObserversVector::iterator it = observers_.begin();
 		for (; it != observers_.end(); ++it)
 		{
 			(*it)->RemoveReceiver(this);
