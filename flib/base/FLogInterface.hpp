@@ -189,8 +189,8 @@ public:
             aTm->tm_sec);
 
         _log << "[" 
+        << FLogLevelName[_log._level] << "|" 
 		<< FGetCurrentThreadId() << "|"
-		<< FLogLevelName[_log._level] << "|" 
         << buff << "|"
 		<< (_file ? _file : "<unknow source>") << ":" 
         << _line

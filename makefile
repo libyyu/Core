@@ -13,15 +13,15 @@ LIBRARY = #-lstdc++ -lpthread
 BOOST_SDK = -I/Volumes/SHARED/WorkSpace/boost_1_67_0
 BOOST_LIB = -L/Volumes/SHARED/WorkSpace/boost_1_67_0/macosx/static_lib
 BOOST_CFLAGS = -lboost_regex
-LUA_INCLUDE = -I/Volumes/SHARED/WorkSpace/AzureEngine/lua51/src
-LUA_LIB = -L/Volumes/SHARED/WorkSpace/AzureEngine/Projects/macosx/x86_64
+LUA_INCLUDE = -I../lua-5.1.5/src
+LUA_LIB = -L../libs/macosx/x86_64
 LUA_CFLAGS = -llua51
 
 ifeq ($(PLAT),windows)
 	CFLAGS += -D_WIN32_WINNT=0x0603
 endif
 
-all : test_base test_process test_net test_boost test_3rd test_sm
+all : test_base test_process test_net test_3rd test_sm
 
 test_base : test_base.o
 	@echo $(PLAT) link $@

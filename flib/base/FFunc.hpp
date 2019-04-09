@@ -78,6 +78,8 @@ inline uint32 FGetCurrentThreadId()
 {
 #if PLATFORM_TARGET == PLATFORM_WINDOWS
 	return (uint32)GetCurrentThreadId();
+#elif PLATFORM_TARGET == PLATFORM_ANDROID
+	return static_cast<uint32>(reinterpret_cast<long>(pthread_self()));
 #else
 	return static_cast<uint32>(reinterpret_cast<uintptr_t>(pthread_self()));
 #endif
