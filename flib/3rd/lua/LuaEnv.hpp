@@ -69,6 +69,8 @@ public:
 		close();
 	}
 	LuaEnv(lua_State* L)
+	: m_L(nullptr)
+    , m_errRef(-1)
 	{
 		close();
 		m_L = L;
@@ -80,7 +82,6 @@ public:
 
 		lua_pushcfunction(m_L, warn);
 		lua_setfield(m_L, LUA_GLOBALSINDEX, "warn");*/
-
 		lua_pushcfunction(m_L, error_traceback);
 		m_errRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
 	}
