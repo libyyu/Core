@@ -45,7 +45,7 @@ public:
         << buff << "|"
         << "]";
     }
-    FLogInterface(F_LOGLEVEL level, const char* filename, int line = -1)
+    FLogInterface(F_LOGLEVEL level, const char* filename, int32 line = -1)
     : _level(level)
     {
         char buff[200] = {0};
@@ -208,7 +208,7 @@ private:
     FLogInterface& _log;
 	const char *_func;
 	const char *_file;
-	int _line;
+	int32 _line;
 };
 
 _FStdEnd
