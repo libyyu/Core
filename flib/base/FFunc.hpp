@@ -347,10 +347,10 @@ inline const std::string FJoinPath(const std::string& path1, const std::string& 
 {
 	std::string lp = path1;
 	std::string rp = path2;
-	if (lp.back() == SEP)
+	if (lp.length() >0 && lp.back() == SEP)
 		lp.erase(lp.size() - 1);
-	if (rp.front() == SEP)
-		rp.erase(0);
+	if (rp.length() >0 && rp.front() == SEP)
+		rp.erase(rp.begin());
 	
 	return lp + SEP + rp;
 }
