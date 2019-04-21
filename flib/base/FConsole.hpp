@@ -7,7 +7,7 @@
 #include <stdarg.h>
 #include <time.h>
 #include <sstream> 
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 #include <io.h>
 #include <fcntl.h>
 #endif
@@ -22,14 +22,14 @@ class FConsole : public FLogInterface
 		FLock     m_lock;
 	public:
 		//Console
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 		HANDLE 	 	m_stdOutputHandle;
 		HANDLE 	 	m_stdErrHandle;
 #endif
 	protected:
 		_FConsoleHandle() : m_isAlloced(false)
 		{
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 			m_stdOutputHandle = 0;
 			m_stdErrHandle = 0;
 #endif
@@ -46,7 +46,7 @@ class FConsole : public FLogInterface
 			lock_wrapper lock(&m_lock);
 			if(m_isAlloced)
 				return ;
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 			// 分配一个控制台，以便于输出一些有用的信息
 			AllocConsole();
 			// 取得 STDOUT 的文件系统
@@ -92,7 +92,7 @@ protected:
 	{
 		_FConsoleHandle::get()->RedirectIOToConsole();
 		lock_wrapper lock(&m_lock);
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 	if (_level == F_LOGLEVEL::F_LOGLEVEL_WARN)
 	{
 		::SetConsoleTextAttribute(_FConsoleHandle::get()->m_stdOutputHandle, FOREGROUND_RED | FOREGROUND_GREEN);

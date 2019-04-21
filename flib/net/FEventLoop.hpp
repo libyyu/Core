@@ -8,7 +8,7 @@
 #include <memory>
 #include <atomic>
 #include "../base/FTimer.hpp"
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 #include <windows.h>
 #else
 #include <errno.h>
@@ -21,7 +21,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <unistd.h>
-#if PLATFORM_TARGET   ==   PLATFORM_MACOSX
+#if FLIB_COMPILER_MACOSX
 #include <sys/event.h>
 #else
 #include <sys/epoll.h>
@@ -33,7 +33,7 @@ class FEventLoop
 {
 public:
     typedef std::function<void(void)>           USER_PROC;
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     enum class OLV_VALUE
     {
         OVL_NONE = 0,
@@ -127,15 +127,15 @@ public:
 #endif
 public:
     FEventLoop()
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     : mIOCP(CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 1))
-#elif PLATFORM_TARGET   ==   PLATFORM_MACOSX
+#elif FLIB_COMPILER_MACOSX
     : mEpollFd(kqueue())
 #else
     : mEpollFd(epoll_create(1))
 #endif
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS 
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         mPGetQueuedCompletionStatusEx = NULL;
         auto kernel32_module = GetModuleHandleA("kernel32.dll");
         if (kernel32_module != NULL) {
@@ -144,7 +144,7 @@ public:
                 "GetQueuedCompletionStatusEx");
             FreeLibrary(kernel32_module);
         }
-#elif PLATFORM_TARGET   ==   PLATFORM_MACOSX
+#elif FLIB_COMPILER_MACOSX
         auto eventfd = kqueue();
         mWakeupChannel.reset(new _F_WakeupChannel(eventfd));
         linkChannel(eventfd, mWakeupChannel.get());
@@ -166,7 +166,7 @@ public:
     }
     virtual ~FEventLoop()
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS 
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         CloseHandle(mIOCP);
         mIOCP = INVALID_HANDLE_VALUE;
 #else
@@ -194,7 +194,7 @@ public:
         {
             milliseconds = 0;
         }
-#if PLATFORM_TARGET == PLATFORM_WINDOWS 
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         ULONG numComplete = 0;
         if (mPGetQueuedCompletionStatusEx != nullptr)
         {
@@ -240,7 +240,7 @@ public:
                 assert(false);
             }
         }
-#elif PLATFORM_TARGET == PLATFORM_MACOSX
+#elif FLIB_COMPILER_MACOSX
         struct timespec timeout;
         timeout.tv_sec = milliseconds / 1000;
         timeout.tv_nsec = (milliseconds % 1000) * 1000 * 1000;
@@ -352,7 +352,7 @@ public:
 
     inline bool                     isInLoopThread() const
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS 
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         return mSelfThreadID == GetCurrentThreadId();
 #else
         uint32 id = static_cast<uint32>(reinterpret_cast<uintptr_t>(pthread_self()));
@@ -368,9 +368,9 @@ private:
             mEventEntries = nullptr;
         }
 
-#if PLATFORM_TARGET == PLATFORM_WINDOWS 
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         mEventEntries = new OVERLAPPED_ENTRY[size];
-#elif PLATFORM_TARGET == PLATFORM_MACOSX
+#elif FLIB_COMPILER_MACOSX
         mEventEntries = new struct kevent[size];
 #else
         mEventEntries = new epoll_event[size];
@@ -400,7 +400,7 @@ private:
         }
         mCopyAsyncProcs.clear();
     }
-#if PLATFORM_TARGET != PLATFORM_WINDOWS 
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     inline int                             getEpollHandle() const
     {
         return mEpollFd;
@@ -408,9 +408,9 @@ private:
 #endif
     inline bool                            linkChannel(int fd, _F_WakeupChannel* ptr)
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS 
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         return CreateIoCompletionPort((HANDLE)fd, mIOCP, (ULONG_PTR)ptr, 0) != nullptr;
-#elif PLATFORM_TARGET == PLATFORM_MACOSX
+#elif FLIB_COMPILER_MACOSX
         const int kReadEvent = 1;
         const int kWriteEvent = 2;
         struct kevent ev[2];
@@ -429,7 +429,7 @@ private:
     {
         std::call_once(mOnceInitThreadID, [this]() 
         {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS 
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
             mSelfThreadID = GetCurrentThreadId();
 #else
             mSelfThreadID = static_cast<uint32>(reinterpret_cast<uintptr_t>(pthread_self()));
@@ -437,12 +437,12 @@ private:
         });
     }
 private:
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     OVERLAPPED_ENTRY*               mEventEntries;
     typedef BOOL(WINAPI *sGetQueuedCompletionStatusEx) (HANDLE, LPOVERLAPPED_ENTRY, ULONG, PULONG, DWORD, BOOL);
     sGetQueuedCompletionStatusEx    mPGetQueuedCompletionStatusEx;
     HANDLE                          mIOCP;
-#elif PLATFORM_TARGET == PLATFORM_MACOSX
+#elif FLIB_COMPILER_MACOSX
     struct kevent*                  mEventEntries;
     int                             mEpollFd;
 #else

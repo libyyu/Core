@@ -17,11 +17,7 @@ private:
         
 		Node():data(T()),pNext(NULL){};
 	};
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
-	typedef bool (__stdcall *EnumVaulePro)(T&,void*);
-#else
-    typedef bool (*EnumVaulePro)(T&,void*);
-#endif
+	typedef bool (_STDCALL *EnumVaulePro)(T&,void*);
 private:
 	FDReadAWriteLock m_Lock;
 	unsigned int m_nCount;

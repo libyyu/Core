@@ -10,7 +10,7 @@
 #include <sys/types.h>  
 #include <sys/stat.h>
 #include <functional>
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 #include <windows.h>
 #include <direct.h>
 #include <io.h>
@@ -20,7 +20,7 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <pthread.h>
-#if PLATFORM_TARGET == PLATFORM_MACOSX
+#if FLIB_COMPILER_MACOSX
 #include <libproc.h>
 #endif
 #endif
@@ -50,7 +50,7 @@ inline void FSwap(T& r, T& l)
 
 inline void FSleep(unsigned int seconds)
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     Sleep(seconds*1000);
 #else
     sleep(seconds);
@@ -63,9 +63,9 @@ inline std::string FFormat(const char* format, ...)
 	va_start(va, format);
 	const int MAX_BUFFLEN = 20480;
 	char buff[MAX_BUFFLEN+1] = { 0 };
-#if MINGW32
+#if FLIB_COMPILER_CYGWIN
 	vsnprintf(buff, MAX_BUFFLEN, format, va);
-#elif PLATFORM_TARGET == PLATFORM_WINDOWS
+#elif FLIB_COMPILER_MSVC
 	_vsnprintf_s(buff, MAX_BUFFLEN, format, va);
 #else
 	vsnprintf(buff, MAX_BUFFLEN, format, va);
@@ -76,9 +76,9 @@ inline std::string FFormat(const char* format, ...)
 
 inline uint32 FGetCurrentThreadId()
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 	return (uint32)GetCurrentThreadId();
-#elif PLATFORM_TARGET == PLATFORM_ANDROID
+#elif FLIB_COMPILER_ANDROID
 	return static_cast<uint32>(reinterpret_cast<long>(pthread_self()));
 #else
 	return static_cast<uint32>(reinterpret_cast<uintptr_t>(pthread_self()));
@@ -87,7 +87,7 @@ inline uint32 FGetCurrentThreadId()
 
 inline char* FGetPwd(char *buffer)
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     return _getcwd(buffer,buffer ? sizeof(buffer) : 0);
 #else
     return getcwd(buffer,buffer ? sizeof(buffer) : 0);
@@ -103,7 +103,7 @@ inline void FMakeDir(const char* path) {
 	{
 		if (ch == '\\' || ch == '/')
 		{
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 			_mkdir(dir);
 #else
 			mkdir(dir, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP |
@@ -112,7 +112,7 @@ inline void FMakeDir(const char* path) {
 		}
 		memcpy(dir, pd, p - pd);
 	}
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 	_mkdir(dir);
 #else
 	mkdir(dir, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP |
@@ -161,11 +161,11 @@ inline void FSplitpath(const char* s, char* path, char* name, char* ext)
 
 inline const char* FGetModulePath()
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     static char modulepath[MAX_PATH] = { 0 };
     ::GetModuleFileNameA(NULL, modulepath, MAX_PATH);
     return modulepath;
-#elif PLATFORM_TARGET == PLATFORM_MACOSX
+#elif FLIB_COMPILER_MACOSX
     pid_t pid = getpid();
     static char modulepath[PROC_PIDPATHINFO_MAXSIZE] = {0};
     int ret = proc_pidpath (pid, modulepath, sizeof(modulepath));
@@ -184,7 +184,7 @@ inline const char* FGetModuleName()
     static char name[100] = {0};
     const char* modulepath = FGetModulePath();
     if(!modulepath) return NULL;
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     const char* path_end = strrchr(modulepath,  '\\');
 #else
 	const char* path_end = strrchr(modulepath, '/');
@@ -198,10 +198,10 @@ inline const char* FGetModuleName()
 inline bool FFileExists(const char* filename)
 {
     assert(filename);
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     if (filename != NULL && strlen(filename) > 0)
     {
-#if MINGW32
+#if FLIB_COMPILER_CYGWIN
         struct _stat stat_info;
         return _stat(filename, &stat_info) == 0;
 #else
@@ -222,7 +222,7 @@ inline bool FFileExists(const char* filename)
 inline bool FDirExists(const char* path)
 {
     assert(path);
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 	_finddata_t finddata;
 	intptr_t h = _findfirst(path, &finddata);
 	if (h == -1) {
@@ -244,7 +244,7 @@ inline bool FDirExists(const char* path)
 inline int FGetAllFiles(const char* path, bool reversal = true, const std::function<void(const char*, bool)>& action = nullptr) 
 {
 	assert(path);
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 	char fullpath[256] = { 0 };
 	sprintf(fullpath, "%s\\*", path);
 	_finddata_t finddata;
@@ -361,7 +361,7 @@ inline const std::string FNormalize(const char* path)
 	std::string normalized(path);
 	for (size_t i = 0; i < normalized.size(); ++i) 
 	{
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 		if (normalized[i] == '/') 
 		{
 			normalized[i] = '\\';
@@ -453,7 +453,7 @@ inline void FStringSplit(StringVec& outArr, const std::string &str, const std::s
 
 inline bool FReadAllBytes(const char* filename, ByteArray& buffer) 
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC
 	FILE* fp = NULL;
 	fopen_s(&fp, filename, "rb");
 #else
@@ -480,7 +480,7 @@ inline bool FReadAllBytes(const char* filename, ByteArray& buffer)
 
 inline bool FWriteAllBytes(const char* filename, uchar* bytes, size_t size) 
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC
 	FILE* fp = NULL;
 	fopen_s(&fp, filename, "wb");
 #else
@@ -603,7 +603,7 @@ inline int memfind(const void* src,size_t srcsize,const void* dst,size_t dstsize
         {
             --k;
             if(0 == k)
-                return (srcsize - n - dstsize);
+                return (int)(srcsize - n - dstsize);
         }
     }
     return -1;

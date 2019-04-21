@@ -1,4 +1,4 @@
-﻿/*
+/*
  *  File:    lua_script.hpp
  *
  *  Author:  lidengfeng
@@ -24,7 +24,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#if PLATFORM_TARGET == PLATFORM_LINUX
+#if FLIB_COMPILER_LINUX
 #include <string.h>
 #endif
 #define LUA_FUNC_DELC(name) int lua_##name(lua_State* l);

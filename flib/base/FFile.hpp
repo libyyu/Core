@@ -4,7 +4,7 @@
 #include "FConsole.hpp"
 #include <functional>
 #include <memory>
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC
 #include <windows.h>
 #include <sys/types.h>  
 #include <sys/stat.h>
@@ -22,7 +22,7 @@ class FFile
 public:
 	enum ENUM_SEEK { SEEK_FILE_BEGIN = 0, SEEK_FILE_CURRENT = 1, SEEK_FILE_END = 2 };
     FFile():
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 		_file(INVALID_HANDLE_VALUE)
 #else
 		_file(-1)
@@ -52,7 +52,7 @@ public:
 
     inline operator bool() const 
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         return _file != INVALID_HANDLE_VALUE;
 #else
         return _file != -1;
@@ -61,7 +61,7 @@ public:
 private:
     bool _readonly;
     char _filename[256];
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     HANDLE _file;
 #else
     int _file;
@@ -77,7 +77,7 @@ int FFile::Open(const char* filename, bool readonly)
     _readonly = readonly;
     if(readonly)
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         if (readonly)
 			_file = ::CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (_file == INVALID_HANDLE_VALUE) 
@@ -95,7 +95,7 @@ int FFile::Open(const char* filename, bool readonly)
     }
     else
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         _file = ::CreateFileA(filename, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         if (_file == INVALID_HANDLE_VALUE) 
 		{
@@ -116,7 +116,7 @@ int FFile::Open(const char* filename, bool readonly)
 
 int FFile::Close()
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     if (_file != INVALID_HANDLE_VALUE)
     {
         if(!::CloseHandle(_file))
@@ -142,7 +142,7 @@ int FFile::Close()
 
 int FFile::Flush()
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     assert(_file);
     if(!_file) return -1;
     return ::FlushFileBuffers(_file) ? 0 : -1;
@@ -155,7 +155,7 @@ int FFile::Flush()
 
 long FFile::GetSize()
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     assert(_file);
     if(!_file) return 0;
     return static_cast<long>(::GetFileSize(_file, NULL));
@@ -170,7 +170,7 @@ long FFile::GetSize()
 }
 long FFile::GetOffset()
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     assert(_file);
     if(!_file) return 0;
     return static_cast<long>(::SetFilePointer(_file, 0, NULL, SEEK_CUR));
@@ -183,7 +183,7 @@ long FFile::GetOffset()
 
 bool FFile::IsEOF()
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     assert(_file);
     if(!_file) return true;
 	return GetOffset() >= GetSize();
@@ -196,7 +196,7 @@ bool FFile::IsEOF()
 
 int FFile::SetEOF()
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     assert(_file);
     if(!_file) return -1;
     if(!::SetEndOfFile(_file)) return -1;
@@ -210,7 +210,7 @@ int FFile::SetEOF()
 
 int FFile::Seek(int offset, unsigned int mode)
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     assert(_file);
     if(!_file) return -1;
     switch(mode)
@@ -256,7 +256,7 @@ long FFile::ReadAll(void* p_buffer)
 }
 long FFile::Read(void* p_buffer, unsigned long n_bytes_2_read)
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     assert(_file);
     if(!_file) return 0;
     unsigned long n_total_bytes_read = 0;
@@ -287,7 +287,7 @@ long FFile::Read(void* p_buffer, unsigned long n_bytes_2_read)
 long FFile::Write(const void* p_buffer, unsigned long n_bytes_2_write)
 {
     if(_readonly) { assert(0 && "Can not write for a readonly file"); return 0; }
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     assert(_file);
     if(!_file) return 0;
 	DWORD p_bytes_written = 0;
@@ -304,7 +304,7 @@ int FFile::Create(const char* filename)
 {
     assert(filename != NULL);
     Close();
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     _file = ::CreateFileA(filename, GENERIC_WRITE | GENERIC_READ, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     if (_file == INVALID_HANDLE_VALUE) 
     {
@@ -326,7 +326,7 @@ int FFile::Create(const char* filename)
 int FFile::Delete()
 {
     Close();
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     return ::DeleteFileA(_filename) ? 0 : -1;
 #else
     return remove(_filename);

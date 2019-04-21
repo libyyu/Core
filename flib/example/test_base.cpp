@@ -65,7 +65,7 @@ int main(int argc, const char * argv[]) {
 
     int * pT = new int(8);
     std::cout << "Hello, World!\n";
-#if PLATFORM_TARGET == PLATFORM_MACOSX
+#if FLIB_COMPILER_MACOSX
     std::cout << "MacOSX" << std::endl;
 #endif
     FBuffer buffer;

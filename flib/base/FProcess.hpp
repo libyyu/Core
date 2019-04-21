@@ -9,7 +9,7 @@
 #include <thread>
 #include <memory>
 #include <stdexcept>
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 #include <Windows.h>
 #include <TLHelp32.h>
 #else
@@ -24,7 +24,7 @@ _FStdBegin
 class FProcess 
 {
 public:
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     typedef unsigned long id_type; //Process id type
     typedef void  *fd_type;         //File descriptor type
 #else
@@ -36,14 +36,14 @@ private:
     {
     public:
         Data() noexcept:
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         id(0), handle(NULL)
 #else
         id(-1)
 #endif
         { }
         id_type id;
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         void *handle;
 #endif
     };
@@ -65,7 +65,7 @@ public:
         open(command, path);
         async_read();
     }
-#if PLATFORM_TARGET != PLATFORM_WINDOWS
+#if !FLIB_COMPILER_MSVC && !FLIB_COMPILER_CYGWIN
     /// Supported on Unix-like systems only.
     FProcess(std::function<void()> function,
             std::function<void(const char *bytes, size_t n)> read_stdout=nullptr,
@@ -93,7 +93,7 @@ public:
     ///Wait until process is finished, and return exit status.
     int get_exit_status() noexcept
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         if(data.id==0)
             return -1;
 
@@ -129,7 +129,7 @@ public:
     ///If process is finished, returns true and sets the exit status. Returns false otherwise.
     bool try_get_exit_status(int &exit_status) noexcept
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         if(data.id == 0)
             return false;
 
@@ -176,7 +176,7 @@ public:
         if(!open_stdin)
             throw std::invalid_argument("Can't write to an unopened stdin pipe. Please set open_stdin=true when constructing the process.");
 
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         std::lock_guard<std::mutex> lock(stdin_mutex);
         if(stdin_fd) 
         {
@@ -205,7 +205,7 @@ public:
     ///Close stdin. If the process takes parameters from stdin, use this to notify that all parameters have been sent.
     void close_stdin() noexcept
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         std::lock_guard<std::mutex> lock(stdin_mutex);
         if(stdin_fd) 
         {
@@ -227,7 +227,7 @@ public:
     ///Kill the process. force=true is only supported on Unix-like systems.
     void kill(bool force=false) noexcept
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         std::lock_guard<std::mutex> lock(close_mutex);
         if(data.id > 0 && !closed) 
         {
@@ -270,7 +270,7 @@ public:
     ///Kill a given process id. Use kill(bool force) instead if possible. force=true is only supported on Unix-like systems.
     static void kill(id_type id, bool force=false) noexcept
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         if(id == 0)
             return;
 
@@ -322,7 +322,7 @@ private:
     size_t buffer_size;
     
     std::unique_ptr<fd_type> stdout_fd, stderr_fd, stdin_fd;
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     std::mutex create_process_mutex;
     // Simple HANDLE wrapper to close it automatically from the destructor.
     class FHandle 
@@ -349,7 +349,7 @@ private:
 #endif//
     id_type open(const Fstring &command, const Fstring &path)
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         if(open_stdin)
             stdin_fd = std::unique_ptr<fd_type>(new fd_type(NULL));
         if(read_stdout)
@@ -466,7 +466,7 @@ private:
         });
 #endif
     }
-#if PLATFORM_TARGET != PLATFORM_WINDOWS
+#if !FLIB_COMPILER_MSVC && !FLIB_COMPILER_CYGWIN
     id_type open(std::function<void()> function) noexcept
     {
         if(open_stdin)
@@ -537,7 +537,7 @@ private:
 #endif
     void async_read() noexcept
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         if(data.id==0)
             return;
 
@@ -603,7 +603,7 @@ private:
             stderr_thread.join();       
         if(stdin_fd)
             close_stdin();
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         if(stdout_fd) 
         {
             if(*stdout_fd != NULL) CloseHandle(*stdout_fd);

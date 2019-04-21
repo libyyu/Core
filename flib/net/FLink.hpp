@@ -66,7 +66,7 @@ bool FLink::Connect(FSockAddr& addr)
 }
 bool FLink::Close()
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     ::shutdown(_s,SD_SEND);
 #endif
     _s.Close();

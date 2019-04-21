@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <functional>
 #include <memory>
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <winsock2.h>
 #include <windows.h>
@@ -50,7 +50,7 @@ public:
         {
             if(isalpha(ip[0]))
             {
- #if PLATFORM_TARGET == PLATFORM_WINDOWS               
+ #if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN            
                 LPHOSTENT     lphostent; 
                 lphostent = ::gethostbyname(ip);
                 if(lphostent)
@@ -74,7 +74,7 @@ public:
         assert(uport);
         this->sin_family = AF_INET;   
         this->sin_port = htons(uport);    
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         this->sin_addr.S_un.S_addr = nIp;
 #else
         this->sin_addr.s_addr = nIp;
@@ -125,7 +125,7 @@ bool FSocket::Ioctl(long cmd,u_long* argp)
 {
 	assert(IsCreate());
 	if(!IsCreate()) return false;
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 	return SOCKET_ERROR != ::ioctlsocket(_s,cmd,argp);
 #else
     return SOCKET_ERROR != ioctl(_s, cmd, argp);
@@ -148,7 +148,7 @@ void FSocket::SetTcpNoDelay(bool on)
 bool FSocket::Create(int nType)
 {
 	if(IsCreate()) return true;
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     _s = ::WSASocket(AF_INET, nType, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 #else
     _s = ::socket(AF_INET, nType, 0);
@@ -164,7 +164,7 @@ bool FSocket::Create(int nType)
 bool FSocket::Close()
 {
 	if(!IsCreate()) return true;
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     ::shutdown(_s, SD_BOTH);
     if (SOCKET_ERROR == ::closesocket(_s))
         return false;
@@ -207,7 +207,7 @@ bool FSocket::IsConnect() const
 		switch(optval)
 		{
 		case 0: return true; 
-#if PLATFORM_TARGET == PLATFORM_WINDOWS   
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN 
 		case ECONNREFUSED:break;
 #endif
 		}
@@ -223,7 +223,7 @@ bool FSocket::Connect(const FSockAddr* pRemoteaddr)
 	assert(pRemoteaddr);
 	int ret = ::connect(_s,(sockaddr*)pRemoteaddr, pRemoteaddr->addlen);
     if(SOCKET_ERROR == ret
-#if PLATFORM_TARGET == PLATFORM_WINDOWS  
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         && WSAEWOULDBLOCK != ::WSAGetLastError()
 #endif
     )
@@ -244,7 +244,7 @@ bool FSocket::ConnectEx(const FSockAddr* pRemoteaddr,int nTimeOut /* = 10 */,FSo
 	if(SOCKET_ERROR == nRet)
 	{
         int nError = F_ERRNO;
-#if PLATFORM_TARGET == PLATFORM_WINDOWS  
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN 
 		if(WSAEWOULDBLOCK != nError && 
 			WSAEALREADY != nError &&
 			WSAEISCONN != nError)

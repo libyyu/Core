@@ -5,7 +5,7 @@
 #include <time.h>
 #include <sstream>
 #include <iostream>
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 #include <windows.h>
 #else
 #include <pthread.h>
@@ -54,7 +54,7 @@ class FLock : public i_lock
 public:
     FLock()
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         InitializeCriticalSection(&cs);
 #else
         pthread_mutexattr_t   mta;
@@ -65,7 +65,7 @@ public:
     }
     ~FLock()
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         DeleteCriticalSection(&cs);
 #else
         pthread_mutex_destroy(&m);
@@ -73,7 +73,7 @@ public:
     }
     bool lock()
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         EnterCriticalSection(&cs);
 #else
         pthread_mutex_lock(&m);
@@ -82,7 +82,7 @@ public:
     }
     bool unlock()
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         LeaveCriticalSection(&cs);
 #else
         pthread_mutex_unlock(&m);
@@ -90,7 +90,7 @@ public:
         return false;
     }
 protected:
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     CRITICAL_SECTION cs;
 #else
     pthread_mutex_t m;

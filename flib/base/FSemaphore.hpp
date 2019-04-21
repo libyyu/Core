@@ -4,14 +4,14 @@
 #include "FLock.hpp"
 #include <time.h>
 #include <functional>
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     #include <Windows.h>
 #else
     #include <semaphore.h>
     #include <sys/time.h>
     #include <limits>
 #endif
-#if MINGW32
+#if FLIB_COMPILER_CYGWIN
 #include <limits.h>
 #endif
 _FStdBegin
@@ -19,10 +19,10 @@ _FStdBegin
 class FSemaphore
 {
 public:
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     static const uint32_t kInfinite = INFINITE;
     typedef HANDLE sem_t;
-#elif PLATFORM_TARGET == PLATFORM_LINUX
+#elif FLIB_COMPILER_LINUX
     static const uint32_t kInfinite = UINTMAX_MAX;
 #else
     static const uint32_t kInfinite = UINT_MAX;
@@ -30,7 +30,7 @@ public:
 
     FSemaphore(int32_t num = 0)
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         _sem = ::CreateSemaphore(NULL, num, LONG_MAX, NULL);
 #else
         sem_init(&_sem, 0, num);
@@ -38,7 +38,7 @@ public:
     }
     ~FSemaphore()
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         if (NULL != _sem) 
         {
             if (0 != ::CloseHandle(_sem)) 
@@ -54,7 +54,7 @@ public:
 	// P
     bool wait(uint32_t millisecond = kInfinite)
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         if (NULL == _sem)
             return false;
 
@@ -92,7 +92,7 @@ public:
 	// V
     bool signal()
     {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         BOOL ret = FALSE;
         
         if (NULL != _sem) 
@@ -105,7 +105,7 @@ public:
 #endif    
     }
 protected:
-#if PLATFORM_TARGET != PLATFORM_WINDOWS
+#if !FLIB_COMPILER_MSVC && !FLIB_COMPILER_CYGWIN
     static int32_t getAbsTimespec(struct timespec *ts, int32_t millisecond)
     {
         if (NULL == ts)

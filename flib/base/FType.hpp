@@ -16,7 +16,7 @@
 #else
 #include <string.h>
 #endif
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 #include <tchar.h>
 #if defined( UNICODE ) || defined( _UNICODE )
 	#undef _T
@@ -143,20 +143,6 @@
 #define _FStdBegin  _FNameSpaceBegin(FStd)
 #define _FStdEnd    _FNameSpaceEnd
 
-#if defined(_F_DLL_)
-	#if defined(_MSC_VER)
-		#define F_DLL_API __declspec(dllexport)
-	#else
-		#define F_DLL_API
-	#endif
-#else
-	#if defined(_MSC_VER)
-		#define F_DLL_API __declspec(dllimport)
-	#else
-		#define F_DLL_API
-	#endif
-#endif
-
 /********************************************************************************
  
  Base integer types for all target OS's and CPU's
@@ -182,7 +168,7 @@ typedef short							int16;
 typedef ushort                          uint16;
 
 
-#ifdef __LP64__
+#if FLIB_COMPILER_64BITS
 typedef int								int32;
 typedef uint                            uint32;
 #else
@@ -190,8 +176,7 @@ typedef long							int32;
 typedef unsigned long                   uint32;
 #endif
 
-
-#if PLATFORM_TARGET == PLATFORM_WINDOWS //&& !MINGW32
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 typedef __int64           				int64;
 typedef unsigned __int64  				uint64;
 #else
@@ -199,7 +184,7 @@ typedef __int64_t         				int64;
 typedef __uint64_t        				uint64;
 #endif
 
-#ifndef _MSC_VER
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 typedef unsigned char byte;
 #endif
 
@@ -229,7 +214,7 @@ typedef std::vector<uchar> ByteArray;
 #define DO_JOIN( X, Y ) DO_JOIN2(X,Y)
 #define DO_JOIN2( X, Y ) X##Y
 
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 #define SEP               '\\'
 #define PRId64            "I64d"
 #define PRIu64            "I64u"

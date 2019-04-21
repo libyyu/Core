@@ -12,7 +12,7 @@ static void __mtrace_init(void)
     char path[256] = {0};
     FSplitpath(__FILE__, path, NULL, NULL);
     std::string example_path = path;
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     std::string dll_path = example_path + "/../libs/windows/sm.dll";
 #else
     std::string dll_path = example_path + "/../libs/macosx/libsm.dylib";

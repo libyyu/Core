@@ -5,7 +5,7 @@
 #include "FSemaphore.hpp"
 #include <queue>
 #include <functional>
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 	#include <Windows.h>
 #else
 	#include <pthread.h>
@@ -20,7 +20,7 @@ public:
     explicit FThread(const FThreadCallback &cb)
         : _cb(cb)
         , _state(kInit)
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         , _handle(NULL)
         , _threadId(0)
 #endif
@@ -40,7 +40,7 @@ public:
         }
 
         bool result = false;
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         _handle = ::CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)threadProc, (LPVOID)this, 0, &_threadId);
         result = (NULL != _handle);
 #else
@@ -59,7 +59,7 @@ public:
         }
 
         bool result = true;
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         if(0 == ::TerminateThread(_handle, 0)) 
         {
             result = false;
@@ -85,7 +85,7 @@ public:
             return false;
         }
         bool result = false;
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         if (NULL != _handle) 
         {
             DWORD ret = ::WaitForSingleObject(_handle, INFINITE);
@@ -106,7 +106,7 @@ public:
         return result;
     }
 
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     DWORD tid() const { return _threadId; }
     operator HANDLE() { return _handle; }
 #else
@@ -117,7 +117,7 @@ private:
     FThread(const FThread&){}
     void operator=(const FThread&){}
 
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     static DWORD WINAPI threadProc(LPVOID param)
 #else
     static void *threadProc(void *param)
@@ -131,7 +131,7 @@ private:
     FThreadCallback _cb;
     FStateT _state;
 
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     HANDLE _handle;
     DWORD _threadId;
 #else

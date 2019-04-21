@@ -6,7 +6,7 @@
 #include <iostream>
 #include <sstream> 
 #include <stdarg.h>
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 #include <Windows.h>
 #else
 #include <dlfcn.h>
@@ -16,7 +16,7 @@ _FStdBegin
 
 class FPlugin
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 	typedef HINSTANCE   plugin_t;
 #else
 	typedef void*		plugin_t;
@@ -36,7 +36,7 @@ public:
 	{
 		if (!IsLoaded())
 			return;
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 		::FreeLibrary(_plugin);
 #else
 		dlclose(_plugin);
@@ -45,7 +45,7 @@ public:
 	}
 	inline bool LoadPlugin(const char* plugin)
 	{
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 		_plugin = ::LoadLibraryA(plugin);
 #else
 		_plugin = dlopen(plugin, RTLD_NOW);
@@ -59,7 +59,7 @@ public:
 		{
 			return NULL;
 		}
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 		void* const addr = ::GetProcAddress(_plugin, symbol);
 #else
 		void* const addr = dlsym(_plugin, symbol);

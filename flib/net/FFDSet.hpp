@@ -5,7 +5,7 @@
 #include <algorithm>  
 #include <iostream>
 
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 #include <winsock2.h>
 #include <windows.h>
 #define CHECK_READ_FLAG (POLLIN | POLLRDNORM | POLLRDBAND)
@@ -179,7 +179,7 @@ inline void ox_fdset_del(struct fdset_s* self, int fd, int type)
 }
 inline int ox_fdset_poll(struct fdset_s* self, long overtime)
 {
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     int ret = WSAPoll(&self->pollFds[0], self->nfds, overtime);
     if(ret == SOCKET_ERROR)
     {

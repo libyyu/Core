@@ -1,11 +1,11 @@
-﻿#ifndef __FCONVERT_HPP__
+#ifndef __FCONVERT_HPP__
 #define __FCONVERT_HPP__
 #pragma once
 #include "FType.hpp"
 #include <locale.h>
 #include <iostream>
 #include <sstream> 
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 #include <Windows.h>
 #endif
 
@@ -173,7 +173,7 @@ public:
     static stringtype UTF16ToUTF8(const wchar_t* ptext)
 	{
 		stringtype sResult;
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 		int nBufSize = ::WideCharToMultiByte(CP_UTF8,0,ptext,-1,NULL,0,0,FALSE);
 		char *szBuf = new char[nBufSize];
 		::WideCharToMultiByte(CP_UTF8,0,ptext,-1,szBuf,nBufSize,0,FALSE);
@@ -336,7 +336,7 @@ protected:
 	}
     static void _Gb2312ToUTF16ofChar(wchar_t* pOut,const char &gbBuffer)
 	{
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 		::MultiByteToWideChar(CP_ACP,MB_PRECOMPOSED,&gbBuffer,2,pOut,1);
 #else
 		char* pcurLocale = setlocale(LC_ALL,NULL);// curLocale = "C";
@@ -347,7 +347,7 @@ protected:
 	}
     static void _UTF16ToGB2312ofChar(char* pOut,const wchar_t& uData)
 	{
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 		::WideCharToMultiByte(CP_ACP,NULL,&uData,1,pOut,sizeof(uData),NULL,NULL);
 #else
 		char* pcurLocale = setlocale(LC_ALL,NULL);// curLocale = "C";

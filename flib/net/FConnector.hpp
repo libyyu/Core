@@ -329,7 +329,7 @@ inline void FConnector::F_ConnectorWorkInfo::processConnect(const FConnector::F_
     spSocketT pSock = spSocketT(new FSocket());
     F_ConnectorWorkInfo::F_ConnectingInfo ci;
 
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     int check_error = WSAEWOULDBLOCK;
 #else
     int check_error = EINPROGRESS;

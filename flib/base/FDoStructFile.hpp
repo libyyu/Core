@@ -21,11 +21,7 @@ private:
 	FDReadAWriteLock m_Lock; 
 	U m_contian;	
 	const unsigned int m_nSize;
-#if PLATFORM_TARGET == PLATFORM_WINDOWS
-	typedef bool (__stdcall *EnumVaulePro)(const value_type&,void*);
-#else
-    typedef bool (*EnumVaulePro)(const value_type&,void*);
-#endif
+	typedef bool (_STDCALL *EnumVaulePro)(const value_type&,void*);
 public:
     FDoStructFile();
     ~FDoStructFile();

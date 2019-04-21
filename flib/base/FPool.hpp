@@ -14,10 +14,10 @@ template <class T, unsigned int nInitCount = 10>
 class FPool
 {
 private:
-    _F_Node<T>*           m_pHead;	                 //头锟斤拷锟�
+    _F_Node<T>*         m_pHead;	                 //头锟斤拷锟�
     unsigned long       m_nOutCount;            //锟阶筹拷锟斤拷锟斤拷
     unsigned long       m_nInCount;             //锟斤拷锟叫革拷锟斤拷	
-    FLock             m_lock;
+    FLock               m_lock;
 public:
     FPool();
     ~FPool();
