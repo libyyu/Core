@@ -139,15 +139,12 @@ protected:
 };
 _FStdEnd
 //////////////////////////////////////////////////////////////////////
-_FStdBegin
 #define F_CONSOLE(LEVEL) \
-	FLogFinisher() = FConsole(F_LOGLEVEL::F_LOGLEVEL_##LEVEL)
+	FStd::FLogFinisher() = FStd::FConsole(FStd::F_LOGLEVEL::F_LOGLEVEL_##LEVEL)
 
 #define F_CONSOLE_TRACE  \
-	FConsole f_console_trace(F_LOGLEVEL::F_LOGLEVEL_TRACE, __FILE__, __LINE__);  \
-	FLogTraceFunction f_logTraceFunction(f_console_trace, __FUNCTION__, __FILE__, __LINE__); \
+	FStd::FConsole f_console_trace(FStd::F_LOGLEVEL::F_LOGLEVEL_TRACE, __FILE__, __LINE__);  \
+	FStd::FLogTraceFunction f_logTraceFunction(f_console_trace, __FUNCTION__, __FILE__, __LINE__); \
 	f_logTraceFunction = f_console_trace << __FUNCTION__ << "() enter " << endl;
-
-_FStdEnd
 
 #endif//__FCONSOLE_HPP

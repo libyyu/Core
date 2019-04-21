@@ -11,7 +11,7 @@
 #include <set>
 #include <stddef.h>
 #include "FPlatform.hpp"
-#if MINGW32
+#if FLIB_COMPILER_CYGWIN
 #include <cstring>
 #else
 #include <string.h>

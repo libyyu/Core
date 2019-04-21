@@ -611,8 +611,6 @@ inline int memfind(const void* src,size_t srcsize,const void* dst,size_t dstsize
 
 _FStdEnd
 
-_FStdBegin
-#define F_FORMAT FFormat
-_FStdEnd
+#define F_FORMAT FStd::FFormat
 
 #endif//__FFUNC_HPP__

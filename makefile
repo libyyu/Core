@@ -21,7 +21,7 @@ ifeq ($(PLAT),windows)
 	CFLAGS += -D_WIN32_WINNT=0x0603
 endif
 
-all : test_base test_process test_net test_3rd test_sm
+all : test_base test_process test_net test_3rd test_sm test_boost test_sm
 
 test_base : test_base.o
 	@echo $(PLAT) link $@

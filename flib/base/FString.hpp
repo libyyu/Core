@@ -18,12 +18,12 @@ public:
     {
         m_szBuffer[0] = '\0';
     }
-	FString(const Fchar ch) : m_pstr(m_szBuffer)
+	FString(const char ch) : m_pstr(m_szBuffer)
     {
         m_szBuffer[0] = ch;
 		m_szBuffer[1] = '\0';
     }
-	FString(const Fchar* lpsz, int nLen = -1) : m_pstr(m_szBuffer)
+	FString(const char* lpsz, int nLen = -1) : m_pstr(m_szBuffer)
     {
         assert(lpsz);
 		m_szBuffer[0] = '\0';
@@ -45,41 +45,42 @@ public:
 		m_pstr = m_szBuffer;
 		m_szBuffer[0] = '\0';
     }
-    inline int GetLength() const
+    inline size_t GetLength() const
     {
-		return (int)Fstrlen(m_pstr);
+		return strlen(m_pstr);
     }
     inline bool IsEmpty() const
     {
         return m_pstr[0] == '\0'; 
     }
-    inline Fchar GetAt(int nIndex) const
+    inline char GetAt(int nIndex) const
     {
         return m_pstr[nIndex];
     }
-	inline Fchar operator[] (int nIndex) const
+	inline char operator[] (int nIndex) const
     {
         return m_pstr[nIndex];
     }
 
-	inline void SetAt(int nIndex, Fchar ch)
+	inline void SetAt(int nIndex, char ch)
     {
         assert(nIndex>=0 && nIndex<GetLength());
 		m_pstr[nIndex] = ch;
     }
 
-	inline void Append(const Fchar* pstr)
+	inline void Append(const char* pstr)
     {
-		int nNewLength = GetLength() + (int)Fstrlen(pstr);
+		assert(pstr);
+		size_t nNewLength = GetLength() + strlen(pstr);
 		if( nNewLength >= MAX_LOCAL_STRING_LEN ) {
 			if( m_pstr == m_szBuffer ) {
-				m_pstr = static_cast<Fchar*>(malloc((nNewLength + 1) * sizeof(Fchar)));
-				Fstrcpy(m_pstr, m_szBuffer);
-				Fstrcat(m_pstr, pstr);
+				m_pstr = static_cast<char*>(malloc((nNewLength + 1) * sizeof(char)));
+				strcpy(m_pstr, m_szBuffer);
+				strcat(m_pstr, pstr);
 			}
 			else {
-				m_pstr = static_cast<Fchar*>(realloc(m_pstr, (nNewLength + 1) * sizeof(Fchar)));
-				Fstrcat(m_pstr, pstr);
+				m_pstr = static_cast<char*>(realloc(m_pstr, (nNewLength + 1) * sizeof(char)));
+				strcat(m_pstr, pstr);
 			}
 		}
 		else {
@@ -87,14 +88,14 @@ public:
 				free(m_pstr);
 				m_pstr = m_szBuffer;
 			}
-			Fstrcat(m_szBuffer, pstr);
+			strcat(m_szBuffer, pstr);
 		}
     }
 
-	inline void Assign(const Fchar* pstr, int cchMax = -1)
+	inline void Assign(const char* pstr, int cchMax = -1)
     {
-        if( pstr == NULL ) pstr = _T("");
-		cchMax = (cchMax < 0 ? (int)Fstrlen(pstr) : cchMax);
+        if( pstr == NULL ) pstr = "";
+		cchMax = (cchMax < 0 ? strlen(pstr) : cchMax);
 		if( cchMax < MAX_LOCAL_STRING_LEN ) {
 			if( m_pstr != m_szBuffer ) {
 				free(m_pstr);
@@ -103,19 +104,23 @@ public:
 		}
 		else if( cchMax > GetLength() || m_pstr == m_szBuffer ) {
 			if( m_pstr == m_szBuffer ) m_pstr = NULL;
-			m_pstr = static_cast<Fchar*>(realloc(m_pstr, (cchMax + 1) * sizeof(Fchar)));
+			m_pstr = static_cast<char*>(realloc(m_pstr, (cchMax + 1) * sizeof(char)));
 		}
-		Fstrncpy(m_pstr, pstr, cchMax);
+		strncpy(m_pstr, pstr, cchMax);
 		m_pstr[cchMax] = '\0';
     }
-	inline int Compare(const Fchar* lpsz) const
+	inline int Compare(const char* lpsz) const
 	{ 
-		return Fstrcmp(m_pstr, lpsz); 
+		return strcmp(m_pstr, lpsz); 
 	}
 
-	inline int CompareNoCase(const Fchar* lpsz) const
+	inline int CompareNoCase(const char* lpsz) const
 	{ 
-		return Fstrncasecmp(m_pstr, lpsz, Fstrlen(lpsz)); 
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
+		return _strnicmp(m_pstr, lpsz, strlen(lpsz)); 
+#else
+		return strncasecmp(m_pstr, lpsz, strlen(lpsz)); 
+#endif
 	}
 
     inline FString Left(int iLength) const
@@ -143,39 +148,39 @@ public:
 		return FString(m_pstr + iPos, iLength);
 	}
 
-    inline int Find(Fchar ch, int iPos = 0) const
+    inline int Find(char ch, int iPos = 0) const
 	{
 		assert(iPos>=0 && iPos<=GetLength());
 		if( iPos != 0 && (iPos < 0 || iPos >= GetLength()) ) return -1;
-		const Fchar* p = Fstrrchr(m_pstr + iPos, ch);
+		const char* p = strrchr(m_pstr + iPos, ch);
 		if( p == NULL ) return -1;
 		return (int)(p - m_pstr);
 	}
 
-	inline int Find(const Fchar* pstrSub, int iPos = 0) const
+	inline int Find(const char* pstrSub, int iPos = 0) const
 	{
 		assert(iPos>=0 && iPos<=GetLength());
 		if( iPos != 0 && (iPos < 0 || iPos > GetLength()) ) return -1;
-		const Fchar* p = Fstrstr(m_pstr + iPos, pstrSub);
+		const char* p = strstr(m_pstr + iPos, pstrSub);
 		if( p == NULL ) return -1;
 		return (int)(p - m_pstr);
 	}
 
-	inline int ReverseFind(Fchar ch) const
+	inline int ReverseFind(char ch) const
 	{
-		const Fchar* p = Fstrrchr(m_pstr, ch);
+		const char* p = strrchr(m_pstr, ch);
 		if( p == NULL ) return -1;
 		return (int)(p - m_pstr);
 	}
 
-	inline int Replace(const Fchar* pstrFrom, const Fchar* pstrTo)
+	inline int Replace(const char* pstrFrom, const char* pstrTo)
 	{
 		FString sTemp;
 		int nCount = 0;
 		int iPos = Find(pstrFrom);
 		if( iPos < 0 ) return 0;
-		int cchFrom = (int) Fstrlen(pstrFrom);
-		int cchTo = (int) Fstrlen(pstrTo);
+		size_t cchFrom = strlen(pstrFrom);
+		size_t cchTo = strlen(pstrTo);
 		while( iPos >= 0 ) {
 			sTemp = Left(iPos);
 			sTemp += pstrTo;
@@ -187,36 +192,36 @@ public:
 		return nCount;
 	}
 
-	inline int Format(const Fchar* pstrFormat, ...)
+	inline int Format(const char* pstrFormat, ...)
 	{
 		// Do ordinary printf replacements
 		// NOTE: Documented max-length of wvsprintf() is 2048
-		Fchar szBuffer[20480] = { 0 };
+		char szBuffer[20480] = { 0 };
 		va_list argList;
 		va_start(argList, pstrFormat);
 
-		int iRet = Fvsnprintf(szBuffer, sizeof(szBuffer) / sizeof(szBuffer[0]) - 2, pstrFormat, argList);
+		int iRet = vsnprintf(szBuffer, sizeof(szBuffer) / sizeof(szBuffer[0]) - 2, pstrFormat, argList);
 		
 		va_end(argList);
 		Assign(szBuffer);
 		return iRet;
 	}
 
-	static FString Printf(const Fchar* pstrFormat, ...)
+	static FString Printf(const char* pstrFormat, ...)
 	{
 		FString strOut;
-		Fchar szBuffer[20480] = { 0 };
+		char szBuffer[20480] = { 0 };
 		va_list argList;
 		va_start(argList, pstrFormat);
 
-		Fvsnprintf(szBuffer, sizeof(szBuffer) / sizeof(szBuffer[0]) - 2, pstrFormat, argList);
+		vsnprintf(szBuffer, sizeof(szBuffer) / sizeof(szBuffer[0]) - 2, pstrFormat, argList);
 		
 		va_end(argList);
 		strOut.Assign(szBuffer);
 		return strOut;
 	}
 
-	inline void SplitToArray(std::vector<FString>& OutArr, const Fchar* pattern)
+	inline void SplitToArray(std::vector<FString>& OutArr, const char* pattern)
 	{
 		if (IsEmpty() || !pattern || pattern[0] == 0x0)
 			return;
@@ -246,7 +251,7 @@ public:
 
     inline void TrimLeft()
     {
-		const Fchar* p = m_pstr;
+		const char* p = m_pstr;
         while (*p != '\0')
         {
             if(*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n')
@@ -264,7 +269,7 @@ public:
     inline void TrimRight()
     {
         int len = GetLength();
-		Fchar *p = m_pstr + len - 1;
+		char *p = m_pstr + len - 1;
         while (p >= m_pstr)
         {
             if(*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n')
@@ -285,12 +290,12 @@ public:
         TrimRight();
     }
 
-	virtual operator Fchar*() const
+	virtual operator char*() const
     {
         return m_pstr; 
     }
 
-	const FString& operator=(const Fchar ch)
+	const FString& operator=(const char ch)
     {
         Empty();
 		m_szBuffer[0] = ch;
@@ -303,7 +308,7 @@ public:
         Assign(src);
 		return *this;
     }
-	const FString& operator=(const Fchar* lpStr)
+	const FString& operator=(const char* lpStr)
     {
         if ( lpStr )
 		{
@@ -322,7 +327,7 @@ public:
 		sTemp.Append(src);
 		return sTemp;
 	}
-	FString operator+(const Fchar* lpStr) const
+	FString operator+(const char* lpStr) const
 	{
 		if ( lpStr )
 		{
@@ -333,10 +338,10 @@ public:
 
 		return *this;
 	}
-	FString operator+(const Fchar ch) const
+	FString operator+(const char ch) const
 	{
 		FString sTemp = *this;
-		Fchar str[] = { ch, '\0' };
+		char str[] = { ch, '\0' };
 		sTemp.Append(str);
 		return sTemp;
 	}
@@ -346,7 +351,7 @@ public:
 		Append(src);
 		return *this;
 	}
-	const FString& operator+=(const Fchar* lpStr)
+	const FString& operator+=(const char* lpStr)
 	{      
 		if ( lpStr )
 		{
@@ -355,19 +360,19 @@ public:
 		
 		return *this;
 	}
-	const FString& operator+=(const Fchar ch)
+	const FString& operator+=(const char ch)
 	{      
-		Fchar str[] = { ch, '\0' };
+		char str[] = { ch, '\0' };
 		Append(str);
 		return *this;
 	}
 
-	bool operator == (const Fchar* str) const { return (Compare(str) == 0); };
-	bool operator != (const Fchar* str) const { return (Compare(str) != 0); };
-	bool operator <= (const Fchar* str) const { return (Compare(str) <= 0); };
-	bool operator <  (const Fchar* str) const { return (Compare(str) <  0); };
-	bool operator >= (const Fchar* str) const { return (Compare(str) >= 0); };
-	bool operator >  (const Fchar* str) const { return (Compare(str) >  0); };
+	bool operator == (const char* str) const { return (Compare(str) == 0); };
+	bool operator != (const char* str) const { return (Compare(str) != 0); };
+	bool operator <= (const char* str) const { return (Compare(str) <= 0); };
+	bool operator <  (const char* str) const { return (Compare(str) <  0); };
+	bool operator >= (const char* str) const { return (Compare(str) >= 0); };
+	bool operator >  (const char* str) const { return (Compare(str) >  0); };
 
 	template<typename T>
     inline FString& operator<<(T v); // will generate link error
@@ -382,9 +387,9 @@ public:
     inline FString& operator<<(bool v);
     inline FString& operator<<(float v);
     inline FString& operator<<(double v);
-    inline FString& operator<<(const Fchar *str);
-	inline FString& operator<<(Fchar v[]);
-	inline FString& operator<<(Fstring& str);
+    inline FString& operator<<(const char *str);
+	inline FString& operator<<(char v[]);
+	inline FString& operator<<(std::string& str);
     inline FString& operator<<(FString &v);
 	inline FString& operator<< (FString& (*_f)(FString&));
 
@@ -393,8 +398,8 @@ protected:
 	template<typename T>
 	inline void Write(const T &src);
 private:
-	Fchar* m_pstr;
-	Fchar m_szBuffer[MAX_LOCAL_STRING_LEN + 1];
+	char* m_pstr;
+	char m_szBuffer[MAX_LOCAL_STRING_LEN + 1];
 };
 
 inline FString& operator<<(FString& str,const std::string &v)
@@ -402,16 +407,11 @@ inline FString& operator<<(FString& str,const std::string &v)
 	str << v;
     return str;
 }
-inline FString& operator<<(FString& str, const std::wstring &v)
-{
-	str << v;
-	return str;
-}
 
 template<typename T>
 inline void FString::Write(const T &src)
 {
-	Fstringstream str;
+	std::stringstream str;
 	str << src;
 	Append(str.str().c_str());
 }
@@ -470,17 +470,17 @@ FString& FString::operator<<(double v)
 	Write<double>(v);
 	return *this;
 }
-FString& FString::operator<<(const Fchar *str)
+FString& FString::operator<<(const char *str)
 {
 	Append(str);
 	return *this;
 }
-FString& FString::operator<<(Fchar str[])
+FString& FString::operator<<(char str[])
 {
 	Append(str);
 	return *this;
 }
-FString& FString::operator<<(Fstring& str)
+FString& FString::operator<<(std::string& str)
 {
 	(*this) << (str.c_str());
 	return *this;

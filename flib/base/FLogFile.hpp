@@ -53,15 +53,12 @@ protected:
 _FStdEnd
 
 //////////////////////////////////////////////////////////////////////
-_FStdBegin
 #define F_LOGFILE(LEVEL, file) \
-	FLogFinisher() = FLogFile(file, F_LOGLEVEL::F_LOGLEVEL_##LEVEL)
+	FStd::FLogFinisher() = FStd::FLogFile(file, FStd::F_LOGLEVEL::F_LOGLEVEL_##LEVEL)
 
 #define F_LOGFILE_TRACE(file)  \
-	FLogFile f_logfile_trace(file, F_LOGLEVEL::F_LOGLEVEL_TRACE, __FILE__, __LINE__);  \
-	FLogTraceFunction f_logfileTraceFunction(f_logfile_trace, __FUNCTION__, __FILE__, __LINE__); \
+	FStd::FLogFile f_logfile_trace(file, FStd::F_LOGLEVEL::F_LOGLEVEL_TRACE, __FILE__, __LINE__);  \
+	FStd::FLogTraceFunction f_logfileTraceFunction(f_logfile_trace, __FUNCTION__, __FILE__, __LINE__); \
 	f_logfileTraceFunction = f_logfile_trace << __FUNCTION__ << "() enter " << endl;
-
-_FStdEnd
 
 #endif//__FLOGFILE_HPP__
