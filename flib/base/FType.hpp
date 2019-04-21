@@ -198,10 +198,10 @@ typedef std::vector<uchar> ByteArray;
     void operator= (const TypeName&);
 
 
-#define lengthof(x)   (sizeof(x)/sizeof(*x))
+#define lengthof(x)   (sizeof(x)/sizeof(x[0]))
 
-#define MIN(a,b) ((a)<(b)) ? (a) : (b)
-#define MAX(a,b) ((a)>(b)) ? (a) : (b)
+#define FLIB_MIN(a,b) ((a)<(b)) ? (a) : (b)
+#define FLIB_MAX(a,b) ((a)>(b)) ? (a) : (b)
 
 #define min2(a, b) (((a) > (b)) ? (b) : (a))
 #define min3(a, b, c) (min2(min2((a), (b)), (c)))
@@ -210,9 +210,10 @@ typedef std::vector<uchar> ByteArray;
 #define min4(a, b, c, d) (min2(min2((a), (b)), min2((c), (d))))
 #define max4(a, b, c, d) (max2(max2((a), (b)), max2((c), (d))))
 
-#define JOIN( X, Y ) DO_JOIN( X, Y )
-#define DO_JOIN( X, Y ) DO_JOIN2(X,Y)
-#define DO_JOIN2( X, Y ) X##Y
+#define FLIB_JOIN( X, Y ) FLIB_DO_JOIN( X, Y )
+#define FLIB_DO_JOIN( X, Y ) FLIB_DO_JOIN2(X,Y)
+#define FLIB_DO_JOIN2( X, Y ) X##Y
+#define FLIB_MAKE64(low, high)   ((uint64) (((uint32) (low)) | ((uint64) ((uint32) (high))) << 32))
 
 #if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 #define SEP               '\\'
@@ -233,12 +234,5 @@ typedef std::vector<uchar> ByteArray;
     protected: varType varName; \
     public: virtual varType get##funName(void) const { return varName; } \
     public: virtual void set##funName(const varType& var) { varName = var; }
-
-// #if MINGW32
-// //_CRTIMP FILE* __cdecl __MINGW_NOTHROW   _fdopen (int, const char*);
-// _CRTIMP FILE* __cdecl __MINGW_NOTHROW   fdopen (int, const char*);
-// _CRTIMP int __cdecl __MINGW_NOTHROW _strnicmp (const char*, const char*, size_t);
-// #define _fdopen fdopen
-// #endif
 
 #endif//__FTYPE_HPP__
