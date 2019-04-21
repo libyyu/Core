@@ -601,7 +601,7 @@ namespace lua
 				return false;
 		}
 	};
-#ifndef __LP64__
+#if 1 //ndef __LP64__
 	template<>
 	struct lua_op_t<int64>
 	{
