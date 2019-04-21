@@ -33,7 +33,7 @@
 #define LUA_FUNC_REG(name) { #name, lua_##name }
 
 #define SUPPORT_PARAMS 1
-#define SUPPORT_CXX11 0
+#define SUPPORT_CXX11  0
 
 
 namespace lua
@@ -551,7 +551,7 @@ namespace lua
 				return false;
 		}
 	};
-
+#if FLIB_COMPILER_64BITS
 	template<>
 	struct lua_op_t<long>
 	{
@@ -601,7 +601,8 @@ namespace lua
 				return false;
 		}
 	};
-#if 1 //ndef __LP64__
+#endif//FLIB_COMPILER_64BITS
+    
 	template<>
 	struct lua_op_t<int64>
 	{
@@ -683,7 +684,6 @@ namespace lua
 				return false;
 		}
 	};
-#endif
 
 	template<>
 	struct lua_op_t<std::string>
