@@ -64,7 +64,7 @@ public:
 
 	inline void SetAt(int nIndex, wchar_t ch)
     {
-        assert(nIndex>=0 && nIndex<GetLength());
+        assert(nIndex>=0 && nIndex<(int)GetLength());
 		m_pstr[nIndex] = ch;
     }
 
@@ -102,7 +102,7 @@ public:
 				m_pstr = m_szBuffer;
 			}
 		}
-		else if( cchMax > GetLength() || m_pstr == m_szBuffer ) {
+		else if( cchMax > (int)GetLength() || m_pstr == m_szBuffer ) {
 			if( m_pstr == m_szBuffer ) m_pstr = NULL;
 			m_pstr = static_cast<wchar_t*>(realloc(m_pstr, (cchMax + 1) * sizeof(wchar_t)));
 		}
@@ -126,14 +126,14 @@ public:
     inline FWString Left(int iLength) const
 	{
 		if( iLength < 0 ) iLength = 0;
-		if( iLength > GetLength() ) iLength = GetLength();
+		if( iLength > (int)GetLength() ) iLength = GetLength();
 		return FWString(m_pstr, iLength);
 	}
 
 	inline FWString Mid(int iPos, int iLength = -1) const
 	{
 		if( iLength < 0 ) iLength = GetLength() - iPos;
-		if( iPos + iLength > GetLength() ) iLength = GetLength() - iPos;
+		if( iPos + iLength > (int)GetLength() ) iLength = GetLength() - iPos;
 		if( iLength <= 0 ) return FWString();
 		return FWString(m_pstr + iPos, iLength);
 	}
@@ -150,8 +150,8 @@ public:
 
     inline int Find(wchar_t ch, int iPos = 0) const
 	{
-		assert(iPos>=0 && iPos<=GetLength());
-		if( iPos != 0 && (iPos < 0 || iPos >= GetLength()) ) return -1;
+		assert(iPos>=0 && iPos<=(int)GetLength());
+		if( iPos != 0 && (iPos < 0 || iPos >= (int)GetLength()) ) return -1;
 		const wchar_t* p = wcsrchr(m_pstr + iPos, ch);
 		if( p == NULL ) return -1;
 		return (int)(p - m_pstr);
@@ -159,8 +159,8 @@ public:
 
 	inline int Find(const wchar_t* pstrSub, int iPos = 0) const
 	{
-		assert(iPos>=0 && iPos<=GetLength());
-		if( iPos != 0 && (iPos < 0 || iPos > GetLength()) ) return -1;
+		assert(iPos>=0 && iPos<=(int)GetLength());
+		if( iPos != 0 && (iPos < 0 || iPos > (int)GetLength()) ) return -1;
 		const wchar_t* p = wcsstr(m_pstr + iPos, pstrSub);
 		if( p == NULL ) return -1;
 		return (int)(p - m_pstr);
@@ -230,7 +230,6 @@ public:
 		if (IsEmpty() || !pattern || pattern[0] == 0x0)
 			return;
 
-		int nCount = 0;
 		FWString temp;
 		size_t pos = 0, offset = 0;
 
@@ -272,7 +271,7 @@ public:
     
     inline void TrimRight()
     {
-        int len = GetLength();
+        size_t len = GetLength();
 		wchar_t *p = m_pstr + len - 1;
         while (p >= m_pstr)
         {
@@ -415,7 +414,7 @@ inline FWString& operator<<(FWString& str,const std::wstring &v)
 template<typename T>
 inline void FWString::Write(const T &src)
 {
-	std::stringstream str;
+	std::wstringstream str;
 	str << src;
 	Append(str.str().c_str());
 }

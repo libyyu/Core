@@ -14,6 +14,7 @@
 #include <windows.h>
 #include <direct.h>
 #include <io.h>
+#include <algorithm>
 #else
 #include <unistd.h>
 #include <errno.h>
@@ -34,7 +35,7 @@ inline tm* FGetNowTime()
 }
 
 template<typename T>
-inline void SafeDelete(T &p)
+inline void FSafeDelete(T* &p)
 {
 	delete p;
 	p = NULL;

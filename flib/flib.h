@@ -27,7 +27,13 @@
 #include "base/FConsole.hpp"
 ////////////////////////////////////
 ////
-
+_FStdBegin
+#if defined( UNICODE ) || defined( _UNICODE )
+typedef  FWString  String;
+#else
+typedef  FString   String;
+#endif
+_FStdEnd
 
 
 #endif//_FLIB_H_
