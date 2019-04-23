@@ -407,7 +407,7 @@ private:
 
 inline FWString& operator<<(FWString& str,const std::wstring &v)
 {
-	str << v;
+	str << (v.c_str());
     return str;
 }
 

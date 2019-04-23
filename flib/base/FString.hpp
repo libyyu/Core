@@ -403,7 +403,7 @@ private:
 
 inline FString& operator<<(FString& str,const std::string &v)
 {
-	str << v;
+	str << (v.c_str());
     return str;
 }
 
