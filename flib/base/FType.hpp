@@ -169,11 +169,11 @@ typedef ushort                          uint16;
 
 
 #if FLIB_COMPILER_64BITS
-typedef int								int32;
-typedef uint                            uint32;
-#else
 typedef long							int32;
 typedef unsigned long                   uint32;
+#else
+typedef int								int32;
+typedef uint                            uint32;
 #endif
 
 #if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN

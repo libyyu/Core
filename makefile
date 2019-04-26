@@ -17,11 +17,11 @@ LUA_INCLUDE = -I../lua-5.1.5/src
 LUA_LIB = -L../libs/macosx/x86_64
 LUA_CFLAGS = -llua51
 
-ifeq ($(PLAT),windows)
+ifeq ($(PLAT),mingw)
 	CFLAGS += -D_WIN32_WINNT=0x0603
 endif
 
-all : test_base test_process test_net test_3rd test_sm test_boost test_sm
+all : test_base test_process test_net test_3rd test_sm test_sm
 
 test_base : test_base.o
 	@echo $(PLAT) link $@

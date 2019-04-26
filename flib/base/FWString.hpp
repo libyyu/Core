@@ -387,6 +387,10 @@ public:
     inline FWString& operator<<(uint16 v);
     inline FWString& operator<<(uint32 v);
     inline FWString& operator<<(uint64 v);
+#if FLIB_COMPILER_64BITS
+    inline FWString& operator<<(int v);
+    inline FWString& operator<<(uint v);
+#endif
     inline FWString& operator<<(bool v);
     inline FWString& operator<<(float v);
     inline FWString& operator<<(double v);
@@ -458,6 +462,18 @@ FWString& FWString::operator<<(uint64 v)
 	Write<uint64>(v);
 	return *this;
 }
+#if FLIB_COMPILER_64BITS
+FWString& FWString::operator<<(int v)
+{
+	Write<int>(v);
+	return *this;
+}
+FWString& FWString::operator<<(uint v)
+{
+	Write<uint>(v);
+	return *this;
+}
+#endif//FLIB_COMPILER_64BITS
 FWString& FWString::operator<<(bool v)
 {
 	Write<bool>(v);

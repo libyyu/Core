@@ -18,8 +18,8 @@ public:
     inline IArchive& operator<<(uint32 v);
     inline IArchive& operator<<(uint64 v);
 #if FLIB_COMPILER_64BITS
-    inline IArchive& operator<<(long v);
-    inline IArchive& operator<<(ulong v);
+    inline IArchive& operator<<(int v);
+    inline IArchive& operator<<(uint v);
 #endif
     inline IArchive& operator<<(bool v);
     inline IArchive& operator<<(float v);

@@ -131,6 +131,10 @@ public:
     inline FBuffer& operator<<(uint16 v);
     inline FBuffer& operator<<(uint32 v);
     inline FBuffer& operator<<(uint64 v);
+#if FLIB_COMPILER_64BITS
+    inline FBuffer& operator<<(int v);
+    inline FBuffer& operator<<(uint v);
+#endif
     inline FBuffer& operator<<(bool v);
     inline FBuffer& operator<<(float v);
     inline FBuffer& operator<<(double v);
@@ -152,6 +156,10 @@ public:
     inline FBuffer& operator>>(uint16 &v);
     inline FBuffer& operator>>(uint32 &v);
     inline FBuffer& operator>>(uint64 &v);
+#if FLIB_COMPILER_64BITS
+    inline FBuffer& operator>>(int &v);
+    inline FBuffer& operator>>(uint &v);
+#endif
     inline FBuffer& operator>>(bool &v);
     inline FBuffer& operator>>(float &v);
     inline FBuffer& operator>>(double &v);
@@ -585,6 +593,18 @@ FBuffer& FBuffer::operator<<(uint64 v)
     Write<uint64>(v);
     return *this;
 }
+#if FLIB_COMPILER_64BITS
+FBuffer& FBuffer::operator<<(int v)
+{
+    Write<int>(v);
+    return *this;
+}
+FBuffer& FBuffer::operator<<(uint v)
+{
+    Write<uint>(v);
+    return *this;
+}
+#endif
 FBuffer& FBuffer::operator<<(bool v)
 {
     Write<bool>(v);
@@ -681,6 +701,18 @@ FBuffer& FBuffer::operator>>(uint64 &v)
     Read<uint64>(v);
     return *this;
 }
+#if FLIB_COMPILER_64BITS
+FBuffer& FBuffer::operator>>(int &v)
+{
+    Read<int>(v);
+    return *this;
+}
+FBuffer& FBuffer::operator>>(uint &v)
+{
+    Read<uint>(v);
+    return *this;
+}
+#endif
 FBuffer& FBuffer::operator>>(bool &v)
 {
     Read<bool>(v);
