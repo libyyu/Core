@@ -13,9 +13,8 @@
 #include "FPlatform.hpp"
 #if FLIB_COMPILER_CYGWIN
 #include <cstring>
-#else
-#include <string.h>
 #endif
+#include <string.h>
 #if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 #include <tchar.h>
 #if defined( UNICODE ) || defined( _UNICODE )
@@ -234,5 +233,14 @@ typedef std::vector<uchar> ByteArray;
     protected: varType varName; \
     public: virtual varType get##funName(void) const { return varName; } \
     public: virtual void set##funName(const varType& var) { varName = var; }
+
+#if FLIB_COMPILER_CYGWIN
+_FDeclsBegin
+_CRTIMP FILE* __cdecl __MINGW_NOTHROW _fdopen(int, const char*);
+//_CRTIMP FILE* __cdecl __MINGW_NOTHROW fdopen(int, const char*);
+_CRTIMP int __cdecl __MINGW_NOTHROW _strnicmp(const char*, const char*, size_t);
+//#define _fdopen fdopen
+_FDeclsEnd
+#endif
 
 #endif//__FTYPE_HPP__

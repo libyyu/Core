@@ -1,3 +1,28 @@
+RM= rm -f
+MKDIR= mkdir -p
+RMDIR= rmdir 2>/dev/null
+SYMLINK= ln -sf
+Q= @
+E= @echo
+##############################################################################
+# Host system detection.
+##############################################################################
+ifeq (Windows,$(findstring Windows,$(OS))$(MSYSTEM)$(TERM))
+	HOST_SYS= Windows
+	HOST_RM= del
+else
+	HOST_SYS:= $(shell uname -s)
+	ifneq (,$(findstring MINGW,$(HOST_SYS)))
+    		HOST_SYS= Windows
+    		HOST_MSYS= mingw
+  	endif
+	ifneq (,$(findstring CYGWIN,$(HOST_SYS)))
+    		HOST_SYS= Windows
+    		HOST_MSYS= cygwin
+  	endif
+endif
+TARGET_SYS?= $(HOST_SYS)
+
 # platform
 PLAT 		:=$(if $(PLAT),$(PLAT),$(if ${shell uname | egrep -i linux},linux,))
 PLAT 		:=$(if $(PLAT),$(PLAT),$(if ${shell uname | egrep -i darwin},macosx,))
@@ -19,6 +44,7 @@ LUA_CFLAGS = -llua51
 
 ifeq ($(PLAT),mingw)
 	CFLAGS += -D_WIN32_WINNT=0x0603
+	LIBRARY += -g -static-libgcc -static-libstdc++ #-lpthread
 endif
 
 all : test_base test_process test_net test_3rd test_sm test_sm

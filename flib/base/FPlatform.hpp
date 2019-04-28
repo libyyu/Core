@@ -69,7 +69,7 @@
 #if __GNUC__ < 4 || __GNUC_MINOR < 6
 #   define nullptr 0
 #endif
-#if defined(__LP64__)
+#if defined(__LP64__) || defined(__MINGW64__)
 #   define FLIB_COMPILER_64BITS      1
 #endif
 

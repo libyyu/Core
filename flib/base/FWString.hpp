@@ -132,7 +132,7 @@ public:
 
 	inline FWString Mid(int iPos, int iLength = -1) const
 	{
-		if( iLength < 0 ) iLength = GetLength() - iPos;
+		if( iLength < 0 ) iLength = (int)GetLength() - iPos;
 		if( iPos + iLength > (int)GetLength() ) iLength = GetLength() - iPos;
 		if( iLength <= 0 ) return FWString();
 		return FWString(m_pstr + iPos, iLength);
