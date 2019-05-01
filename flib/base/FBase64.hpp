@@ -1,11 +1,11 @@
 #ifndef _FBASE64_HPP__
 #define _FBASE64_HPP__
 #pragma once
-#include "FType.hpp"
+#include "stl/string.h"
 #include <iostream>
 
 _FStdBegin
-static const std::string _F_base64_chars = 
+static const FStd::string _F_base64_chars = 
              "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
              "abcdefghijklmnopqrstuvwxyz"
              "0123456789+/";
@@ -15,9 +15,9 @@ inline bool Fis_base64(unsigned char c)
 {
   return (isalnum(c) || (c == '+') || (c == '/'));
 }
-inline std::string Fbase64_encode(char const* bytes_to_encode, unsigned int in_len) 
+inline FStd::string Fbase64_encode(char const* bytes_to_encode, unsigned int in_len) 
 {
-  std::string ret;
+  FStd::string ret;
   int i = 0;
   int j = 0;
   unsigned char char_array_3[3];
@@ -58,15 +58,15 @@ inline std::string Fbase64_encode(char const* bytes_to_encode, unsigned int in_l
   return ret;
 }
 
-inline std::string Fbase64_decode(char const* bytes_encoded) 
+inline FStd::string Fbase64_decode(char const* bytes_encoded) 
 {
-  std::string encoded_string(bytes_encoded);
+  FStd::string encoded_string(bytes_encoded);
   int in_len = encoded_string.size();
   int i = 0;
   int j = 0;
   int in_ = 0;
   unsigned char char_array_4[4], char_array_3[3];
-  std::string ret;
+  FStd::string ret;
 
   while (in_len-- && ( encoded_string[in_] != '=') && Fis_base64(encoded_string[in_])) {
     char_array_4[i++] = encoded_string[in_]; in_++;

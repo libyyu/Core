@@ -18,11 +18,10 @@
 #include "FBase64.hpp"
 #include "FLogFile.hpp"
 #include "FPlugin.hpp"
-#include "FMemTrack.hpp"
+#include "FMemory.hpp"
 _FUsing(std)
 _FUsing(FStd)
 static FAutoFile fGlobalLog("log.txt");
-static FMemWtacher __mem_watcher;
 int CalcDistance(int x, int z, int x2, int z2)
 {
     int d = x - x2;
@@ -45,8 +44,8 @@ void test()
 void testbase64()
 {
     const char* str = "helloworld";
-    std::string code = F_BASE64_ENCODE(str);
-    F_CONSOLE(DEBUG) << "base64:" << F_BASE64_ENCODE(str) << "," << F_BASE64_DECODE(code.c_str()) << endl;
+    FStd::string code = F_BASE64_ENCODE(str);
+    F_CONSOLE(DEBUG) << "base64:" << code.c_str() << "," << F_BASE64_DECODE(code.c_str()).c_str() << endl;
 }
 void testmd5()
 {
@@ -101,7 +100,7 @@ int main(int argc, const char * argv[]) {
     std::cout << fString << std::endl;
     printf("fString = %s, length=%d,\n", pBuf, fString.GetLength());
     
-    string str = FConvert::Convert<string>(v);
+    std::string str = FConvert::Convert<std::string>(v);
     int n = FConvert::Convert<int>("5");
     
     F_CONSOLE(ERROR) << F_FORMAT("n = %d, %s\n", n, FGetModulePath());
@@ -138,7 +137,7 @@ int main(int argc, const char * argv[]) {
         }
     }
     printf("clock = %lu\n", clock() - t);
-    delete pT;
+    //delete pT;
 
     FFile file;
     if(!file) F_CONSOLE(WARN) << F_FORMAT("file is invalid\n");

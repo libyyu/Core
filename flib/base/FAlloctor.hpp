@@ -2,6 +2,7 @@
 #define __FALLOCTOR_HPP__
 #pragma once
 #include "FLock.hpp"
+#include "FMemory.hpp"
 
 _FStdBegin
 template<size_t T,size_t MAXSIZE,typename LOCK = FLock,size_t C = 16> 
@@ -195,6 +196,111 @@ _FStdBegin
 template<typename LOCK,size_t C> 
 class FAlloctorPool<0, 0, LOCK, C>; //MAKE ERROR
 
+_FStdEnd
+
+_FStdBegin
+template <typename T> 
+class FSTLAllocator;
+template <> 
+class FSTLAllocator<void> 
+{
+public:
+	typedef void* pointer;
+	typedef const void* const_pointer;
+	// reference to void members are impossible.
+	typedef void value_type;
+	template <class U>
+	struct rebind 
+	{
+		typedef FSTLAllocator<U> other;
+	};
+};
+
+namespace internal {
+	FLIB_FORCEINLINE void destruct(char*) {}
+	FLIB_FORCEINLINE void destruct(wchar_t*) {}
+	template <typename T>
+	FLIB_FORCEINLINE void destruct(T* t) 
+	{
+		((void)&t);
+		t->~T();
+	}
+} // namespace internal
+
+template <typename T>
+class FSTLAllocator {
+public:
+	typedef size_t size_type;
+	typedef ptrdiff_t difference_type;
+	typedef T* pointer;
+	typedef const T* const_pointer;
+	typedef T& reference;
+	typedef const T& const_reference;
+	typedef T value_type;
+
+	template <class U>
+	struct rebind 
+	{
+		typedef FSTLAllocator<U> other;
+	};
+
+	FSTLAllocator() {}
+	pointer address(reference x) 
+	{
+		return&x;
+	}
+	const_pointer address(const_reference x) const 
+	{
+		return &x;
+	}
+	pointer allocate(size_type size, FSTLAllocator<void>::const_pointer hint = 0) const 
+	{
+		return static_cast<pointer>(FLIB_ALLOC(sizeof(T) * size));
+	}
+
+	// For Dinkumware (VC6SP5):
+	char* _Charalloc(size_type n) 
+	{
+		return static_cast<char*>(FLIB_ALLOC(n));
+	}
+	// end Dinkumware
+
+	template <class U> FSTLAllocator(const FSTLAllocator<U>&) {}
+	FSTLAllocator(const FSTLAllocator<T>&) {}
+	void deallocate(pointer p, size_type n) const 
+	{
+		FLIB_FREE(p);
+	}
+	void deallocate(void* p, size_type n) const 
+	{
+		FLIB_FREE(p);
+	}
+	size_type max_size() const throw() 
+	{
+		return size_t(-1) / sizeof(value_type);
+	}
+	void construct(pointer p, const T& val) 
+	{
+		::new(static_cast<void*>(p)) T(val);
+	}
+	void destroy(pointer p) 
+	{
+		internal::destruct(p);
+	}
+private:
+};
+
+template <typename T, typename U>
+FLIB_FORCEINLINE bool operator==(const FSTLAllocator<T>&, const FSTLAllocator<U>) 
+{
+	return true;
+}
+
+template <typename T, typename U>
+FLIB_FORCEINLINE bool operator!=(const FSTLAllocator<T>&, const FSTLAllocator<U>) 
+{
+	return false;
+}
 _FStdEnd
 
 
