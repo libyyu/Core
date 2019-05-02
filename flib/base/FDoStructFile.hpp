@@ -23,24 +23,16 @@ private:
 	const unsigned int m_nSize;
 	typedef bool (_STDCALL *EnumVaulePro)(const value_type&,void*);
 public:
-    FDoStructFile();
+    FDoStructFile():m_nSize(sizeof(value_type)){}
     ~FDoStructFile();
 public:
-    bool ReadFileToMem(const char* lpFileName);
-	bool WriteFileFormMem(const char* lpFileName);	
-	void InsertVaule(const value_type& x);
-	void Clear();
-	void EnumVaule(const EnumVaulePro lpEnumVaulePro,void* pParam = NULL);
+  FLIB_FORCEINLINE bool ReadFileToMem(const char* lpFileName);
+	FLIB_FORCEINLINE bool WriteFileFormMem(const char* lpFileName);	
+	FLIB_FORCEINLINE void InsertVaule(const value_type& x);
+	FLIB_FORCEINLINE void Clear();
+	FLIB_FORCEINLINE void EnumVaule(const EnumVaulePro lpEnumVaulePro,void* pParam = NULL);
 };
 
-template <class T,class U>
-FDoStructFile<T,U>::FDoStructFile():m_nSize(sizeof(value_type))
-{	
-}
-template <class T, class U>
-FDoStructFile<T,U>::~FDoStructFile()
-{
-}
 template <class T, class U>
 bool FDoStructFile<T,U>::ReadFileToMem(const char* lpFileName)
 {

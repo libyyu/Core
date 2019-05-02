@@ -7,8 +7,8 @@ template <class T>
 class FListAddLock
 {
 public:
-	FListAddLock();
-	~FListAddLock();
+	FListAddLock():m_pHead(NULL),m_nCount(0){}
+	~FListAddLock(){ Clear(); }
 private:
 	struct Node
 	{
@@ -23,23 +23,13 @@ private:
 	unsigned int m_nCount;
 	Node* m_pHead;
 public:
-	void Add(T& data);
-	bool Del(T& data);
-	void Clear();
-	bool Empty();
-	unsigned int GetCount();
-	bool EnumVaule(EnumVaulePro pEnumFun,void* pParam = NULL);
+	FLIB_FORCEINLINE void Add(T& data);
+	FLIB_FORCEINLINE bool Del(T& data);
+	FLIB_FORCEINLINE void Clear();
+	FLIB_FORCEINLINE bool Empty();
+	FLIB_FORCEINLINE unsigned int GetCount();
+	FLIB_FORCEINLINE bool EnumVaule(EnumVaulePro pEnumFun,void* pParam = NULL);
 };
-template <class T>
-FListAddLock<T>::FListAddLock():m_pHead(NULL),m_nCount(0)
-{
-	
-}
-template <class T>
-FListAddLock<T>::~FListAddLock()
-{
-	Clear();
-}
 template <class T>
 void FListAddLock<T>::Add(T &data)
 {
@@ -81,7 +71,7 @@ bool FListAddLock<T>::Del(T &data)
 		}
 
 		pFirNode = m_pHead;
-		pTmpNode = m_pHead->pNext;  //ע��ǰ���Ѿ��ų���ͷ�ڵ�Ŀ��ܣ��������ָ��ֱ��ָ��ͷ�ڵ����һ���ڵ�
+		pTmpNode = m_pHead->pNext;  //?????????????????????????????????????????????????????
 		while(pTmpNode)
 		{
 			if (data == pTmpNode->data)

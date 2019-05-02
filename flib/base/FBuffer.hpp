@@ -397,7 +397,6 @@ void   FBuffer::resize(size_t size /*= 0*/) {
     if(0 == size) size = DEFAULT_SIZE;
     // if(size == _size) return;
 
-    printf("oldsize:%ld,newsize:%ld\n",_size,size);
     uint8 * pnew = getBuf(size);
     assert(pnew);
     //memset(pnew, 0, size);

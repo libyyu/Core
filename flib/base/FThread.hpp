@@ -1,10 +1,11 @@
 #ifndef __FTHREAD_HPP__
 #define __FTHREAD_HPP__
 #pragma once
-#include "FLock.hpp"
-#include "FSemaphore.hpp"
+#include<stdio.h>
 #include <queue>
 #include <functional>
+#include "FLock.hpp"
+#include "FSemaphore.hpp"
 #if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
 	#include <Windows.h>
 #else
@@ -61,6 +62,11 @@ public:
         bool result = true;
 #if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
         if(0 == ::TerminateThread(_handle, 0)) 
+        {
+            result = false;
+        }
+#elif FLIB_COMPILER_ANDROID
+        if (0 != pthread_kill(_thread, 0))
         {
             result = false;
         }

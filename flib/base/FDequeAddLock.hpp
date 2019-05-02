@@ -8,8 +8,8 @@ template <class T>
 class F_DLL_API FDequeAddLock
 {
 public:
-    FDequeAddLock();
-    ~FDequeAddLock();
+    FDequeAddLock():m_pHead(NULL),m_pTail(NULL),m_nCount(0){}
+    ~FDequeAddLock(){ Clear(); }
 private:
     typedef struct __Node
     {
@@ -24,24 +24,15 @@ private:
     Node* m_pHead;
     Node* m_pTail;	
 public:
-    void AddTail(T& data);
-    bool DelHead();
-    void Clear();
-    bool Empty();
-    bool GetHead(T& outResult);
-    unsigned int GetCount();
-    void EnumVaule(EnumVaulePro pEnumFun,void* pParam = NULL);
+    FLIB_FORCEINLINE void AddTail(T& data);
+    FLIB_FORCEINLINE bool DelHead();
+    FLIB_FORCEINLINE void Clear();
+    FLIB_FORCEINLINE bool Empty();
+    FLIB_FORCEINLINE bool GetHead(T& outResult);
+    FLIB_FORCEINLINE unsigned int GetCount();
+    FLIB_FORCEINLINE void EnumVaule(EnumVaulePro pEnumFun,void* pParam = NULL);
 };
 
-template <class T>
-FDequeAddLock<T>::FDequeAddLock():m_pHead(NULL),m_pTail(NULL),m_nCount(0)
-{
-}
-template <class T>
-FDequeAddLock<T>::~FDequeAddLock()
-{
-    Clear();
-}
 template <class T>
 void FDequeAddLock<T>::AddTail(T& data)
 {

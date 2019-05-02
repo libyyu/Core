@@ -17,29 +17,26 @@ class FDReadAWriteLock
 private:
 	SInsideLock m_Lock;
 public:
-    FDReadAWriteLock(void);
-    virtual ~FDReadAWriteLock(void);
+    FDReadAWriteLock(void)
+    {
+        m_Lock.nReadCount = 0;
+        m_Lock.bWriteFlag = false;
+    }
+    virtual ~FDReadAWriteLock(void)
+    {
+        m_Lock.lock.lock();
+        m_Lock.lock.unlock();
+    }
 public:
-	void EnterWrite();
-    void LeaveWrite();
-    int EnterRead();
-    int LeaveRead();
-    int GetReadCount();
-    bool IsWrite();
+	FLIB_FORCEINLINE void EnterWrite();
+    FLIB_FORCEINLINE void LeaveWrite();
+    FLIB_FORCEINLINE int EnterRead();
+    FLIB_FORCEINLINE int LeaveRead();
+    FLIB_FORCEINLINE int GetReadCount();
+    FLIB_FORCEINLINE bool IsWrite();
 };
 
-FDReadAWriteLock::FDReadAWriteLock(void)
-{
-    m_Lock.nReadCount = 0;
-	m_Lock.bWriteFlag = false;
-}
-FDReadAWriteLock::~FDReadAWriteLock(void)
-{
-    m_Lock.lock.lock();
-    m_Lock.lock.unlock();
-}
-
-void FDReadAWriteLock::EnterWrite()
+FLIB_FORCEINLINE void FDReadAWriteLock::EnterWrite()
 {
     while(1)
     {
@@ -60,14 +57,14 @@ _Start_Write:
     }
 }
 
-void FDReadAWriteLock::LeaveWrite()
+FLIB_FORCEINLINE void FDReadAWriteLock::LeaveWrite()
 {
     m_Lock.lock.lock();
     m_Lock.bWriteFlag = false;
     m_Lock.lock.unlock();
 }
 
-int FDReadAWriteLock::EnterRead()
+FLIB_FORCEINLINE int FDReadAWriteLock::EnterRead()
 {
     int n = 0;
     while(1)
@@ -86,7 +83,7 @@ _Start_Read:
     return n;
 }
 
-int FDReadAWriteLock::LeaveRead()
+FLIB_FORCEINLINE int FDReadAWriteLock::LeaveRead()
 {
     int n = 0;
     m_Lock.lock.lock();
@@ -98,7 +95,7 @@ int FDReadAWriteLock::LeaveRead()
     return n;
 }
 
-int FDReadAWriteLock::GetReadCount()
+FLIB_FORCEINLINE int FDReadAWriteLock::GetReadCount()
 {
     int n = 0;
     m_Lock.lock.lock();
@@ -106,7 +103,7 @@ int FDReadAWriteLock::GetReadCount()
     m_Lock.lock.unlock();
     return n;
 };
-bool FDReadAWriteLock::IsWrite()
+FLIB_FORCEINLINE bool FDReadAWriteLock::IsWrite()
 {
     bool bVar = false;
     m_Lock.lock.lock();

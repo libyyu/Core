@@ -9,6 +9,16 @@
 
 _FStdBegin
 
+
+static const unsigned char TextEncodingDetect_UTF16_BOM_LE[] = { static_cast<unsigned char>(0xFF), static_cast<unsigned char>(0xFE) };
+static const unsigned char TextEncodingDetect_UTF16_BOM_BE[] = { static_cast<unsigned char>(0xFE), static_cast<unsigned char>(0xFF) };
+static const unsigned char TextEncodingDetect_UTF8_BOM[] = { static_cast<unsigned char>(0xEF), static_cast<unsigned char>(0xBB), static_cast<unsigned char>(0xBF) };
+
+static const unsigned char* utf16_bom_le_ = TextEncodingDetect_UTF16_BOM_LE;
+static const unsigned char* utf16_bom_be_ = TextEncodingDetect_UTF16_BOM_BE;
+static const unsigned char* utf8_bom_ = TextEncodingDetect_UTF8_BOM;
+
+
 class FEncoding
 {
 public:
@@ -115,10 +125,6 @@ public:
 private:
     FEncoding(const FEncoding&);
     const FEncoding& operator=(const FEncoding&);
-
-    static const unsigned char* utf16_bom_le_;
-    static const unsigned char* utf16_bom_be_;
-    static const unsigned char* utf8_bom_;
 
     bool	null_suggests_binary_;
     int		utf16_expected_null_percent_;
@@ -320,14 +326,6 @@ private:
         return false;
     }
 };
-
-static const unsigned char TextEncodingDetect_UTF16_BOM_LE[] = { static_cast<unsigned char>(0xFF), static_cast<unsigned char>(0xFE) };
-static const unsigned char TextEncodingDetect_UTF16_BOM_BE[] = { static_cast<unsigned char>(0xFE), static_cast<unsigned char>(0xFF) };
-static const unsigned char TextEncodingDetect_UTF8_BOM[] = { static_cast<unsigned char>(0xEF), static_cast<unsigned char>(0xBB), static_cast<unsigned char>(0xBF) };
-
-const unsigned char* FEncoding::utf16_bom_le_ = TextEncodingDetect_UTF16_BOM_LE;
-const unsigned char* FEncoding::utf16_bom_be_ = TextEncodingDetect_UTF16_BOM_BE;
-const unsigned char* FEncoding::utf8_bom_ = TextEncodingDetect_UTF8_BOM;
 
 _FStdEnd
 

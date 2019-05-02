@@ -20,8 +20,36 @@ private:
     unsigned long       m_nInCount;             //閿熸枻鎷烽敓鍙潻鎷烽敓鏂ゆ嫹	
     FLock               m_lock;
 public:
-    FPool();
-    ~FPool();
+    FPool():m_pHead(NULL),m_nOutCount(0),m_nInCount(0)
+    {
+        for (unsigned int i=0;i<nInitCount;++i)
+        {
+            _F_Node<T>* p_Node = new _F_Node<T>;
+            if (p_Node)
+            {
+                p_Node->pNext = NULL;
+                if (m_pHead==NULL)
+                {
+                    m_pHead = p_Node;
+                }
+                else
+                {
+                    p_Node->pNext = m_pHead;
+                    m_pHead = p_Node;
+                }
+                ++m_nInCount;
+            }
+        }
+    }
+    ~FPool()
+    {
+        m_lock.lock();
+        if (m_pHead)
+        {
+            DeleteAll_Node();
+        }
+        m_lock.unlock();
+    }
 public:
     T* GetBuf();
     void FreeBuf(T* p,bool bDelete = false);
@@ -32,40 +60,6 @@ private:
 _FStdEnd
 
 _FStdBegin
-template <class T,unsigned int nInitCount>
-FPool<T, nInitCount>::FPool():m_pHead(NULL),m_nOutCount(0),m_nInCount(0)
-{	
-    for (unsigned int i=0;i<nInitCount;++i)
-    {
-        _F_Node<T>* p_Node = new _F_Node<T>;
-        if (p_Node)
-        {
-            p_Node->pNext = NULL;
-            if (m_pHead==NULL)
-            {
-                m_pHead = p_Node;
-            }
-            else
-            {
-                p_Node->pNext = m_pHead;
-                m_pHead = p_Node;
-            }
-            ++m_nInCount;
-        }
-    }
-}
-
-template <class T,unsigned int nInitCount>
-FPool<T,nInitCount>::~FPool()
-{
-    m_lock.lock();
-    if (m_pHead)
-    {
-        DeleteAll_Node();
-    }
-    m_lock.unlock();
-}
-
 template <class T,unsigned int nInitCount>
 T* FPool<T,nInitCount>::GetBuf()
 {
