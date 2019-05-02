@@ -36,19 +36,16 @@ void testbase64()
 }
 void testmd5()
 {
-    F_LOGFILE_TRACE(fGlobalLog)
+    F_CONSOLE_TRACE
     char buff[200];
     FMD5String("hello world", buff);
     F_CONSOLE(DEBUG) << buff << endl;
     F_LOGFILE(DEBUG, fGlobalLog) << "test md5" << endl;
 }
 
-int main(int argc, const char * argv[]) {
-    // insert code here...
+void test_base()
+{
     F_CONSOLE_TRACE
-    F_LOGFILE_TRACE(fGlobalLog)
-    F_LOGFILE(DEBUG, fGlobalLog) << "LOGFILE" << endl;
-
     int * pT = new int(8);
     std::cout << "Hello, World!\n";
 #if FLIB_COMPILER_MACOSX
@@ -180,6 +177,47 @@ int main(int argc, const char * argv[]) {
     {
         std::cout << strArray[i] << std::endl;
     }
+}
 
+void testv(FValue* value)
+{
+    FStd::string v("helloA");
+    value->set(v.c_str());
+}
+void testv2(FValue* value)
+{
+    enum eT
+    {
+        A,
+        B,
+    };
+    flib_enum_t e((int)(eT::A), "eT::A");
+    value->set(&e);
+}
+
+void testvalue()
+{
+    F_CONSOLE_TRACE
+    FValue value;
+    testv(&value);
+    std::cout << value.get_string() << std::endl;
+    FValue* v = value.clone();
+    std::cout << value.get_string() << std::endl;
+    std::cout << v->get_string() << std::endl;
+    testv2(v);
+    delete v;
+}
+
+int main(int argc, const char * argv[]) {
+    // insert code here...
+    F_CONSOLE_TRACE
+    F_LOGFILE_TRACE(fGlobalLog)
+    F_LOGFILE(DEBUG, fGlobalLog) << "LOGFILE" << endl;
+
+    test_base();
+
+    testmd5();
+
+    testvalue();
     return 0;
 }

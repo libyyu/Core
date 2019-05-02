@@ -176,7 +176,7 @@ public:
 		return true;
 	}
 	
-	inline stringtype& GetStr(const chartype* SectionStr,const chartype* KeyStr, const chartype* DefaultStr = "") const
+	inline stringtype GetStr(const chartype* SectionStr,const chartype* KeyStr, const chartype* DefaultStr = "") const
   {
 		stringtype value;
 		if (!GetString(SectionStr, KeyStr, value) || value.empty())

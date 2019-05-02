@@ -229,11 +229,6 @@ typedef std::vector<uchar> ByteArray;
 #define _STDCALL
 #endif
 
-#define PROPERTY(varType, varName, funName) \
-    protected: varType varName; \
-    public: virtual varType get##funName(void) const { return varName; } \
-    public: virtual void set##funName(const varType& var) { varName = var; }
-
 #if FLIB_COMPILER_CYGWIN
 _FDeclsBegin
 _CRTIMP FILE* __cdecl __MINGW_NOTHROW _fdopen(int, const char*);

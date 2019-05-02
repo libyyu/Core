@@ -429,7 +429,7 @@ namespace _mem_internal
             char const *fileName = pBlockHeader->GetFilename();
             char const *funcName = pBlockHeader->GetFuncname();
             int lineNum = pBlockHeader->GetLineNum();
-            if(0 != strcmp(typeName, "[unknown]"))
+            if(typeName )// && 0 != strcmp(typeName, "[unknown]"))
             {
                 fprintf(fp, "*** #%-6d %5d bytes %-50s\n", ++index, size, typeName);
                 fprintf(fp, "... %s:%d:%s\n", fileName, lineNum, funcName);

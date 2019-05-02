@@ -27,6 +27,7 @@
 #include "base/FDataTable.hpp"
 #include "base/FLogFile.hpp"
 #include "base/FConsole.hpp"
+#include "base/FValue.hpp"
 ////////////////////////////////////
 ////
 _FStdBegin
