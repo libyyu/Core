@@ -82,13 +82,13 @@ int FFile::Open(const char* filename, bool readonly)
 			_file = ::CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (_file == INVALID_HANDLE_VALUE) 
 		{
-            F_CONSOLE(ERROR) << F_FORMAT("Filed open file, errno = %d \n", ::GetLastError());
+            F_CONSOLE(ERROR) << F_FORMAT("Filed open file %s, errno = %d \n", filename, ::GetLastError());
             return -1;
         }
 #else
         if((_file = open(filename, O_RDONLY)) < 0)
         {
-            F_CONSOLE(ERROR) << F_FORMAT("Filed open file, errno = %d \n", errno);
+            F_CONSOLE(ERROR) << F_FORMAT("Filed open file %s, errno = %d \n", filename, errno);
             return -1;
         }
 #endif
@@ -99,13 +99,13 @@ int FFile::Open(const char* filename, bool readonly)
         _file = ::CreateFileA(filename, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         if (_file == INVALID_HANDLE_VALUE) 
 		{
-            F_CONSOLE(ERROR) << F_FORMAT("Filed open file, errno = %d \n", ::GetLastError());
+            F_CONSOLE(ERROR) << F_FORMAT("Filed open file %s, errno = %d \n", filename, ::GetLastError());
             return -1;
         }
 #else
         if((_file = open(filename, O_RDWR)) < 0)
         {
-            F_CONSOLE(ERROR) << F_FORMAT("Filed open file, errno = %d \n", errno);
+            F_CONSOLE(ERROR) << F_FORMAT("Filed open file %s, errno = %d \n", filename, errno);
             return -1;
         }
 #endif

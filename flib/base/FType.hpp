@@ -238,4 +238,21 @@ _CRTIMP int __cdecl __MINGW_NOTHROW _strnicmp(const char*, const char*, size_t);
 _FDeclsEnd
 #endif
 
+_FStdBegin
+enum FLIB_LOGLEVEL 
+{
+	FLIB_LOGLEVEL_TRACE,
+	FLIB_LOGLEVEL_DEBUG,
+	FLIB_LOGLEVEL_INFO,
+	FLIB_LOGLEVEL_WARN,
+	FLIB_LOGLEVEL_ERROR,
+	FLIB_LOGLEVEL_FATAL,
+    FLIB_LOGLEVEL_NUM_LOG_LEVELS
+};
+const static char* FLIB_LogLevelName[FLIB_LOGLEVEL::FLIB_LOGLEVEL_NUM_LOG_LEVELS] =
+{
+	"TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL",
+};
+_FStdEnd
+
 #endif//__FTYPE_HPP__

@@ -37,9 +37,11 @@ void testbase64()
 void testmd5()
 {
     F_CONSOLE_TRACE
+    F_LOGFILE_TRACE(fGlobalLog)
     char buff[200];
     FMD5String("hello world", buff);
-    F_CONSOLE(DEBUG) << buff << endl;
+    F_CONSOLE(DEBUG) << "md5:" << buff << endl;
+    F_LOGFILE(DEBUG, fGlobalLog) << "md5:" << buff << endl;
     F_LOGFILE(DEBUG, fGlobalLog) << "test md5" << endl;
 }
 
@@ -60,9 +62,7 @@ void test_base()
     printf("v=%d,buf=%s, b = %d\n", v, buf, b);
     
     test();
-    testbase64();
-    testmd5();
-
+    
     FThread thread(&foo);
     thread.start();
     thread.join();
@@ -212,10 +212,11 @@ int main(int argc, const char * argv[]) {
     // insert code here...
     F_CONSOLE_TRACE
     F_LOGFILE_TRACE(fGlobalLog)
-    F_LOGFILE(DEBUG, fGlobalLog) << "LOGFILE" << endl;
+    F_LOGFILE(DEBUG, fGlobalLog) << "LOGFILE" << ", Test" << endl;
 
     test_base();
 
+    testbase64();
     testmd5();
 
     testvalue();

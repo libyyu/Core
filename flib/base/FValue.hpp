@@ -187,8 +187,8 @@ typedef struct _flib_enum_t {
 
 class FValue
 {
-    uchar type : 8;
-    uchar free_handle : 1;
+    flib_value_type_t type ;
+    uchar free_handle ;
     union 
     {
         int8 i8;
@@ -454,6 +454,10 @@ public:
         free_handle = 1;
     }
 public:
+    flib_value_type_t get_type() const
+    {
+        return type;
+    }
     bool get_bool() const
     {
         assert(type == VALUE_TYPE_BOOL);
