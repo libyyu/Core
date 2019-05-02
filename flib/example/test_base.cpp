@@ -5,20 +5,7 @@
 //  Created by Dengfeng Li on 2017/11/26.
 //  Copyright © 2017年 Dengfeng Li. All rights reserved.
 //
-#include "FBuffer.hpp"
-#include "FString.hpp"
-#include "FObserver.hpp"
-#include "FConvert.hpp"
-#include "FConsole.hpp"
-#include "FFunc.hpp"
-#include "FFile.hpp"
-#include "FCounter.hpp"
-#include "FThread.hpp"
-#include "FMD5.hpp"
-#include "FBase64.hpp"
-#include "FLogFile.hpp"
-#include "FPlugin.hpp"
-#include "FMemory.hpp"
+#include "flib.h"
 _FUsing(std)
 _FUsing(FStd)
 static FAutoFile fGlobalLog("log.txt");

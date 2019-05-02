@@ -1,7 +1,6 @@
 #include "net/FSocket.hpp"
 #include "net/FConnector.hpp"
-#include "FFunc.hpp"
-#include "FThread.hpp"
+#include "flib.h"
 #include <iostream>
 #include <functional>
 using namespace FStd;

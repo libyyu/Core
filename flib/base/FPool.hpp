@@ -2,6 +2,7 @@
 #define __FPOOL_HPP__
 #pragma once
 #include "FLock.hpp"
+#include "FMemory.hpp"
 
 _FStdBegin
 template <class T>
@@ -14,9 +15,9 @@ template <class T, unsigned int nInitCount = 10>
 class FPool
 {
 private:
-    _F_Node<T>*         m_pHead;	                 //头锟斤拷锟�
-    unsigned long       m_nOutCount;            //锟阶筹拷锟斤拷锟斤拷
-    unsigned long       m_nInCount;             //锟斤拷锟叫革拷锟斤拷	
+    _F_Node<T>*         m_pHead;	                 //澶撮敓鏂ゆ嫹閿燂拷
+    unsigned long       m_nOutCount;            //閿熼樁绛规嫹閿熸枻鎷烽敓鏂ゆ嫹
+    unsigned long       m_nInCount;             //閿熸枻鎷烽敓鍙潻鎷烽敓鏂ゆ嫹	
     FLock               m_lock;
 public:
     FPool();
@@ -72,9 +73,9 @@ T* FPool<T,nInitCount>::GetBuf()
     _F_Node<T>* p_Node = NULL;
 
     m_lock.lock();
-    if (m_pHead)                           //注锟解不锟斤拷锟斤拷头锟节碉拷为锟秸碉拷锟斤拷锟�?
-    {                                  //为锟斤拷时锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷耄拷锟斤拷直锟接凤拷锟斤拷NULL
-        p_Node = m_pHead;                   //锟节达拷锟酵凤拷时直锟斤拷锟斤拷拥锟酵凤拷诘愦�,锟斤拷FreeBuf 锟斤拷锟斤拷
+    if (m_pHead)                           //娉ㄩ敓瑙ｄ笉閿熸枻鎷烽敓鏂ゆ嫹澶撮敓鑺傜鎷蜂负閿熺Ц纰夋嫹閿熸枻鎷烽敓锟?
+    {                                  //涓洪敓鏂ゆ嫹鏃堕敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹鑰勵剨鎷烽敓鏂ゆ嫹鐩撮敓鎺ュ嚖鎷烽敓鏂ゆ嫹NULL
+        p_Node = m_pHead;                   //閿熻妭杈炬嫹閿熼叺鍑ゆ嫹鏃剁洿閿熸枻鎷烽敓鏂ゆ嫹鎷ラ敓閰靛嚖鎷疯瘶鎰︼拷,閿熸枻鎷稦reeBuf 閿熸枻鎷烽敓鏂ゆ嫹
         m_pHead = m_pHead->pNext;			
         pResult = &(p_Node->data);
         --m_nInCount;
@@ -119,7 +120,7 @@ void FPool<T,nInitCount>::FreeBuf(T* p,bool bDelete /* = false */)
 
 template <class T,unsigned int nInitCount>
 void FPool<T,nInitCount>::DeleteAll_Node()
-{                                       //锟斤拷锟斤拷锟斤拷锟斤拷私锟叫ｏ拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟矫ｏ拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟皆此达拷锟斤拷锟矫硷拷锟斤拷
+{                                       //閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹绉侀敓鍙綇鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熺煫锝忔嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鐨嗘杈炬嫹閿熸枻鎷烽敓鐭》鎷烽敓鏂ゆ嫹
     _F_Node<T>* p_Node = NULL;
     while(1)
     {

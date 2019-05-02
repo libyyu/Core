@@ -191,8 +191,8 @@ typedef std::set<std::string> StringSet;
 typedef std::vector<std::string> StringVec;
 typedef std::vector<uchar> ByteArray;
 
-#undef F_DISALLOW_CONSTRUCTORS
-#define F_DISALLOW_CONSTRUCTORS(TypeName)    \
+#undef FLIB_DISALLOW_CONSTRUCTORS
+#define FLIB_DISALLOW_CONSTRUCTORS(TypeName)    \
     TypeName(const TypeName&);            \
     void operator= (const TypeName&);
 

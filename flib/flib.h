@@ -6,11 +6,13 @@
 #include "base/FString.hpp"
 #include "base/FWString.hpp"
 #include "base/FConvert.hpp"
+#include "base/FCounter.hpp"
 #include "base/FEncoding.hpp"
 #include "base/FFile.hpp"
 #include "base/FIni.hpp"
 #include "base/FLock.hpp"
 #include "base/FMD5.hpp"
+#include "base/FMemory.hpp"
 #include "base/FMemPool.hpp"
 #include "base/FAlloctor.hpp"
 #include "base/FPool.hpp"
@@ -33,6 +35,10 @@ typedef  FWString  String;
 #else
 typedef  FString   String;
 #endif
+
+typedef std::basic_string<char, std::char_traits<char>, FSTLAllocator<char> > astring;
+typedef std::basic_string<wchar_t, std::char_traits<wchar_t>, FSTLAllocator<wchar_t> > awstring;
+
 _FStdEnd
 
 

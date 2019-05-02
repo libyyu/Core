@@ -1,7 +1,7 @@
 #include <iostream>
 #include "3rd/lua/LuaEnv.hpp"
 #include "3rd/lua/lua_wrapper.hpp"
-#include "base/FFunc.hpp"
+#include "flib.h"
 class base_t
 {
 public:

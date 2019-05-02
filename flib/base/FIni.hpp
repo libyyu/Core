@@ -176,16 +176,16 @@ public:
 		return true;
 	}
 	
-	inline const stringtype& GetStr(const chartype* SectionStr,const chartype* KeyStr,const chartype* DefaultStr = "")
-    {
+	inline stringtype& GetStr(const chartype* SectionStr,const chartype* KeyStr, const chartype* DefaultStr = "") const
+  {
 		stringtype value;
 		if (!GetString(SectionStr, KeyStr, value) || value.empty())
-			return DefaultStr;
+			value = DefaultStr;
 
 		return value;
-    }
+  }
 
-	inline int GetInt(const chartype* pSection, const chartype* pKey, int nDefault = 0)
+	inline int GetInt(const chartype* pSection, const chartype* pKey, int nDefault = 0) const
 	{
 		stringtype value;
 		if (!GetString(pSection, pKey, value) || value.empty())
@@ -193,11 +193,11 @@ public:
 
 		return atoi(value.c_str());
 	}
-	inline bool GetBool(const chartype* pSection, const chartype* pKey, bool bDefault = false)
+	inline bool GetBool(const chartype* pSection, const chartype* pKey, bool bDefault = false)  const
 	{
 		return GetInt(pSection, pKey, bDefault ? 1 : 0) != 0 ? true : false;
 	}
-	inline float GetFloat(const chartype* pSection, const chartype* pKey, float fDefault = 0.0f)
+	inline float GetFloat(const chartype* pSection, const chartype* pKey, float fDefault = 0.0f)  const
 	{
 		stringtype value;
 		if (!GetString(pSection, pKey, value) || value.empty())
@@ -298,7 +298,7 @@ public:
 	   return curSection;		
    }
   
-   inline FINI_SECTION* FindSession(const chartype* SectionStr)
+   inline FINI_SECTION* FindSession(const chartype* SectionStr) const
    {
 	   std::string strSession(SectionStr);
 	   FINI_SECTION* pSession = nullptr;
@@ -348,7 +348,7 @@ public:
 	   return pKV;
    }
 
-   inline const bool GetString(const chartype* SectionStr, const chartype* KeyStr, stringtype &value)
+   inline bool GetString(const chartype* SectionStr, const chartype* KeyStr, stringtype &value)  const
    {
 	   FINI_SECTION* pSession = FindSession(SectionStr);
 	   if(!pSession)
@@ -367,6 +367,5 @@ public:
 	   return false;
    }
 };
-typedef std::shared_ptr<FIni> spFIniT;
 _FStdEnd
 #endif//__FINI_HPP__
