@@ -233,7 +233,7 @@ typedef std::vector<uchar> ByteArray;
 #define _STDCALL
 #endif
 
-#if !defined(FLIB_COMPILER_MSVC) && !defined(MAX_PATH)
+#if !FLIB_COMPILER_MSVC && !defined(MAX_PATH)
 #define MAX_PATH 255
 #endif /*MAX_PATH*/
 

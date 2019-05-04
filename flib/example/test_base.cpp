@@ -31,7 +31,7 @@ void test()
 void testbase64()
 {
     const char* str = "helloworld";
-    FStd::string code = F_BASE64_ENCODE(str);
+    std::string code = F_BASE64_ENCODE(str);
     F_CONSOLE(DEBUG) << "base64:" << code.c_str() << "," << F_BASE64_DECODE(code.c_str()).c_str() << endl;
 }
 void testmd5()
@@ -208,6 +208,17 @@ void testvalue()
     delete v;
 }
 
+void test_csv()
+{
+    FDataTable dt;
+    dt.LoadFromFile("/Users/lidengfeng/Library/Containers/com.tencent.xinWeChat/Data/Library/Application Support/com.tencent.xinWeChat/2.0b4.0.9/3aba8eb0d9748a6d3928292c8632d885/Message/MessageTemp/51b4403af5647e341ec8bbbebeadb0e7/File/localized.csv");
+
+    std::cout << dt.ToString().c_str() << std::endl;
+    FILE* fp = fopen("test.csv", "wb");
+    fwrite(dt.ToString().c_str(), 1, dt.ToString().size(), fp);
+    fclose(fp);
+}
+
 int main(int argc, const char * argv[]) {
     // insert code here...
     F_CONSOLE_TRACE
@@ -220,5 +231,7 @@ int main(int argc, const char * argv[]) {
     testmd5();
 
     testvalue();
+
+    test_csv();
     return 0;
 }
