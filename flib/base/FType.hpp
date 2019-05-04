@@ -199,8 +199,12 @@ typedef std::vector<uchar> ByteArray;
 
 #define lengthof(x)   (sizeof(x)/sizeof(x[0]))
 
+#define FLIB_PI 3.1415926f
+#define FLIB_D2R(d) (((d)*FLIB_PI) / 180)
+#define FLIB_R2D(r) (((r)*180) / FLIB_PI)
 #define FLIB_MIN(a,b) ((a)<(b)) ? (a) : (b)
 #define FLIB_MAX(a,b) ((a)>(b)) ? (a) : (b)
+#define FLIB_ABS(a) ((a) < (0) ? (-a) : (a))
 
 #define min2(a, b) (((a) > (b)) ? (b) : (a))
 #define min3(a, b, c) (min2(min2((a), (b)), (c)))
@@ -227,6 +231,24 @@ typedef std::vector<uchar> ByteArray;
 #define PRIx64            "llx"
 #define INFINITE          0xFFFFFFFF
 #define _STDCALL
+#endif
+
+#if !defined(FLIB_COMPILER_MSVC) && !defined(MAX_PATH)
+#define MAX_PATH 255
+#endif /*MAX_PATH*/
+
+#if defined(NDEBUG)
+#define FLIB_ENSURE(p) (void)(p)
+#else
+#define FLIB_ENSURE(p) assert(p)
+#endif
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef FALSE
+#define FALSE 0
 #endif
 
 #if FLIB_COMPILER_CYGWIN
