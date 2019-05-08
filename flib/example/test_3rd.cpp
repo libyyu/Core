@@ -5,6 +5,9 @@
 class base_t
 {
 public:
+	virtual ~base_t(){
+		printf("base_t::~base_t...\n");
+	}
 	void print(){
 		printf("base_t::print...\n");
 	}
@@ -31,7 +34,7 @@ public:
 		num = 0;
 		counter++;
 	}
-	~foo_t(){
+	virtual ~foo_t(){
 		printf("~foo_t\n");
 	}
 	void setname(const char* name){

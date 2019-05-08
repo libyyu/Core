@@ -83,9 +83,9 @@ test_boost.o : flib/example/test_boost.cpp
 	$(CC) -c $(CFLAGS) -o $@ $^ $(BOOST_SDK)
 
 test_3rd : test_3rd.o
-	$(CC) $(CFLAGS) $(LUA_CFLAGS) -o $@ $^ $(LUA_INCLUDE) $(LUA_LIB)
+	$(CC) $(CFLAGS) $(LUA_CFLAGS) -o $@ $^ $(LUA_INCLUDE) $(LUA_LIB)  -D_F_USE_MEMTRACK
 test_3rd.o : flib/example/test_3rd.cpp
-	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LUA_INCLUDE)
+	$(CC) -c $(CFLAGS) -o $@ $^ $(INCLUDE) $(LUA_INCLUDE)  -D_F_USE_MEMTRACK
 	
 clean :
 	rm -rf *.o test_base test_process test_net test_boost test_3rd test_sm

@@ -20,6 +20,7 @@ class LuaOutHandler
     PLuaOutFunc m_print_func = nullptr;
     PLuaOutFunc m_warn_func = nullptr;
     PLuaOutFunc m_error_func = nullptr;
+	PLuaOutFunc m_exception_func = nullptr;
 public:
     void SetPrintHandler(PLuaOutFunc pfunc, int flag)
     {
@@ -27,8 +28,10 @@ public:
             m_print_func = (PLuaOutFunc)pfunc;
         else if(flag == 1)
             m_warn_func = (PLuaOutFunc)pfunc;
-        else
+        else if(flag == 2)
             m_error_func = (PLuaOutFunc)pfunc;
+		else
+			m_exception_func = (PLuaOutFunc)pfunc;
     }
     
     void Stdout(const char* message, bool warning)
@@ -47,6 +50,12 @@ public:
         if(m_error_func) m_error_func(message);
         else std::cerr << message << std::endl;
     }
+
+	void Exception(const char* message)
+	{
+		if(m_exception_func) m_exception_func(message);
+		else throw message;
+	}
     
     static LuaOutHandler& Get()
     {
@@ -285,7 +294,7 @@ protected:
 		reason += s;
 		reason += ")\n";
 
-		throw reason;
+		LuaOutHandler::Get().Exception(reason.c_str());
 		return 0;
 	}
 	static int print(lua_State* l)
@@ -302,24 +311,15 @@ protected:
 	}
 	static int error_traceback(lua_State* l)
 	{
-		int oldTop = lua_gettop(l);
+		if (!lua_isstring(l, 1))
+			return 1;
 		lua_checkstack(l, 3);
-		lua_getglobal(l, "debug"); //t
-		lua_getfield(l, -1, "traceback");//t,func
-		lua_pushstring(l, "");//func,s
-		lua_pushnumber(l, 1); //func,s,n
-		lua_call(l, 2, 1);//s
-		std::string traceback = lua_tostring(l, -1);
-		lua_settop(l, oldTop);
-
-		std::string err = lua_tostring(l, -1);
-
-		std::stringstream msg;
-
-		msg << err << std::endl << traceback;
-
-		on_error_handler(msg.str().c_str());
-
+		lua_getglobal(l, "debug"); //msg, debug
+		lua_getfield(l, -1, "traceback"); //msg, debug,traceback
+		lua_pushvalue(l, 1); //msg, debug,traceback, msg
+		lua_pushnumber(l, 1); //msg, debug,traceback, msg, level
+		lua_pcall(l, 2, 1, 0);//msg, debug, tracebackstring
+	
 		return 1;
 	}
 	static void on_error_handler(const char* msg)

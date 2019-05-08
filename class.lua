@@ -39,8 +39,9 @@ local function testFoo()
 	print("f.flag", f.flag)
 	f.writeonly = 10
 	printwriteonly()
-	print(f.writeonly)
+	--print(f.writeonly)
 	--f.flag = 1
+	f:delete()
 	print("end test foo_t")
 end
 

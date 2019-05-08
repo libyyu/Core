@@ -801,7 +801,6 @@ namespace lua
 				return;
 			}
 			LUA_CHECK_ERROR(lua_isuserdata(l, pos) != 0, LUA_TUSERDATA, pos);
-			//*value =  static_cast<T *>(lua_touserdata(l, pos));
 			*value = get_luaobj_container().CheckObject<T>(l, pos);
 		}
 
@@ -1204,7 +1203,7 @@ namespace lua
 	class lua_register_t : lua_register_base_t
 	{
 	protected:
-		static int __gc(lua_State* l)
+		static int __gc(lua_State* l, bool gc)
 		{
 			T *obj = NULL; lua::get(l, 1, &obj);
 			if (!obj)
@@ -1213,7 +1212,7 @@ namespace lua
 				return 1;
 			}
 			bool success = get_luaobj_container().RemoveObjectFromLua(l);
-			if (success && deleteDelegate<T>::m_deleteObjdelegate) deleteDelegate<T>::m_deleteObjdelegate(obj);
+			if (!gc && success && deleteDelegate<T>::m_deleteObjdelegate) deleteDelegate<T>::m_deleteObjdelegate(obj);
 			obj = NULL;
 			return 0;
 		}
@@ -1358,7 +1357,7 @@ namespace lua
 			lua_pushstring(m_ls, "__gc");
 			lua_pushcclosure(m_ls, [](lua_State *l)->int
 			{
-				return __gc(l);
+				return __gc(l, true);
 			}, 0);
 			lua_rawset(m_ls, -3);
 			//tryget
@@ -1448,7 +1447,7 @@ namespace lua
 		{
 			auto lambda = [](lua_State *l)->int
 			{
-				return __gc(l);
+				return __gc(l, false);
 			};
 			stack_gurad scope_check(m_ls);
 			luaL_getmetatable(m_ls, class_name_t<T>::meta().c_str());
