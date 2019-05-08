@@ -2,11 +2,61 @@
 #include "3rd/lua/LuaEnv.hpp"
 #include "3rd/lua/lua_wrapper.hpp"
 #include "flib.h"
+LuaEnv* gL = nullptr;
+#if 1//def OBJECT_HEAP_RECORD
+typedef struct _HeapChunk {
+  void* ptr;
+  _HeapChunk(){memset(this, 0x00, sizeof(_HeapChunk));}
+} HeapChunk;
+#define MEM_MAX_RECORDS 4 * 1024
+static HeapChunk s_chunks[MEM_MAX_RECORDS];
+void AppendHeapChunk(void* ptr)
+{
+	for (int i = 0; i < MEM_MAX_RECORDS; i++) 
+	{
+    	HeapChunk* r = (HeapChunk*)s_chunks + i;
+    	if (r->ptr == NULL) 
+		{
+			r->ptr = ptr;
+			break;
+		}
+	}
+}
+void RemoveHeapChunk(void* ptr)
+{
+	for (int i = 0; i < MEM_MAX_RECORDS; i++) 
+	{
+    	HeapChunk* r = (HeapChunk*)s_chunks + i;
+		if (r->ptr == ptr) 
+		{
+			memset(r, 0x00, sizeof(HeapChunk));
+			if(gL) lua::get_luaobj_container().RemoveObject(*gL, ptr);
+			break;
+		}
+  }
+}
+namespace lua
+{
+	int get_object_flag(void* ptr)
+	{
+		for (int i = 0; i < MEM_MAX_RECORDS; i++) 
+		{
+			HeapChunk* r = (HeapChunk*)s_chunks + i;
+			if (r->ptr == ptr) 
+			{
+				return 1;
+			}
+		}
+		return 0;
+	}
+}
+#endif//OBJECT_HEAP_RECORD
+
 class base_t
 {
 public:
 	virtual ~base_t(){
-		printf("base_t::~base_t...\n");
+		printf("base_t::~base_t... %p\n", this);
 	}
 	void print(){
 		printf("base_t::print...\n");
@@ -63,6 +113,15 @@ int printwriteonly(lua_State*)
 	return 0;
 }
 
+int deletebase(lua_State* l)
+{
+	base_t * b = nullptr;
+	lua::get(l, 1, &b);
+	printf("deletebase %p\n", b ? b : 0);
+	if(b) delete b;
+	return 0;
+}
+
 int test_cplus_lua()
 {
 	char this_path[256] = { 0 };
@@ -70,6 +129,7 @@ int test_cplus_lua()
 
 	LuaEnv* env = new LuaEnv;
 	lua_State * l = *env;
+	gL = env;
 	/////reg c++ obj
 	lua::lua_register_t<base_t>(l, "base_t")
 		.def(lua::constructor<>())
@@ -92,6 +152,7 @@ int test_cplus_lua()
 
 	lua::lua_register_t<void>(l)
 		.def("foo", createfoo)
+		.def("delbase", deletebase)
 		.def("printwriteonly", printwriteonly);
 
 	lua::lua_table_ref_t player;

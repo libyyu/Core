@@ -8,11 +8,16 @@
 #include <new>
 //#define _F_USE_MEMTRACK
 //#undef new    // IMPORTANT!
+
+#ifdef OBJECT_HEAP_RECORD
+    extern void AppendHeapChunk(void* ptr);
+    extern void RemoveHeapChunk(void* ptr);
+#endif
+
 namespace FStd 
 {
 namespace _mem_internal
 {
-#ifdef _F_USE_MEMTRACK
     class FMemStamp
     {
     public:
@@ -24,6 +29,7 @@ namespace _mem_internal
             : filename(filename), func(func), lineNum(lineNum) { }
         ~FMemStamp() { }
     };
+#ifdef _F_USE_MEMTRACK
     /* ------------------------------------------------------------ */
     /* --------------------- class BlockHeader -------------------- */
     /* ------------------------------------------------------------ */
@@ -285,6 +291,7 @@ namespace _mem_internal
     /* ------------------------------------------------------------ */
     inline void *FMalloc(size_t size, const char* file = NULL, const char* func = NULL, int line = 0)
     {
+        void* pResult = NULL;
     #ifdef _F_USE_MEMTRACK
         // Allocate the memory, including space for the prolog.
         FPrologChunk *pProlog = (FPrologChunk *)malloc(FSIZE_PrologChunk + size);
@@ -309,10 +316,14 @@ namespace _mem_internal
         FMemStamp stamp(file, func, line);
         FAllocStamp(pUser, stamp, NULL);
 
-        return pUser;
+        pResult = pUser;
     #else
-        return malloc(size);
+        pResult = malloc(size);
     #endif
+#ifdef OBJECT_HEAP_RECORD
+        AppendHeapChunk(pResult);
+#endif
+        return pResult;
     }
 
     inline void FFree(void *p)
@@ -344,6 +355,9 @@ namespace _mem_internal
     #else
         free(p);
     #endif
+#ifdef OBJECT_HEAP_RECORD
+        RemoveHeapChunk(p);
+#endif
     }
 
     inline void *FRealloc(void* p, size_t size, const char* file = NULL, const char* func = NULL, int line = 0)
@@ -591,13 +605,6 @@ namespace _mem_internal
     };
 
     static FMemWatcher _mem_watcher;
-
-    template <class T> 
-    inline T *operator*(const FMemStamp &stamp, T *p)
-    {
-        FAllocStamp(p, stamp, typeid(T).name());
-        return p;
-    }
 #endif
 }
 
@@ -623,10 +630,16 @@ public:
 };
 
 }
-
+template <class T> 
+inline T *operator*(const FStd::_mem_internal::FMemStamp &stamp, T *p)
+{
 #ifdef _F_USE_MEMTRACK
-/* ---------------------------------------- operator new */
-inline void *operator new(size_t size)
+    FStd::_mem_internal::FAllocStamp(p, stamp, typeid(T).name());
+#endif
+    return p;
+}
+/* ---------------------------------------- operator new */ 
+void *operator new(size_t size)
 {
     void *p = FStd::FMemory::Malloc(size);
     if (p == NULL) throw std::bad_alloc();
@@ -634,13 +647,13 @@ inline void *operator new(size_t size)
 }
 
 /* ---------------------------------------- operator delete */
-inline void operator delete(void *p)
+void operator delete(void *p)
 {
     FStd::FMemory::Free(p);
 }
 
 /* ---------------------------------------- operator new[] */
-inline void *operator new[](size_t size)
+void *operator new[](size_t size)
 {
     void *p = FStd::FMemory::Malloc(size);
     if (p == NULL) throw std::bad_alloc();
@@ -648,14 +661,14 @@ inline void *operator new[](size_t size)
 }
 
 /* ---------------------------------------- operator delete[] */
-inline void operator delete[](void *p)
+void operator delete[](void *p)
 {
     FStd::FMemory::Free(p);
 }
 
 #define FLIB_NEW FStd::_mem_internal::FMemStamp(__FILE__, __func__, __LINE__) * new
 #define new FLIB_NEW
-#endif//_F_USE_MEMTRACK
+
 
 #define FLIB_ALLOC(size) FStd::FMemory::Malloc(size, __FILE__, __FUNCTION__, __LINE__)
 #define FLIB_CALLOC(nmemb, size) FStd::FMemory::Calloc(nmemb, size, __FILE__, __FUNCTION__, __LINE__)

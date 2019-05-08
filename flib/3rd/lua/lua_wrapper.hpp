@@ -454,12 +454,11 @@ namespace lua
 		void * object;
 		LuaUserData * stamp;
 		int	flag;
-
-		bool CanDelObject() const
-		{
-			return true;// (flag & LUA_UD_FLAG_NO_DEL_OBJ) == 0;
-		}
 	};
+
+#ifdef OBJECT_HEAP_RECORD
+	extern int get_object_flag(void* p);
+#endif
 
 	class ObjectsInLuaRec
 	{
@@ -510,13 +509,13 @@ namespace lua
 				ObjectsInLua.insert(rec);
 			}
 		}
-		inline bool RemoveObject(void * object, StampT stamp)
+		inline bool RemoveObject(void * object, StampT stamp, bool force = false)
 		{
 			auto found = ObjectsInLua.find(ObjectRec(object, 0));
 			if (found != ObjectsInLua.end())
 			{
 				const ObjectRec & rec = *found;
-				if (rec.stamp == stamp)
+				if (rec.stamp == stamp || force)
 				{
 					ObjectsInLua.erase(found);
 					return true;
@@ -571,12 +570,17 @@ namespace lua
 				return 1;
 			}
 			tryGetUserdataFromWeakTable(l, obj);
+#ifdef OBJECT_HEAP_RECORD
+			int flag = get_object_flag(obj);
+#else
+			int flag = 0;
+#endif
 			if (lua_isnil(l, -1))
 			{
 				lua_pop(l, 1); //t
 				LuaUserData* userdata = (LuaUserData*)lua_newuserdata(l, sizeof(LuaUserData)); //t,ud
 				userdata->object = obj;
-				userdata->flag = 0;
+				userdata->flag = flag;
 				userdata->stamp = userdata;
 				ObjectsInLuaRec::Get().AddObject(obj, userdata->stamp);
 
@@ -590,7 +594,7 @@ namespace lua
 			{
 				LuaUserData * userdata = (LuaUserData*)lua_touserdata(l, -1);
 				userdata->object = obj;
-				assert(userdata->flag == 0);
+				assert(userdata->flag == flag);
 			}
 
 			lua_remove(l, -2); //ud
@@ -610,7 +614,7 @@ namespace lua
 				}
 				return nullptr;
 			}
-			if (userdata && !userdata->stamp && !ObjectsInLuaRec::Get().FindObject(userdata->object, userdata->stamp))
+			if (userdata && userdata->stamp && !ObjectsInLuaRec::Get().FindObject(userdata->object, userdata->stamp))
 			{
 				userdata->object = nullptr;
 				if(poperror)
@@ -650,7 +654,7 @@ namespace lua
 			}
 		}
 
-		bool RemoveObjectFromLua(lua_State* l)
+		bool RemoveObjectFromLua(lua_State* l, int* flag = nullptr)
 		{
 			LuaUserData* ud = GetObjectUserData(l, 1);
 			if (ud && ud->object != nullptr)
@@ -658,12 +662,25 @@ namespace lua
 				bool  owner = ObjectsInLuaRec::Get().RemoveObject(ud->object, ud->stamp);
 				if (owner)
 				{
-					if (ud->CanDelObject())
-					{
-					}
+					if(flag) *flag = ud->flag;
 					removeUserdataFromWeakTable(l, ud->object);
 				}
 				ud->object = nullptr;
+			}
+			return true;
+		}
+
+		bool RemoveObject(lua_State* l, void* ptr)
+		{
+			if(!ptr) return true;
+			LuaUserData ud;
+			ud.flag = 1;
+			ud.object = ptr;
+			ud.stamp = &ud;
+			bool owner = ObjectsInLuaRec::Get().RemoveObject(ud.object, ud.stamp, true);
+			if (owner)
+			{
+				removeUserdataFromWeakTable(l, ptr);
 			}
 			return true;
 		}
@@ -1211,9 +1228,13 @@ namespace lua
 				luaL_error(l, "__gc method on handler error,%s:%d", __FILE__, __LINE__);
 				return 1;
 			}
-			bool success = get_luaobj_container().RemoveObjectFromLua(l);
+			int flag = 0;
+			bool success = get_luaobj_container().RemoveObjectFromLua(l, &flag);
+#ifdef OBJECT_HEAP_RECORD
+			if (1==flag && success && deleteDelegate<T>::m_deleteObjdelegate) deleteDelegate<T>::m_deleteObjdelegate(obj);
+#else
 			if (!gc && success && deleteDelegate<T>::m_deleteObjdelegate) deleteDelegate<T>::m_deleteObjdelegate(obj);
-			obj = NULL;
+#endif
 			return 0;
 		}
 
