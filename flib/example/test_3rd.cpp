@@ -55,6 +55,9 @@ namespace lua
 class base_t
 {
 public:
+	virtual const char* getname(){
+		return "base_t";
+	}
 	virtual ~base_t(){
 		printf("base_t::~base_t... %p\n", this);
 	}
@@ -70,9 +73,14 @@ public:
 		printf("call by __tostring\n");
 		return "base_t::tostring";
 	}
+
+	void base_print()
+	{
+		printf("base_t::base_print...%s\n", getname());
+	}
 };
 
-class foo_t
+class foo_t : public base_t
 {
 	std::string _name;
 public:
@@ -96,7 +104,20 @@ public:
 	static void fprint2(){
 		printf("static foo_t::print2.....,counter = %d\n", counter);
 	}
+
+	virtual const char* getname(){
+		return "foo_t";
+	}
 };
+
+class boo_t : public foo_t
+{
+public:
+	virtual const char* getname(){
+		return "boo_t";
+	}
+};
+
 int foo_t::counter = 0;
 int writeonly = 8;
 
@@ -136,6 +157,7 @@ int test_cplus_lua()
 		.def(lua::destructor())
 		.def("print", &base_t::print)
 		.def("print2", &base_t::print2)
+		.def("base_print", &base_t::base_print)
 		.def("__tostring", &base_t::tostring);
 
 	lua::lua_register_t<foo_t>(l, "foo_t")
@@ -149,6 +171,11 @@ int test_cplus_lua()
 		.readonly("flag", &foo_t::flag)
 		.writeonly("writeonly", &writeonly)
 		.def("counter", &foo_t::counter);
+
+	lua::lua_register_t<boo_t>(l, "boo_t")
+		.extend<foo_t>()
+		.def(lua::constructor<>())
+		.def(lua::destructor());
 
 	lua::lua_register_t<void>(l)
 		.def("foo", createfoo)

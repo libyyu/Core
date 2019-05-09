@@ -1342,11 +1342,11 @@ namespace lua
 
 			lua_pushstring(m_ls, "__mtname");
 			lua_pushstring(m_ls, class_name_t<T>::meta().c_str());
-			lua_rawset(m_ls, -3);
+			lua_rawset(m_ls, -3);//t,mt
 
 			lua_pushstring(m_ls, "__name");
 			lua_pushstring(m_ls, class_name_t<T>::name_.c_str());
-			lua_rawset(m_ls, -3);
+			lua_rawset(m_ls, -3);//t,mt
 
 			lua_pushstring(m_ls, "__index");
 			lua_pushcclosure(m_ls, [](lua_State *l)->int
@@ -1365,14 +1365,14 @@ namespace lua
 
 				return __index(l, -1, true);
 			}, 0);
-			lua_rawset(m_ls, -3);
+			lua_rawset(m_ls, -3);//t,mt
 
 			lua_pushstring(m_ls, "__newindex");
 			lua_pushcclosure(m_ls, [](lua_State *l)->int
 			{
 				return __newindex(l);
 			}, 0);
-			lua_rawset(m_ls, -3);
+			lua_rawset(m_ls, -3);//t,mt
 
 			//gc
 			lua_pushstring(m_ls, "__gc");
@@ -1380,18 +1380,18 @@ namespace lua
 			{
 				return __gc(l, true);
 			}, 0);
-			lua_rawset(m_ls, -3);
+			lua_rawset(m_ls, -3);//t,mt
 			//tryget
-			tryget();
+			tryget();//t,mt
 			////meta
-			lua_pushstring(m_ls, "__metatable");
-			lua_pushvalue(m_ls, table);
-			lua_settable(m_ls, meta);
+			lua_pushstring(m_ls, "__metatable");//t,mt,__metatable
+			lua_pushvalue(m_ls, table);//t,mt,__metatable,t
+			lua_settable(m_ls, meta);//t,mt //mt.__metatable = t
 
 			//type
-			lua_pushvalue(m_ls, table);
-			lua_pushstring(m_ls, "__typetable");
-			lua_rawget(m_ls, -2);
+			lua_pushvalue(m_ls, table);//t,mt,t
+			lua_pushstring(m_ls, "__typetable");//t,mt,t,__typetable
+			lua_rawget(m_ls, -2);//t,mt, typetable
 			int mt = lua_gettop(m_ls);
 
 			lua_pushstring(m_ls, "__index");
@@ -1407,10 +1407,10 @@ namespace lua
 				return __newindex(l);
 			}, 0);
 			lua_rawset(m_ls, -3);
-
-			lua_pushstring(m_ls, "__parent");
+			//t,mt, typetable
+			lua_pushstring(m_ls, "__parent");//t,mt, typetable,__parent
 			luaL_getmetatable(m_ls, class_name_t<T>::meta().c_str());
-			lua_rawset(m_ls, -3);
+			lua_rawset(m_ls, -3);//t,mt, typetable //typetable.__parent=mt
 
 			lua_pushstring(m_ls, "__name");
 			lua_pushstring(m_ls, class_name_t<T>::name_.c_str());
@@ -1419,10 +1419,10 @@ namespace lua
 			lua_pushstring(m_ls, "__mtname");
 			lua_pushstring(m_ls, class_name_t<T>::meta().c_str());
 			lua_rawset(m_ls, -3);
-
-			gettable(m_ls, class_name_t<T>::name_.c_str());
-			lua_pushvalue(m_ls, mt);
-			lua_setmetatable(m_ls, -2);
+			//t,mt, typetable
+			gettable(m_ls, class_name_t<T>::name_.c_str());//t,mt, typetable,t
+			lua_pushvalue(m_ls, mt);//t,mt, typetable,t,typetable
+			lua_setmetatable(m_ls, -2);//t,mt, typetable,t.__metatable = typetable
 		}
 
 		template<typename P>
