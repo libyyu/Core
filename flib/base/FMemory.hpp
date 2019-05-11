@@ -639,7 +639,7 @@ inline T *operator*(const FStd::_mem_internal::FMemStamp &stamp, T *p)
     return p;
 }
 /* ---------------------------------------- operator new */ 
-void *operator new(size_t size)
+inline void *operator new(size_t size)
 {
     void *p = FStd::FMemory::Malloc(size);
     if (p == NULL) throw std::bad_alloc();
@@ -647,13 +647,13 @@ void *operator new(size_t size)
 }
 
 /* ---------------------------------------- operator delete */
-void operator delete(void *p)
+inline void operator delete(void *p)
 {
     FStd::FMemory::Free(p);
 }
 
 /* ---------------------------------------- operator new[] */
-void *operator new[](size_t size)
+inline void *operator new[](size_t size)
 {
     void *p = FStd::FMemory::Malloc(size);
     if (p == NULL) throw std::bad_alloc();
@@ -661,13 +661,13 @@ void *operator new[](size_t size)
 }
 
 /* ---------------------------------------- operator delete[] */
-void operator delete[](void *p)
+inline void operator delete[](void *p)
 {
     FStd::FMemory::Free(p);
 }
 
 #define FLIB_NEW FStd::_mem_internal::FMemStamp(__FILE__, __func__, __LINE__) * new
-#define new FLIB_NEW
+//#define new FLIB_NEW
 
 
 #define FLIB_ALLOC(size) FStd::FMemory::Malloc(size, __FILE__, __FUNCTION__, __LINE__)

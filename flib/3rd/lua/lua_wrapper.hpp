@@ -1,7 +1,7 @@
 ﻿#ifndef LUA_WRAPPER_HPP
 #define LUA_WRAPPER_HPP
 #pragma once
-#include "lua_script.hpp"
+#include "lua_object.hpp"
 namespace lua
 {
 	////////////////////////////////////////////////////////////
@@ -449,101 +449,14 @@ namespace lua
 	template < typename T >
 	class lua_register_t;
 
-	struct LuaUserData
-	{
-		void * object;
-		LuaUserData * stamp;
-		int	flag;
-	};
-
-#ifdef OBJECT_HEAP_RECORD
-	extern int get_object_flag(void* p);
-#endif
-
-	class ObjectsInLuaRec
-	{
-		typedef LuaUserData *  StampT;
-		struct ObjectRec
-		{
-			void * object;
-			StampT stamp;
-
-			ObjectRec(void * obj, StampT stamp_) : object(obj), stamp(stamp_)
-			{}
-		};
-
-		struct Comp_Rec
-		{
-			bool operator() (const ObjectRec& lhs, const ObjectRec& rhs) const
-			{
-				return (static_cast<char*>(lhs.object) - static_cast<char*>(rhs.object)) < 0;
-			}
-		};
-
-		ObjectsInLuaRec() {}
-
-		std::set<ObjectRec, Comp_Rec> ObjectsInLua;
-
-	public:
-		static ObjectsInLuaRec& Get()
-		{
-			static ObjectsInLuaRec s_inst;
-			return s_inst;
-		}
-
-		inline void AddObject(void * object, StampT stamp)
-		{
-			ObjectRec rec = ObjectRec(object, stamp);
-			auto found = ObjectsInLua.find(rec);
-			if (found != ObjectsInLua.end())
-			{
-				const ObjectRec & rec2 = *found;
-				if (rec2.stamp != stamp)
-				{
-					ObjectsInLua.erase(found);
-					ObjectsInLua.insert(rec);
-				}
-			}
-			else
-			{
-				ObjectsInLua.insert(rec);
-			}
-		}
-		inline bool RemoveObject(void * object, StampT stamp, bool force = false)
-		{
-			auto found = ObjectsInLua.find(ObjectRec(object, 0));
-			if (found != ObjectsInLua.end())
-			{
-				const ObjectRec & rec = *found;
-				if (rec.stamp == stamp || force)
-				{
-					ObjectsInLua.erase(found);
-					return true;
-				}
-			}
-			return false;
-		}
-		inline bool FindObject(void * object, StampT stamp)
-		{
-			auto found = ObjectsInLua.find(ObjectRec(object, stamp));
-			if (found != ObjectsInLua.end())
-			{
-				const ObjectRec&  rec = *found;
-				return rec.stamp == stamp;
-			}
-			return false;
-		}
-	};
-
-	struct lua_hash_objs
+	class lua_function_bindings
 	{
 		std::vector<void*> functions;
-		int mobjWeakTableRef;
-		lua_hash_objs() :mobjWeakTableRef(LUA_NOREF)
+		lua_function_bindings()
 		{
 			functions.clear();
 		}
-		~lua_hash_objs()
+		~lua_function_bindings()
 		{
 			for (void*p : functions)
 			{
@@ -551,153 +464,10 @@ namespace lua
 			}
 			functions.clear();
 		}
-		inline int PushObjectToLua(lua_State* l, const void* const_obj, const std::string& metatable)
-		{
-			if (!const_obj)
-			{
-				lua_pushnil(l);
-				return 1;
-			}
-			void* obj = const_cast<void*>(const_obj);
-			return PushObjectToLua(l, obj, metatable);
-		}
-
-		inline int PushObjectToLua(lua_State* l, void* obj, const std::string& metatable)
-		{
-			if (!obj)
-			{
-				lua_pushnil(l);
-				return 1;
-			}
-			tryGetUserdataFromWeakTable(l, obj);
-#ifdef OBJECT_HEAP_RECORD
-			int flag = get_object_flag(obj);
-#else
-			int flag = 0;
-#endif
-			if (lua_isnil(l, -1))
-			{
-				lua_pop(l, 1); //t
-				LuaUserData* userdata = (LuaUserData*)lua_newuserdata(l, sizeof(LuaUserData)); //t,ud
-				userdata->object = obj;
-				userdata->flag = flag;
-				userdata->stamp = userdata;
-				ObjectsInLuaRec::Get().AddObject(obj, userdata->stamp);
-
-				luaL_getmetatable(l, metatable.c_str());//t,ud,mt
-				lua_setmetatable(l, -2);//t,ud
-				lua_pushlightuserdata(l, obj); //t,ud,obj
-				lua_pushvalue(l, -2); //t,ud,obj,ud
-				lua_settable(l, -4); //t,ud
-			}
-			else
-			{
-				LuaUserData * userdata = (LuaUserData*)lua_touserdata(l, -1);
-				userdata->object = obj;
-				assert(userdata->flag == flag);
-			}
-
-			lua_remove(l, -2); //ud
-
-			return 1;
-		}
-		
-		inline void* GetObject(lua_State * L, int ParamIndex, const char* mtname, bool poperror=true)
-		{
-			LuaUserData * userdata = GetObjectUserData(L, ParamIndex, mtname);
-			if (userdata && !userdata->object)
-			{
-				if(poperror)
-				{
-					lua_pushstring(L, "Content of LuaUserData has been removed!");
-					lua_error(L);
-				}
-				return nullptr;
-			}
-			if (userdata && userdata->stamp && !ObjectsInLuaRec::Get().FindObject(userdata->object, userdata->stamp))
-			{
-				userdata->object = nullptr;
-				if(poperror)
-				{
-					lua_pushstring(L, "Content of LuaUserData has been disappeared!");
-					lua_error(L);
-				}
-				return nullptr;
-			}
-			return userdata != nullptr ? userdata->object : nullptr;
-		}
-
-		inline void* GetObject(lua_State* L, int ParamIndex, bool poperror=true)
-		{
-			if (!lua_isuserdata(L, ParamIndex))
-			{
-				if(poperror)
-				{
-					lua_pushstring(L, "GetObject #1 must be userdata");
-					lua_error(L);
-				}
-				return nullptr;
-			}
-			lua_getmetatable(L, ParamIndex);//ud, mt
-			lua_pushstring(L, "__mtname");//ud, mt, key
-			lua_rawget(L, -2); //ud, mt, mtname
-			if (lua_isstring(L, -1))
-			{
-				const char* mtname = lua_tostring(L, -1);
-				lua_pop(L, 2); //ud
-				return GetObject(L, ParamIndex, mtname, poperror);
-			}
-			else
-			{
-				lua_pop(L, 2); //ud
-				return GetObject(L, ParamIndex, nullptr, poperror);
-			}
-		}
-
-		bool RemoveObjectFromLua(lua_State* l, int* flag = nullptr)
-		{
-			LuaUserData* ud = GetObjectUserData(l, 1);
-			if (ud && ud->object != nullptr)
-			{
-				bool  owner = ObjectsInLuaRec::Get().RemoveObject(ud->object, ud->stamp);
-				if (owner)
-				{
-					if(flag) *flag = ud->flag;
-					removeUserdataFromWeakTable(l, ud->object);
-				}
-				ud->object = nullptr;
-			}
-			return true;
-		}
-
-		bool RemoveObject(lua_State* l, void* ptr)
-		{
-			if(!ptr) return true;
-			LuaUserData ud;
-			ud.flag = 1;
-			ud.object = ptr;
-			ud.stamp = &ud;
-			bool owner = ObjectsInLuaRec::Get().RemoveObject(ud.object, ud.stamp, true);
-			if (owner)
-			{
-				removeUserdataFromWeakTable(l, ptr);
-			}
-			return true;
-		}
-
-		template<typename T>
-		T* CheckObject(lua_State* l, int index, bool poperror=true)
-		{
-			if (!lua_isuserdata(l, index))
-			{
-				char err[100] = { 0 };
-				sprintf(err, "param #%d must be a userdata", index);
-				lua_pushstring(l, err);
-				lua_error(l);
-				return NULL;
-			}
-			void* obj = GetObject(l, index, poperror);
-			return static_cast<T *>(obj);
+	public:
+		static lua_function_bindings& get(){
+			static lua_function_bindings bindings;
+			return bindings;
 		}
 
 		template<typename F>
@@ -709,88 +479,7 @@ namespace lua
 			functions.push_back(p);
 			return p;
 		}
-		////////////////////////////////////////////////////////////////////////////////////////////////////////
-		inline LuaUserData* GetObjectUserData(lua_State * L, int ParamIndex, const char* mtname)
-		{
-			if (!lua_isuserdata(L, ParamIndex))
-			{
-				lua_pushstring(L, "GetObject #1 must be userdata");
-				lua_error(L);
-				return nullptr;
-			}
-			LuaUserData * userdata = nullptr;
-			if(mtname)
-				userdata = (LuaUserData*)luaL_checkudata(L, ParamIndex, mtname);
-			else
-				userdata = (LuaUserData *)lua_touserdata(L, ParamIndex);
-			return userdata;
-		}
-
-		inline LuaUserData* GetObjectUserData(lua_State * L, int ParamIndex)
-		{
-			if (!lua_isuserdata(L, ParamIndex))
-			{
-				lua_pushstring(L, "GetObject #1 must be userdata");
-				lua_error(L);
-				return nullptr;
-			}
-			lua_getmetatable(L, ParamIndex);//mt
-			lua_pushstring(L, "__mtname");//mt,key
-			lua_rawget(L, -2); //mt, mtname
-			if (lua_isstring(L, -1))
-			{
-				const char* mtname = lua_tostring(L, -1);
-				lua_pop(L, -2);
-				return GetObjectUserData(L, ParamIndex, mtname);
-			}
-			else
-			{
-				lua_pop(L, -2);
-				return GetObjectUserData(L, ParamIndex, nullptr);
-			}
-		}
-	
-		void InitObjsWeakTable(lua_State* l)
-		{
-			lua_newtable(l); // t
-			lua_newtable(l); // t,mt
-			lua_pushstring(l, "v"); // t,mt,"v"
-			lua_setfield(l, -2, "__mode"); //t,mt
-			lua_setmetatable(l, -2); //t
-			mobjWeakTableRef = luaL_ref(l, LUA_REGISTRYINDEX);
-		}
-
-		void tryGetUserdataFromWeakTable(lua_State * L, void * Obj)
-		{
-			if (mobjWeakTableRef == LUA_NOREF)
-			{
-				InitObjsWeakTable(L);
-			}
-			lua_rawgeti(L, LUA_REGISTRYINDEX, mobjWeakTableRef); //t
-			lua_pushlightuserdata(L, Obj); //t,obj
-			lua_gettable(L, -2); //t,ud
-		}
-
-		void removeUserdataFromWeakTable(lua_State * L, void * Obj)
-		{
-			if (mobjWeakTableRef == LUA_NOREF)
-			{
-				return;
-			}
-			lua_rawgeti(L, LUA_REGISTRYINDEX, mobjWeakTableRef); //t
-			lua_pushlightuserdata(L, Obj); //t,obj
-			lua_pushnil(L);
-			lua_settable(L, -3);
-			lua_pop(L, 1);
-		}
 	};
-	//需要定义该变量
-	static lua_hash_objs& get_luaobj_container() {
-		static lua_hash_objs lua_objs;
-		return lua_objs;
-	}
-	//extern lua_hash_objs& get_luaobj_container();
-
 
 	template<typename T>
 	struct lua_op_t < T* >
@@ -803,7 +492,7 @@ namespace lua
 					lua_pushlightuserdata(l, (void *)(value));
 				else
 				{
-					get_luaobj_container().PushObjectToLua(l, (void *)(value), class_name_t<T>::meta());
+					pushobject(l, (void *)(value), class_name_t<T>::meta().c_str());
 				}
 			}
 			else
@@ -818,7 +507,7 @@ namespace lua
 				return;
 			}
 			LUA_CHECK_ERROR(lua_isuserdata(l, pos) != 0, LUA_TUSERDATA, pos);
-			*value = get_luaobj_container().CheckObject<T>(l, pos);
+			*value = getobject<T>(l, pos);
 		}
 
 		static bool try_get(lua_State * l, int pos, T** value)
@@ -830,8 +519,7 @@ namespace lua
 					*value = 0;
 					return true;
 				}
-				LUA_CHECK_ERROR(lua_isuserdata(l, pos) != 0, LUA_TUSERDATA, pos);
-				*value = get_luaobj_container().CheckObject<T>(l, pos, false);
+				from_stack(l, pos, value);
 				return true;
 			}
 			else
@@ -910,11 +598,12 @@ namespace lua
 	////
 	////////////////////////////////////////////////////////////
 	template<typename C>
-	static void __delete(void* obj)
+	inline void __delete(void* obj)
 	{
 		C* p = static_cast<C*>(obj);
 		delete p;
 	}
+
 	typedef void(*__deleteObjdelegate)(void*);
 	template<typename C>
 	struct deleteDelegate
@@ -1220,21 +909,17 @@ namespace lua
 	class lua_register_t : lua_register_base_t
 	{
 	protected:
-		static int __gc(lua_State* l, bool gc)
+		static int __deleteOrgc(lua_State* l, bool gc)
 		{
 			T *obj = NULL; lua::get(l, 1, &obj);
 			if (!obj)
 			{
-				luaL_error(l, "__gc method on handler error,%s:%d", __FILE__, __LINE__);
+				luaL_error(l, "__deleteOrgc method on handler error,%s:%d", __FILE__, __LINE__);
 				return 1;
 			}
 			int flag = 0;
-			bool success = get_luaobj_container().RemoveObjectFromLua(l, &flag);
-#ifdef OBJECT_HEAP_RECORD
-			if (1==flag && success && deleteDelegate<T>::m_deleteObjdelegate) deleteDelegate<T>::m_deleteObjdelegate(obj);
-#else
+			bool success = removeobject(l, &flag);
 			if (!gc && success && deleteDelegate<T>::m_deleteObjdelegate) deleteDelegate<T>::m_deleteObjdelegate(obj);
-#endif
 			return 0;
 		}
 
@@ -1284,7 +969,7 @@ namespace lua
 			stack_gurad scope_check(m_ls);
 			luaL_getmetatable(m_ls, class_name_t<T>::meta().c_str());
 			lua_pushstring(m_ls, func.name_);
-			lua_pushlightuserdata(m_ls, get_luaobj_container().castVoid(func.function_));
+			lua_pushlightuserdata(m_ls, lua_function_bindings::get().castVoid(func.function_));
 			lua_pushcclosure(m_ls, lambda, 1);
 			lua_rawset(m_ls, -3);
 
@@ -1378,7 +1063,7 @@ namespace lua
 			lua_pushstring(m_ls, "__gc");
 			lua_pushcclosure(m_ls, [](lua_State *l)->int
 			{
-				return __gc(l, true);
+				return __deleteOrgc(l, true);
 			}, 0);
 			lua_rawset(m_ls, -3);//t,mt
 			//tryget
@@ -1468,7 +1153,7 @@ namespace lua
 		{
 			auto lambda = [](lua_State *l)->int
 			{
-				return __gc(l, false);
+				return __deleteOrgc(l, false);
 			};
 			stack_gurad scope_check(m_ls);
 			luaL_getmetatable(m_ls, class_name_t<T>::meta().c_str());

@@ -2,6 +2,7 @@
 #include "3rd/lua/LuaEnv.hpp"
 #include "3rd/lua/lua_wrapper.hpp"
 #include "flib.h"
+#define new FLIB_NEW
 LuaEnv* gL = nullptr;
 #if 1//def OBJECT_HEAP_RECORD
 typedef struct _HeapChunk {
@@ -30,7 +31,7 @@ void RemoveHeapChunk(void* ptr)
 		if (r->ptr == ptr) 
 		{
 			memset(r, 0x00, sizeof(HeapChunk));
-			if(gL) lua::get_luaobj_container().RemoveObject(*gL, ptr);
+			//if(gL) lua::get_luaobj_container().RemoveObject(*gL, ptr);
 			break;
 		}
   }

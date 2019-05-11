@@ -61,7 +61,7 @@ inline std::string Fbase64_encode(char const* bytes_to_encode, unsigned int in_l
 inline std::string Fbase64_decode(char const* bytes_encoded) 
 {
   std::string encoded_string(bytes_encoded);
-  int in_len = encoded_string.size();
+  size_t in_len = encoded_string.size();
   int i = 0;
   int j = 0;
   int in_ = 0;

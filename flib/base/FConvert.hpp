@@ -181,7 +181,7 @@ public:
 		delete []szBuf;
 		szBuf = NULL;
 #else
-		int len = wcslen(ptext);
+		size_t len = wcslen(ptext);
 		for (int i = 0;i < len; ++i)
 		{
 			char c;
@@ -239,7 +239,7 @@ public:
 		memset(buf,0,4);
 
 		int i = 0;
-		int len = strlen(ptext);
+		size_t len = strlen(ptext);
 		while(i < len)
 		{
 			if( ptext[i] >= 0)
@@ -273,7 +273,7 @@ public:
     static stringtype UTF8ToGB2312(const char* ptext)
 	{
 		stringtype sResult;
-		int nlen = strlen(ptext);
+		size_t nlen = strlen(ptext);
 		char buf[4];
 		memset(buf,0,4);
 		char* rst = new char[nlen + (nlen >> 2) + 2];		

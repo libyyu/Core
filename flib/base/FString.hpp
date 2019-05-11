@@ -95,7 +95,7 @@ public:
 	inline void Assign(const char* pstr, int cchMax = -1)
     {
         if( pstr == NULL ) pstr = "";
-		cchMax = (cchMax < 0 ? strlen(pstr) : cchMax);
+		cchMax = (cchMax < 0 ? (int)strlen(pstr) : cchMax);
 		if( cchMax < MAX_LOCAL_STRING_LEN ) {
 			if( m_pstr != m_szBuffer ) {
 				free(m_pstr);
@@ -126,24 +126,24 @@ public:
     inline FString Left(int iLength) const
 	{
 		if( iLength < 0 ) iLength = 0;
-		if( iLength > (int)GetLength() ) iLength = GetLength();
+		if( iLength > (int)GetLength() ) iLength = (int)GetLength();
 		return FString(m_pstr, iLength);
 	}
 
 	inline FString Mid(int iPos, int iLength = -1) const
 	{
-		if( iLength < 0 ) iLength = GetLength() - iPos;
-		if( iPos + iLength > (int)GetLength() ) iLength = GetLength() - iPos;
+		if( iLength < 0 ) iLength = (int)GetLength() - iPos;
+		if( iPos + iLength > (int)GetLength() ) iLength = (int)GetLength() - iPos;
 		if( iLength <= 0 ) return FString();
 		return FString(m_pstr + iPos, iLength);
 	}
 
 	inline FString Right(int iLength) const
 	{
-		int iPos = GetLength() - iLength;
+		int iPos = (int)GetLength() - iLength;
 		if( iPos < 0 ) {
 			iPos = 0;
-			iLength = GetLength();
+			iLength = (int)GetLength();
 		}
 		return FString(m_pstr + iPos, iLength);
 	}
@@ -179,8 +179,8 @@ public:
 		int nCount = 0;
 		int iPos = Find(pstrFrom);
 		if( iPos < 0 ) return 0;
-		size_t cchFrom = strlen(pstrFrom);
-		size_t cchTo = strlen(pstrTo);
+		int cchFrom = (int)strlen(pstrFrom);
+		int cchTo = (int)strlen(pstrTo);
 		while( iPos >= 0 ) {
 			sTemp = Left(iPos);
 			sTemp += pstrTo;
@@ -227,7 +227,7 @@ public:
 			return;
 
 		FString temp;
-		size_t pos = 0, offset = 0;
+		int pos = 0, offset = 0;
 
 		// 分割第1~n-1个
 		while((pos = Find(pattern, offset)) != -1)
@@ -241,7 +241,7 @@ public:
 		}
 
 		// 分割第n个
-		temp = Mid(offset, GetLength() - offset);
+		temp = Mid(offset, (int)GetLength() - offset);
 		if (temp.GetLength() > 0)
 		{
 			OutArr.push_back(temp);

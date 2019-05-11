@@ -13,24 +13,6 @@
 #include <memory>
 
 _FStdBegin
-class __MemPoolFactory
-{
-public:
-    static FAlloctorPool<16,16384>* get()
-    {
-        static FAlloctorPool<16,16384> __mempool;
-        return &__mempool;
-    }
-};
-
-inline void* PoolMalloc(size_t nSize) 
-{
-    return __MemPoolFactory::get()->Alloc(nSize);
-}
-inline void  PoolFree(void* p) 
-{ 
-    return __MemPoolFactory::get()->Free(p);
-}
 
 static const uint8 buffer_flag_isuser        = 1<<1;
 static const uint8 buffer_flag_iserror       = 1<<2;
@@ -195,7 +177,7 @@ _FStdEnd
 _FStdBegin
 inline FBuffer& operator<<(FBuffer& buffer,const std::string &v)
 {
-    int len = v.size();
+    size_t len = v.size();
     buffer.Write<uint32>(len);
     buffer.Write((const uint8 *)v.c_str(), len);
     return buffer;
@@ -332,12 +314,12 @@ bool FBuffer::isUserBuffer() {
 uint8 * FBuffer::getBuf(size_t size)
 {
     assert(size > 0);
-    return (uint8 *)PoolMalloc(size);
+    return (uint8 *)FPoolMalloc(size);
 }
 void FBuffer::releaseBuf(uint8 * p) 
 {
     assert(NULL != p);
-    PoolFree(p);
+    FPoolFree(p);
 }
 
 size_t  FBuffer::size() const
@@ -444,7 +426,7 @@ int FBuffer::find(const uint8* dest,size_t n) const
         {
             --k;
             if(0 == k)
-                return (pos - n)%_size;
+                return (int)((pos - n)%_size);
         }
     }
     return -1;
@@ -622,14 +604,14 @@ FBuffer& FBuffer::operator<<(double v)
 FBuffer& FBuffer::operator<<(const char *str)
 {
     assert(str);
-    int len = strlen(str);
+    size_t len = strlen(str);
     Write<uint32>(len);
     Write((uint8 const *)str, len);
     return *this;
 }
 inline FBuffer& FBuffer::operator<<(char v[])
 {
-    int len = strlen(v);
+    size_t len = strlen(v);
     Write<uint32>(len);
     Write((uint8 const *)v, len);
     return *this;

@@ -196,6 +196,26 @@ _FStdBegin
 template<typename LOCK,size_t C> 
 class FAlloctorPool<0, 0, LOCK, C>; //MAKE ERROR
 
+
+class FMemPoolFactory
+{
+public:
+    static FAlloctorPool<16,16384>* get()
+    {
+        static FAlloctorPool<16,16384> __mempool;
+        return &__mempool;
+    }
+};
+
+inline void* FPoolMalloc(size_t nSize)
+{
+    return FMemPoolFactory::get()->Alloc(nSize);
+}
+inline void  FPoolFree(void* p)
+{
+    return FMemPoolFactory::get()->Free(p);
+}
+
 _FStdEnd
 
 _FStdBegin
