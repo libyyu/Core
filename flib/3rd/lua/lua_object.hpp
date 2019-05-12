@@ -94,6 +94,7 @@ namespace lua
 			typedef void (*UnRefFunc)(int);
 			int mobjWeakTableRef;
 			UnRefFunc onUnRef;
+		public:
 			LuaObjectWrapper() :mobjWeakTableRef(LUA_NOREF), onUnRef(NULL)
 			{
 			}
@@ -104,7 +105,6 @@ namespace lua
 					onUnRef(mobjWeakTableRef);
 				}
 			}
-		public:
 			static LuaObjectWrapper& Get()
 			{
 				static LuaObjectWrapper wrapper;
@@ -332,24 +332,40 @@ namespace lua
 		};
 	}
 
+#ifdef LUA_OBJECT_EXTERN
+	class LuaObjectContainer : public internal::LuaObjectWrapper
+	{
+	public:
+		LuaObjectContainer(): internal::LuaObjectWrapper()
+		{}
+	};
+	extern LuaObjectContainer& get_luaobj_container();
+#else
+	internal::LuaObjectWrapper& get_luaobj_container()
+	{
+		static internal::LuaObjectWrapper lo;
+		return lo;
+	}
+#endif
+
     inline int pushobject(lua_State* l, const void* const_obj, const char* meta, int flag = 0)
     {
-        return internal::LuaObjectWrapper::Get().PushObjectToLua(l, const_obj, meta, flag);
+        return get_luaobj_container().PushObjectToLua(l, const_obj, meta, flag);
     }
     inline int pushobject(lua_State* l, void* obj, const char* meta, int flag = 0)
     {
-        return internal::LuaObjectWrapper::Get().PushObjectToLua(l, obj, meta, flag);
+        return get_luaobj_container().PushObjectToLua(l, obj, meta, flag);
     }
 
 	inline bool removeobject(lua_State* l, int* flag = NULL)
 	{
-		return internal::LuaObjectWrapper::Get().RemoveObjectFromLua(l, flag);
+		return get_luaobj_container().RemoveObjectFromLua(l, flag);
 	}
 
 	template<typename T>
 	inline T* getobject(lua_State* l, int pos)
 	{
-		return internal::LuaObjectWrapper::Get().CheckObject<T>(l, pos);
+		return get_luaobj_container().CheckObject<T>(l, pos);
 	} 
 }
 #endif//_LUA_OBJECT_HPP
