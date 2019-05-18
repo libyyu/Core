@@ -27,6 +27,7 @@
 #include "base/FLogFile.hpp"
 #include "base/FConsole.hpp"
 #include "base/FValue.hpp"
+#include "base/FOStream.hpp"
 ////////////////////////////////////
 ////
 _FStdBegin

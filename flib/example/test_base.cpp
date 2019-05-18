@@ -233,5 +233,10 @@ int main(int argc, const char * argv[]) {
     testvalue();
 
     test_csv();
+
+    FStd::TestStream stream;
+
+    stream.stream() << "hello\n";
+
     return 0;
 }
