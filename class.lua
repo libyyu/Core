@@ -2,6 +2,10 @@ local function testBase()
 	print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>begin test base_t", base_t)
 	print(base_t, base_t.__metatable, base_t.__name, base_t.__index, base_t.print)
 	print("filed of base_t")
+	for k,v in pairs((base_t)) do
+		print(k, v)
+	end
+	print("---")
 	for k,v in pairs(getmetatable(base_t)) do
 		print(k, v)
 	end
