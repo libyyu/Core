@@ -1037,7 +1037,6 @@ namespace lua
 			lua_pushcclosure(m_ls, [](lua_State *l)->int
 			{
 				const char* key = lua_tostring(l, -1);
-
 				if (strcmp(key, "isnil") == 0)
 				{
 					T* self = nullptr;
@@ -1054,7 +1053,19 @@ namespace lua
 
 			lua_pushstring(m_ls, "__newindex");
 			lua_pushcclosure(m_ls, [](lua_State *l)->int
-			{
+			{//t,key,value
+				const char* key = lua_tostring(l, -2);
+				if(strcmp(key, "__typetable") == 0 ||
+					strcmp(key, "__name") == 0 ||
+					strcmp(key, "__mtname") == 0 ||
+					strcmp(key, "__parent") == 0 ||
+					strcmp(key, "__index") == 0 ||
+					strcmp(key, "__newindex") == 0 ||
+					strcmp(key, "__call") == 0)
+				{
+					luaL_error(l, "can not modify internal attribute. %s %s:%d", key, __FILE__, __LINE__);
+					return 1;
+				}
 				return __newindex(l);
 			}, 0);
 			lua_rawset(m_ls, -3);//t,mt
@@ -1089,6 +1100,18 @@ namespace lua
 			lua_pushstring(m_ls, "__newindex");
 			lua_pushcclosure(m_ls, [](lua_State *l)->int
 			{
+				const char* key = lua_tostring(l, -2);
+				if(strcmp(key, "__typetable") == 0 ||
+					strcmp(key, "__name") == 0 ||
+					strcmp(key, "__mtname") == 0 ||
+					strcmp(key, "__parent") == 0 ||
+					strcmp(key, "__index") == 0 ||
+					strcmp(key, "__newindex") == 0 ||
+					strcmp(key, "__call") == 0)
+				{
+					luaL_error(l, "can not modify internal attribute. %s %s:%d", key, __FILE__, __LINE__);
+					return 1;
+				}
 				return __newindex(l);
 			}, 0);
 			lua_rawset(m_ls, -3);
@@ -1104,6 +1127,7 @@ namespace lua
 			lua_pushstring(m_ls, "__mtname");
 			lua_pushstring(m_ls, class_name_t<T>::meta().c_str());
 			lua_rawset(m_ls, -3);
+
 			//t,mt, typetable
 			gettable(m_ls, class_name_t<T>::name_.c_str());//t,mt, typetable,t
 			lua_pushvalue(m_ls, mt);//t,mt, typetable,t,typetable
