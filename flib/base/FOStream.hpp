@@ -393,7 +393,7 @@ namespace FStd
 		}
 		virtual IOStream& operator <<(wchar_t v[])
 		{
-			output(to_string(v).c_str());
+			output(to_string<const wchar_t*>(v).c_str());
 			return *this;
 		}
 		virtual IOStream& operator <<(const wchar_t* v)
@@ -403,7 +403,7 @@ namespace FStd
 		}
 		virtual IOStream& operator <<(char v[])
 		{
-			output(to_string(v).c_str());
+			output(to_string<const char*>(v).c_str());
 			return *this;
 		}
 		virtual IOStream& operator <<(const char* v)
