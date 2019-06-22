@@ -82,7 +82,7 @@ public:
 
 
     inline const uint8*        data() const;
-    inline const uint8*        c_str() const;
+    inline const char*         c_str() const;
     inline size_t              Read(uint8 *dest,const size_t cnt);
     inline size_t              Write(const uint8 *src,const size_t cnt);
 
@@ -442,11 +442,11 @@ void FBuffer::swap(FBuffer& buffer)
 }
 const uint8* FBuffer::data() const
 {
-    return _pdata;
+    return (*this)[rpos()];
 }
-const uint8* FBuffer::c_str() const
+const char* FBuffer::c_str() const
 {
-    return _pdata;
+    return (const char*)data();
 }
 size_t FBuffer::Read(uint8 *dest,const size_t cnt)
 {
