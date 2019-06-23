@@ -26,7 +26,7 @@ public:
     FDoStructFile():m_nSize(sizeof(value_type)){}
     ~FDoStructFile();
 public:
-  FLIB_FORCEINLINE bool ReadFileToMem(const char* lpFileName);
+    FLIB_FORCEINLINE bool ReadFileToMem(const char* lpFileName);
 	FLIB_FORCEINLINE bool WriteFileFormMem(const char* lpFileName);	
 	FLIB_FORCEINLINE void InsertVaule(const value_type& x);
 	FLIB_FORCEINLINE void Clear();

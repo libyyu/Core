@@ -22,25 +22,29 @@ class FBuffer
 public:
     const static size_t DEFAULT_SIZE = 1024*10;
 
-    explicit FBuffer(const uint8 * pBuffer, size_t len)
+    explicit FBuffer(const uint8 * pBuffer, size_t len, FAlloctorPoolBase* pool = NULL)
 		:_flag(buffer_flag_isuser),
 		_rpos(0),
 		_wpos(0),
 		_size(len),
 		_cnt(len),
-		_pdata((uint8 *)pBuffer)
+		_pdata((uint8 *)pBuffer),
+        _tag(0),
+        _pool(pool)
 	{
 		assert(pBuffer);
 		assert(len > 0);
 	}
 
-    FBuffer(size_t len = DEFAULT_SIZE)
+    FBuffer(size_t len = DEFAULT_SIZE, FAlloctorPoolBase* pool = NULL)
 		:_flag(0),
 		_rpos(0),
 		_wpos(0),
 		_size(len),
 		_cnt(0),
-		_pdata(NULL)
+		_pdata(NULL),
+        _tag(0),
+        _pool(pool)
 	{
 		if (0 >= _size) _size = DEFAULT_SIZE;
 
@@ -56,6 +60,8 @@ public:
 		}
 	}
 public:
+    inline size_t              tag() const;
+	inline void                setTag(size_t t);
     inline size_t              size() const;
     inline size_t              cnt() const;
     inline bool                empty() const;
@@ -169,6 +175,8 @@ protected:
     size_t              _wpos;
 
     uint8               _flag;
+    size_t              _tag;
+    FAlloctorPoolBase*  _pool;
 };
 typedef std::shared_ptr<FBuffer> spFBufferT;
 
@@ -314,14 +322,21 @@ bool FBuffer::isUserBuffer() {
 uint8 * FBuffer::getBuf(size_t size)
 {
     assert(size > 0);
-    return (uint8 *)FPoolMalloc(size);
+    return ((NULL == _pool) ? (uint8 *)FPoolMalloc(size) : (uint8 *)_pool->Alloc(size));
 }
 void FBuffer::releaseBuf(uint8 * p) 
 {
     assert(NULL != p);
-    FPoolFree(p);
+    (NULL == _pool) ? FPoolFree(p) : _pool->Free(p);
 }
-
+size_t  FBuffer::tag() const
+{
+	return _tag;
+}
+void FBuffer::setTag(size_t t)
+{
+	_tag = t;
+}
 size_t  FBuffer::size() const
 {
     return _size;
