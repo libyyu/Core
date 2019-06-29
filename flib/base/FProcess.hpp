@@ -52,15 +52,15 @@ public:
     ///Thus, at the moment, if read_stdout==nullptr, read_stderr==nullptr and open_stdin==false,
     ///the stdout, stderr and stdin are sent to the parent process instead.
     FProcess(const Fstring &command, const Fstring &path=Fstring(),
-            std::function<void(const char *bytes, size_t n)> read_stdout=nullptr,
-            std::function<void(const char *bytes, size_t n)> read_stderr=nullptr,
-            bool open_stdin=false,
-            size_t buffer_size=131072) noexcept:
+            std::function<void(const char *bytes, size_t n)> read_stdout_=nullptr,
+            std::function<void(const char *bytes, size_t n)> read_stderr_=nullptr,
+            bool open_stdin_=false,
+            size_t buffer_size_=131072) noexcept:
             closed(true), 
-            read_stdout(std::move(read_stdout)), 
-            read_stderr(std::move(read_stderr)), 
-            open_stdin(open_stdin), 
-            buffer_size(buffer_size)
+            read_stdout(std::move(read_stdout_)), 
+            read_stderr(std::move(read_stderr_)), 
+            open_stdin(open_stdin_),
+            buffer_size(buffer_size_)
     {
         open(command, path);
         async_read();
@@ -68,15 +68,15 @@ public:
 #if !FLIB_COMPILER_MSVC && !FLIB_COMPILER_CYGWIN
     /// Supported on Unix-like systems only.
     FProcess(std::function<void()> function,
-            std::function<void(const char *bytes, size_t n)> read_stdout=nullptr,
-            std::function<void(const char *bytes, size_t n)> read_stderr=nullptr,
-            bool open_stdin=false,
-            size_t buffer_size=131072) noexcept:
+            std::function<void(const char *bytes, size_t n)> read_stdout_=nullptr,
+            std::function<void(const char *bytes, size_t n)> read_stderr_=nullptr,
+            bool open_stdin_=false,
+            size_t buffer_size_=131072) noexcept:
             closed(true), 
-            read_stdout(std::move(read_stdout)),
-            read_stderr(std::move(read_stderr)),
-            open_stdin(open_stdin), 
-            buffer_size(buffer_size)
+            read_stdout(std::move(read_stdout_)),
+            read_stderr(std::move(read_stderr_)),
+            open_stdin(open_stdin_),
+            buffer_size(buffer_size_)
     {
         open(function);
         async_read();
@@ -322,6 +322,7 @@ private:
     size_t buffer_size;
     
     std::unique_ptr<fd_type> stdout_fd, stderr_fd, stdin_fd;
+	std::mutex stdoutlock, stderrlock;
 #if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
     std::mutex create_process_mutex;
     // Simple HANDLE wrapper to close it automatically from the destructor.
@@ -549,6 +550,7 @@ private:
                 std::unique_ptr<char[]> buffer(new char[buffer_size]);
                 for (;;) 
                 {
+					std::lock_guard<std::mutex> lock(stdoutlock);
                     BOOL bSuccess = ReadFile(*stdout_fd, static_cast<CHAR*>(buffer.get()), static_cast<DWORD>(buffer_size), &n, nullptr);
                     if(!bSuccess || n == 0) break;
                     read_stdout(buffer.get(), static_cast<size_t>(n));
@@ -563,6 +565,7 @@ private:
                 std::unique_ptr<char[]> buffer(new char[buffer_size]);
                 for (;;) 
                 {
+					std::lock_guard<std::mutex> lock(stderrlock);
                     BOOL bSuccess = ReadFile(*stderr_fd, static_cast<CHAR*>(buffer.get()), static_cast<DWORD>(buffer_size), &n, nullptr);
                     if(!bSuccess || n == 0) break;
                     read_stderr(buffer.get(), static_cast<size_t>(n));
@@ -579,8 +582,11 @@ private:
             {
                 auto buffer = std::unique_ptr<char[]>( new char[buffer_size] );
                 ssize_t n;
-                while ((n = read(*stdout_fd, buffer.get(), buffer_size)) > 0)
-                    read_stdout(buffer.get(), static_cast<size_t>(n));
+				while ((n = read(*stdout_fd, buffer.get(), buffer_size)) > 0)
+				{
+					std::lock_guard<std::mutex> lock(stdoutlock);
+					read_stdout(buffer.get(), static_cast<size_t>(n));
+				}
             });
         }
         if(stderr_fd) 
@@ -589,8 +595,11 @@ private:
             {
                 auto buffer = std::unique_ptr<char[]>( new char[buffer_size] );
                 ssize_t n;
-                while ((n = read(*stderr_fd, buffer.get(), buffer_size)) > 0)
-                    read_stderr(buffer.get(), static_cast<size_t>(n));
+				while ((n = read(*stderr_fd, buffer.get(), buffer_size)) > 0)
+				{
+					std::lock_guard<std::mutex> lock(stderrlock);
+					read_stderr(buffer.get(), static_cast<size_t>(n));
+				}
             });
         }
 #endif

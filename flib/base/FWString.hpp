@@ -199,7 +199,9 @@ public:
 		wchar_t szBuffer[20480] = { 0 };
 		va_list argList;
 		va_start(argList, pstrFormat);
-#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
+#if FLIB_COMPILER_CYGWIN
+		int iRet = _vsnwprintf(szBuffer, sizeof(szBuffer) / sizeof(szBuffer[0]) - 2, pstrFormat, argList);
+#elif FLIB_COMPILER_MSVC
         int iRet = _vsnwprintf_s(szBuffer, sizeof(szBuffer) / sizeof(szBuffer[0]) - 2, pstrFormat, argList);
 #else
 		int iRet = vswprintf(szBuffer, sizeof(szBuffer) / sizeof(szBuffer[0]) - 2, pstrFormat, argList);
@@ -215,7 +217,9 @@ public:
 		wchar_t szBuffer[20480] = { 0 };
 		va_list argList;
 		va_start(argList, pstrFormat);
-#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN
+#if FLIB_COMPILER_CYGWIN		
+		_vsnwprintf(szBuffer, sizeof(szBuffer) / sizeof(szBuffer[0]) - 2, pstrFormat, argList);
+#elif FLIB_COMPILER_MSVC
         _vsnwprintf_s(szBuffer, sizeof(szBuffer) / sizeof(szBuffer[0]) - 2, pstrFormat, argList);
 #else
 		vswprintf(szBuffer, sizeof(szBuffer) / sizeof(szBuffer[0]) - 2, pstrFormat, argList);

@@ -238,7 +238,7 @@ public:
 		char buf[4];
 		memset(buf,0,4);
 
-		int i = 0;
+		size_t i = 0;
 		size_t len = strlen(ptext);
 		while(i < len)
 		{
@@ -279,8 +279,8 @@ public:
 		char* rst = new char[nlen + (nlen >> 2) + 2];		
 		memset(rst,0,nlen + (nlen >> 2) + 2);
 
-		int i =0;
-		int j = 0;
+		size_t i =0;
+		size_t j = 0;
 		
 		while(i < nlen)
 		{

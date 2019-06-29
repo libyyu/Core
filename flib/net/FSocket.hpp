@@ -289,8 +289,11 @@ bool FSocket::WaitReadable(unsigned int nTimeOut /* = 10 */,FSocket::ExitWaitPre
 		FD_SET(_s,&fdRead);
 		tv.tv_sec  = 1;
 		tv.tv_usec = 0;
-
-		int nRet = ::select(_s,&fdRead,NULL,NULL,&tv);
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN 
+		int nRet = ::select(0,&fdRead,NULL,NULL,&tv);
+#else
+		int nRet = ::select(_s+1,&fdRead,NULL,NULL,&tv);
+#endif
 		if(0 < nRet)
 			return true;
 		if(0 > nRet)
@@ -313,8 +316,11 @@ bool FSocket::WaitWriteable(unsigned int nTimeOut /* = 10 */,FSocket::ExitWaitPr
 		FD_SET(_s,&fdWrite);
 		tv.tv_sec  = 1;
 		tv.tv_usec = 0;
-
-		int nRet = ::select(_s,NULL,&fdWrite,NULL,&tv);
+#if FLIB_COMPILER_MSVC || FLIB_COMPILER_CYGWIN 
+		int nRet = ::select(0,NULL,&fdWrite,NULL,&tv);
+#else
+		int nRet = ::select(_s+1,NULL,&fdWrite,NULL,&tv);
+#endif
 		if(0 < nRet)
 			return true;
 		if(0 > nRet)

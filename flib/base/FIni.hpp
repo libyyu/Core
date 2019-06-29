@@ -17,7 +17,7 @@ public:
 	typedef std::string                                                 stringtype;
 	typedef std::ifstream                                               ifstreamtype;
 	typedef std::ofstream                                               ofstreamtype;
-
+	typedef std::stringstream                                           stringstreamtype;
 	struct FINI_KEYVALUE
 	{
 		bool			hasComment;	//	true, Comment
@@ -213,13 +213,17 @@ public:
 	}
 	inline void AddInt(const chartype* pSection, const chartype* pKey, int iValue, const chartype* strSessionComment = NULL, const chartype* strValueComment = NULL)
 	{
+		stringstreamtype ss;
+		ss << iValue;
+		stringtype str = ss.str();
 		AddSection(pSection, strSessionComment);
-		stringtype str = std::to_string(iValue);
 		AddKey(pSection, pKey, str.c_str(), strValueComment);
 	}
 	inline void AddFloat(const chartype* pSection, const chartype* pKey, float fValue, const chartype* strSessionComment = NULL, const chartype* strValueComment = NULL)
 	{
-		stringtype str = std::to_string(fValue);
+		stringstreamtype ss;
+		ss << fValue;
+		stringtype str = ss.str();
 		AddSection(pSection, strSessionComment);
 		AddKey(pSection, pKey, str.c_str(), strValueComment);
 	}

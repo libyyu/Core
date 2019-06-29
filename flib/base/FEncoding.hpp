@@ -44,7 +44,7 @@ public:
         utf16_expected_null_percent_ = 70;
         utf16_unexpected_null_percent_ = 10;
     }
-	~FEncoding();
+	~FEncoding() {}
 
     static Encoding CheckBOM(const unsigned char *pBuffer, size_t size)		// Just check if there is a BOM and return
     {

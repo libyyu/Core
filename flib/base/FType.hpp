@@ -141,6 +141,7 @@
 
 #define _FStdBegin  _FNameSpaceBegin(FStd)
 #define _FStdEnd    _FNameSpaceEnd
+#define _FStdUsing  _FUsing(FStd)
 
 /********************************************************************************
  
@@ -256,6 +257,11 @@ _FDeclsBegin
 _CRTIMP FILE* __cdecl __MINGW_NOTHROW _fdopen(int, const char*);
 //_CRTIMP FILE* __cdecl __MINGW_NOTHROW fdopen(int, const char*);
 _CRTIMP int __cdecl __MINGW_NOTHROW _strnicmp(const char*, const char*, size_t);
+_CRTIMP int __cdecl _wcsnicmp(const wchar_t *_Str1,const wchar_t *_Str2,size_t _MaxCount);
+_CRTIMP int __cdecl _swprintf(wchar_t * __restrict__ _Dest,const wchar_t * __restrict__ _Format,...);
+_CRTIMP int __cdecl _vswprintf(wchar_t * __restrict__ _Dest,const wchar_t * __restrict__ _Format,va_list _Args);
+_CRTIMP int __cdecl _snwprintf(wchar_t * __restrict__ _Dest,size_t _Count,const wchar_t * __restrict__ _Format,...);
+_CRTIMP int __cdecl _vsnwprintf(wchar_t * __restrict__ _Dest,size_t _Count,const wchar_t * __restrict__ _Format,va_list _Args);
 //#define _fdopen fdopen
 _FDeclsEnd
 #endif
