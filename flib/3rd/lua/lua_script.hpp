@@ -9,8 +9,8 @@
 #ifndef _LUA_SCRIPT_HPP__
 #define _LUA_SCRIPT_HPP__
 
-#include "../../base/FType.hpp"
-
+#include "types.hpp"
+#include <exception>
 //#if !SUPPORT_PARAMS
 //#warning "This library needs at least a C++11 compliant compiler, so some functions can not used."
 //#endif
@@ -24,16 +24,14 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#if FLIB_COMPILER_LINUX
-#include <string.h>
-#endif
+
 #define LUA_FUNC_DELC(name) int lua_##name(lua_State* l);
 #define LUA_FUNC_IMPL(name) int lua_##name(lua_State* l)
 #define LUA_FUNC_NAME(name) lua_##name
 #define LUA_FUNC_REG(name) { #name, lua_##name }
 
 #define SUPPORT_PARAMS 1
-#define SUPPORT_CXX11  0
+//#define SUPPORT_CXX11  0
 
 
 namespace lua
@@ -612,7 +610,7 @@ namespace lua
 				return false;
 		}
 	};
-#if FLIB_COMPILER_64BITS
+#if 1//BUILD_64BIT
 	template<>
 	struct lua_op_t<long>
 	{
@@ -662,7 +660,7 @@ namespace lua
 				return false;
 		}
 	};
-#endif//FLIB_COMPILER_64BITS
+#endif//BUILD_64BIT
     
 	template<>
 	struct lua_op_t<::int64>
@@ -1562,118 +1560,80 @@ namespace lua
 	inline void createtable(lua_State* l, const char* name)
 	{
 		assert(name);
-#if LUA_VERSION_NUM == 501
-		lua_pushvalue(l, LUA_GLOBALSINDEX);
-#else
-		lua_pushglobaltable(l);
-#endif
-		const char* p = strchr(name, '.');
-		if (p)
+
+		lua_getglobal(l, "_G");
+		std::string tn;
+		for (size_t i = 0; i < strlen(name); ++i)
 		{
-#if LUA_VERSION_NUM == 501
-			lua_pushvalue(l, LUA_GLOBALSINDEX); //t
-#else
-			lua_pushglobaltable(l);
-#endif
-			while (p) {
-				lua_pushlstring(l, name, p - name); // <t> <key>
-				lua_gettable(l, -2);                // <t> <table_value>
-				if (lua_isnoneornil(l, -1))
+			if (name[i] == '.')
+			{
+				if (tn.empty()) continue;
+				lua_pushstring(l, tn.c_str());
+				lua_rawget(l, -2);
+				if (lua_isnil(l, -1))
 				{
-					lua_pop(l, 1);// <t>
-					lua_createtable(l, 0, 0); // <t> <table>
-					lua_pushlstring(l, name, p - name); // <t> <table> <key>
-					lua_pushvalue(l, -2);// <t> <table> <key>  <table>
-					lua_rawset(l, -4); // <t> <table>
+					lua_pop(l, 1);
+					lua_createtable(l, 0, 0);
+					lua_pushstring(l, tn.c_str());
+					lua_pushvalue(l, -2);
+					lua_rawset(l, -4);
 				}
-				lua_remove(l, -2);                  // <table_value>
-				name = p + 1;
-				p = strchr(name, '.');
-			}
-
-			lua_pushstring(l, name);                // <last_table> <key>
-			lua_gettable(l, -2);                    // <last_table> <table_value>
-
-			if (lua_isnoneornil(l, -1))
-			{
-				lua_pop(l, 1);// <last_table>
-				lua_createtable(l, 0, 0);// <last_table> <t>
-				lua_pushstring(l, name); // <last_table> <t> <key>
-				lua_pushvalue(l, -2); // <last_table> <t> <key> <t>
-				lua_rawset(l, -4); // <last_table> <t> 
-			}
-			lua_remove(l, -2);
-		}
-		else {
-			if (0 != strcmp(name, "_G"))
-			{
-				lua_createtable(l, 0, 0);// <t> <table>
-				lua_pushstring(l, name); // <t> <table> <key>
-				lua_pushvalue(l, -2); // <t> <table> <key> <table>
-				lua_rawset(l, -4); //<t> <table>
 				lua_remove(l, -2);
+				tn.clear();
 			}
 			else
 			{
-				lua_getglobal(l, name);
-				lua_remove(l, -2);
+				tn += name[i];
 			}
+		}
+		if (!tn.empty())
+		{
+			lua_pushstring(l, tn.c_str());
+			lua_rawget(l, -2);
+			if (lua_isnil(l, -1))
+			{
+				lua_pop(l, 1);
+				lua_createtable(l, 0, 0);
+				lua_pushstring(l, tn.c_str());
+				lua_pushvalue(l, -2);
+				lua_rawset(l, -4);
+			}
+			lua_remove(l, -2);
 		}
 	}
 	inline void gettable(lua_State* l, const char* name)
 	{
 		assert(name);
-#if LUA_VERSION_NUM == 501
-		lua_pushvalue(l, LUA_GLOBALSINDEX);
-#else
-		lua_pushglobaltable(l);
-#endif
-		const char* p = strchr(name, '.');
-		if (p)
+		lua_getglobal(l, "_G");
+		std::string tn;
+		for (size_t i = 0; i < strlen(name); ++i)
 		{
-#if LUA_VERSION_NUM == 501
-			lua_pushvalue(l, LUA_GLOBALSINDEX); //t
-#else
-			lua_pushglobaltable(l);
-#endif
-			while (p) {
-				lua_pushlstring(l, name, p - name); // <t> <key>
-				lua_gettable(l, -2);                // <t> <table_value>
-				lua_remove(l, -2);                  // <table_value>
-				if (lua_isnoneornil(l, -1))
+			if (name[i] == '.')
+			{
+				if (tn.empty()) continue;
+				lua_pushstring(l, tn.c_str());
+				lua_rawget(l, -2);
+				if (lua_isnil(l, -1))
 				{
-					return;
+					lua_pop(l, 1);
 				}
-
-				name = p + 1;
-				p = strchr(name, '.');
-			}
-
-			lua_pushstring(l, name);                // <last_table> <key>
-			lua_gettable(l, -2);                    // <last_table> <table_value>
-			lua_remove(l, -2);
-			if (lua_isnoneornil(l, -1))
-			{
-				return;
-			}
-		}
-		else {
-			if (0 != strcmp(name, "_G"))
-			{
-				lua_pushstring(l, name); // <t> <key>
-				lua_gettable(l, -2); //<t> <table>
 				lua_remove(l, -2);
+				tn.clear();
 			}
 			else
 			{
-				lua_getglobal(l, name);
-				lua_remove(l, -2);
+				tn += name[i];
 			}
 		}
-
-		if (!lua_istable(l, -1))
+		if (!tn.empty())
 		{
-			luaL_error(l, "failed to get table: %s", name);
+			lua_pushstring(l, tn.c_str());
+			lua_rawget(l, -2);
+			if (lua_isnil(l, -1))
+			{
+				lua_pop(l, 1);
+			}
+			lua_remove(l, -2);
 		}
 	}
 }
