@@ -2,60 +2,16 @@
 #include "3rd/lua/LuaEnv.hpp"
 #include "3rd/lua/lua_wrapper.hpp"
 #include "flib.h"
-#define new FLIB_NEW
+
 LuaEnv* gL = nullptr;
-#if 1//def OBJECT_HEAP_RECORD
-typedef struct _HeapChunk {
-  void* ptr;
-  _HeapChunk(){memset(this, 0x00, sizeof(_HeapChunk));}
-} HeapChunk;
-#define MEM_MAX_RECORDS 4 * 1024
-static HeapChunk s_chunks[MEM_MAX_RECORDS];
-void AppendHeapChunk(void* ptr)
-{
-	for (int i = 0; i < MEM_MAX_RECORDS; i++) 
-	{
-    	HeapChunk* r = (HeapChunk*)s_chunks + i;
-    	if (r->ptr == NULL) 
-		{
-			r->ptr = ptr;
-			break;
-		}
-	}
-}
-void RemoveHeapChunk(void* ptr)
-{
-	for (int i = 0; i < MEM_MAX_RECORDS; i++) 
-	{
-    	HeapChunk* r = (HeapChunk*)s_chunks + i;
-		if (r->ptr == ptr) 
-		{
-			memset(r, 0x00, sizeof(HeapChunk));
-			//if(gL) lua::get_luaobj_container().RemoveObject(*gL, ptr);
-			break;
-		}
-  }
-}
-namespace lua
-{
-	int get_object_flag(void* ptr)
-	{
-		for (int i = 0; i < MEM_MAX_RECORDS; i++) 
-		{
-			HeapChunk* r = (HeapChunk*)s_chunks + i;
-			if (r->ptr == ptr) 
-			{
-				return 1;
-			}
-		}
-		return 0;
-	}
-}
-#endif//OBJECT_HEAP_RECORD
+
 
 class base_t
 {
 public:
+	base_t() {
+		printf("construct base_t\n");
+	}
 	virtual const char* getname(){
 		return "base_t";
 	}
@@ -243,3 +199,5 @@ int main()
 
     return 0;
 }
+
+

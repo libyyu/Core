@@ -480,7 +480,7 @@ namespace lua
 			return p;
 		}
 	};
-
+#ifndef LUA_OBJECT_EXTERN
 	template<typename T>
 	struct lua_op_t < T* >
 	{
@@ -507,7 +507,7 @@ namespace lua
 				return;
 			}
 			LUA_CHECK_ERROR(lua_isuserdata(l, pos) != 0, LUA_TUSERDATA, pos);
-			*value = getobject<T>(l, pos);
+			*value = checkobject<T>(l, pos);
 		}
 
 		static bool try_get(lua_State * l, int pos, T** value)
@@ -519,14 +519,14 @@ namespace lua
 					*value = 0;
 					return true;
 				}
-				from_stack(l, pos, value);
+				*value = checkobject<T>(l, pos, false);
 				return true;
 			}
 			else
 				return false;
 		}
 	};
-
+#endif
 	template < typename R, typename ...Args >
 	inline free_function_t<R, Args...> def(const char *name, R(*func)(Args...))
 	{
@@ -760,28 +760,28 @@ namespace lua
 		};
 		
 		static void invoke_parent(lua_State* L)
-		{
-			lua_pushstring(L, "__parent");//t, key, mt, k
-			lua_rawget(L, -2);//t, key, mt, t
+		{//t, key, mt,
+			lua_pushstring(L, "__parent");//k
+			lua_rawget(L, -2);//parent
 			if (lua_istable(L, -1))
 			{
-				lua_pushvalue(L, 2);//t, key, mt, t, key
-				lua_rawget(L, -2);//t, key, mt, t, v
+				lua_pushvalue(L, 2);//parent, key
+				lua_rawget(L, -2);//parent, v
 				if (!lua_isnil(L, -1))
 				{
-					lua_remove(L, -2);//t, key, mt, v
+					lua_remove(L, -2);//v
 				}
 				else
 				{
-					lua_remove(L, -1);
-					invoke_parent(L);
-					lua_remove(L, -2);
+					lua_remove(L, -1);//parent
+					invoke_parent(L);//parent, v
+					lua_remove(L, -2);//v 
 				}
 			}
 		}
 
 		static int __index(lua_State* l, int index, bool strict = true)
-		{
+		{//t, key
 			int type = lua_type(l, 1);//t, key
 			lua_getmetatable(l, 1);//t, key, mt
 			lua_pushvalue(l, 2);//t, key, mt, key
@@ -791,19 +791,20 @@ namespace lua
 			{
 				void* obj = lua_touserdata(l, -1);
 				void2type<var_base*>::invoke(obj)->get(l);//t, key, mt, value, val
-				lua_remove(l, -2);
+				lua_remove(l, -2);//t, key, mt, val
+				lua_remove(l, -2);//t, key, val
 			}
 			else if (lua_isnil(l, -1))
 			{
 				lua_remove(l, -1);//t, key, mt
 				invoke_parent(l);//t, key, mt, v
+				lua_remove(l, -2);//t, key, val
 				if (strict && lua_isnil(l, -1) && LUA_TUSERDATA == type)
 				{
 					luaL_error(l, "can't find '%s' class variable. (forgot registering class variable ?)", lua_tostring(l, 2));
 				}
 			}
-			lua_remove(l, -2);
-
+			
 			return 1;
 		}
 		static int __newindex(lua_State* l)
@@ -819,90 +820,13 @@ namespace lua
 			}
 			else if (lua_isnil(l, -1))
 			{
-				lua_pushvalue(l, 2);//t, key, value, mt, nil, b
-				lua_pushvalue(l, 3);
+				lua_pushvalue(l, 2);//t, key, value, mt, nil, key
+				lua_pushvalue(l, 3);//t, key, value, mt, nil, key value
 				lua_rawset(l, -4);
 			}
 			lua_settop(l, 3);
 			return 0;
-		}
-
-		void createtable(lua_State* l, const char* name)
-		{
-			lua_getglobal(l, "_G");
-			std::string tn;
-			for (size_t i = 0; i < strlen(name); ++i)
-			{
-				if (name[i] == '.')
-				{
-					if (tn.empty()) continue;
-					lua_pushstring(l, tn.c_str());
-					lua_rawget(l, -2);
-					if (lua_isnil(l, -1))
-					{
-						lua_pop(l, 1);
-						lua_createtable(l, 0, 0);
-						lua_pushstring(l, tn.c_str());
-						lua_pushvalue(l, -2);
-						lua_rawset(l, -4);
-					}
-					lua_remove(l, -2);
-					tn.clear();
-				}
-				else
-				{
-					tn += name[i];
-				}
-			}
-			if (!tn.empty())
-			{
-				lua_pushstring(l, tn.c_str());
-				lua_rawget(l, -2);
-				if (lua_isnil(l, -1))
-				{
-					lua_pop(l, 1);
-					lua_createtable(l, 0, 0);
-					lua_pushstring(l, tn.c_str());
-					lua_pushvalue(l, -2);
-					lua_rawset(l, -4);
-				}
-				lua_remove(l, -2);
-			}
-		}
-		void gettable(lua_State* l, const char* name)
-		{
-			lua_getglobal(l, "_G");
-			std::string tn;
-			for (size_t i = 0; i < strlen(name); ++i)
-			{
-				if (name[i] == '.')
-				{
-					if (tn.empty()) continue;
-					lua_pushstring(l, tn.c_str());
-					lua_rawget(l, -2);
-					if (lua_isnil(l, -1))
-					{
-						lua_pop(l, 1);
-					}
-					lua_remove(l, -2);
-					tn.clear();
-				}
-				else
-				{
-					tn += name[i];
-				}
-			}
-			if (!tn.empty())
-			{
-				lua_pushstring(l, tn.c_str());
-				lua_rawget(l, -2);
-				if (lua_isnil(l, -1))
-				{
-					lua_pop(l, 1);
-				}
-				lua_remove(l, -2);
-			}
-		}
+		}	
 	};
 
 	template < typename T >
@@ -938,10 +862,10 @@ namespace lua
 			};
 
 			stack_gurad scope_check(m_ls);
-			luaL_getmetatable(m_ls, class_name_t<T>::meta().c_str());
-			lua_pushstring(m_ls, "tryget");
-			lua_pushcfunction(m_ls, lambda);
-			lua_rawset(m_ls, -3);
+			luaL_getmetatable(m_ls, class_name_t<T>::meta().c_str());//t,mt,mt
+			lua_pushstring(m_ls, "tryget");//t,mt,mt,tryget
+			lua_pushcfunction(m_ls, lambda);//t,mt,mt,tryget,func
+			lua_rawset(m_ls, -3);//t,mt,mt
 
 			return *this;
 		}
@@ -1015,19 +939,24 @@ namespace lua
 			class_name_t<T>::name_ = name;
 			deleteDelegate<T>::m_deleteObjdelegate = deleteFunc;
 		
-			createtable(m_ls, class_name_t<T>::name_.c_str());
+			createtable(m_ls, class_name_t<T>::name_.c_str());//t
 			int table = lua_gettop(m_ls);
-			lua_pushstring(m_ls, "__typetable");
-			lua_newtable(m_ls); // mt for method table
-			int typetable = lua_gettop(m_ls);
-			lua_settable(m_ls, -3);
+			lua_pushstring(m_ls, "__typetable"); //t, __typetable
+			lua_newtable(m_ls); // mt for method table //t, __typetable, t2
+			lua_settable(m_ls, -3);//t
 
-			luaL_newmetatable(m_ls, class_name_t<T>::meta().c_str());
+			luaL_newmetatable(m_ls, class_name_t<T>::meta().c_str());//t, mt
 			int meta = lua_gettop(m_ls);
 
-			lua_pushstring(m_ls, "__mtname");
-			lua_pushstring(m_ls, class_name_t<T>::meta().c_str());
-			lua_rawset(m_ls, -3);//t,mt
+			lua_pushvalue(m_ls, table); //t, mt, t
+			lua_pushstring(m_ls, "__methods");//t, mt, t, __methods
+			lua_pushvalue(m_ls, meta); //t, mt, t, __methods, mt
+			lua_rawset(m_ls, -3);//t, mt, t
+			lua_pop(m_ls, 1);//t, mt
+
+			lua_pushstring(m_ls, "__mtname");//t, mt, __mtname
+			lua_pushstring(m_ls, class_name_t<T>::meta().c_str()); //t, mt, __mtname, v
+			lua_rawset(m_ls, -3);//t, mt
 
 			lua_pushstring(m_ls, "__name");
 			lua_pushstring(m_ls, class_name_t<T>::name_.c_str());
@@ -1037,6 +966,7 @@ namespace lua
 			lua_pushcclosure(m_ls, [](lua_State *l)->int
 			{
 				const char* key = lua_tostring(l, -1);
+
 				if (strcmp(key, "isnil") == 0)
 				{
 					T* self = nullptr;
@@ -1053,19 +983,7 @@ namespace lua
 
 			lua_pushstring(m_ls, "__newindex");
 			lua_pushcclosure(m_ls, [](lua_State *l)->int
-			{//t,key,value
-				const char* key = lua_tostring(l, -2);
-				if(strcmp(key, "__typetable") == 0 ||
-					strcmp(key, "__name") == 0 ||
-					strcmp(key, "__mtname") == 0 ||
-					strcmp(key, "__parent") == 0 ||
-					strcmp(key, "__index") == 0 ||
-					strcmp(key, "__newindex") == 0 ||
-					strcmp(key, "__call") == 0)
-				{
-					luaL_error(l, "can not modify internal attribute. %s %s:%d", key, __FILE__, __LINE__);
-					return 1;
-				}
+			{
 				return __newindex(l);
 			}, 0);
 			lua_rawset(m_ls, -3);//t,mt
@@ -1095,43 +1013,30 @@ namespace lua
 			{
 				return __index(l, -1, true);
 			}, 0);
-			lua_rawset(m_ls, -3);
+			lua_rawset(m_ls, -3);//t,mt, typetable
 
 			lua_pushstring(m_ls, "__newindex");
 			lua_pushcclosure(m_ls, [](lua_State *l)->int
 			{
-				const char* key = lua_tostring(l, -2);
-				if(strcmp(key, "__typetable") == 0 ||
-					strcmp(key, "__name") == 0 ||
-					strcmp(key, "__mtname") == 0 ||
-					strcmp(key, "__parent") == 0 ||
-					strcmp(key, "__index") == 0 ||
-					strcmp(key, "__newindex") == 0 ||
-					strcmp(key, "__call") == 0)
-				{
-					luaL_error(l, "can not modify internal attribute. %s %s:%d", key, __FILE__, __LINE__);
-					return 1;
-				}
 				return __newindex(l);
 			}, 0);
-			lua_rawset(m_ls, -3);
+			lua_rawset(m_ls, -3);//t,mt, typetable
 			//t,mt, typetable
 			lua_pushstring(m_ls, "__parent");//t,mt, typetable,__parent
 			luaL_getmetatable(m_ls, class_name_t<T>::meta().c_str());
 			lua_rawset(m_ls, -3);//t,mt, typetable //typetable.__parent=mt
 
-			lua_pushstring(m_ls, "__name");
+			lua_pushstring(m_ls, "__name");//t,mt, typetable
 			lua_pushstring(m_ls, class_name_t<T>::name_.c_str());
 			lua_rawset(m_ls, -3);
 
-			lua_pushstring(m_ls, "__mtname");
+			lua_pushstring(m_ls, "__mtname");//t,mt, typetable
 			lua_pushstring(m_ls, class_name_t<T>::meta().c_str());
 			lua_rawset(m_ls, -3);
-
 			//t,mt, typetable
 			gettable(m_ls, class_name_t<T>::name_.c_str());//t,mt, typetable,t
 			lua_pushvalue(m_ls, mt);//t,mt, typetable,t,typetable
-			lua_setmetatable(m_ls, -2);//t,mt, typetable,t.__metatable = typetable
+			lua_setmetatable(m_ls, -2);//t,mt, typetable//t.__metatable = typetable
 		}
 
 		template<typename P>
@@ -1142,6 +1047,20 @@ namespace lua
 			luaL_getmetatable(m_ls, class_name_t<T>::meta().c_str());
 			lua_pushstring(m_ls, "__parent");
 			luaL_getmetatable(m_ls, class_name_t<P>::meta().c_str());
+			lua_rawset(m_ls, -3);
+
+			return (*this);
+		}
+
+		lua_register_t& extend(const char* parent)
+		{
+			stack_gurad scope_check(m_ls);
+			assert(parent);
+			std::string parent_meta(parent);
+			parent_meta += "_meta";
+			luaL_getmetatable(m_ls, class_name_t<T>::meta().c_str());
+			lua_pushstring(m_ls, "__parent");
+			luaL_getmetatable(m_ls, parent_meta.c_str());
 			lua_rawset(m_ls, -3);
 
 			return (*this);
@@ -1214,6 +1133,7 @@ namespace lua
 		{
 			return def(lua::def(name, func));
 		}
+
 		//成员属性	
 		template < typename R, typename V >
 		lua_register_t& def(const char *name, V(R::*field))

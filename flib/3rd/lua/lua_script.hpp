@@ -69,6 +69,28 @@ namespace lua
 
 		luaL_error(l, "%s\n", os.str().c_str());
 	}
+
+	class lua_exception_t : public std::exception
+	{
+	public:
+		explicit lua_exception_t(const char* err_) :
+			m_err(err_)
+		{}
+		explicit lua_exception_t(const std::string& err_) :
+			m_err(err_)
+		{}
+		~lua_exception_t() noexcept
+		{
+		}
+
+		virtual char const* what() const
+		{
+			return m_err.c_str();
+		}
+	private:
+		std::string m_err;
+	};
+
 	////////////////////////////////////////////////////////////////////////////////
 
 	struct stack_gurad
@@ -120,7 +142,7 @@ namespace lua
 				is_nil = true;
 			}
 		}
-		int length() const {
+		size_t length() const {
 			return buff.size();
 		}
 		operator const unsigned char*() { return buff.c_str(); }
@@ -643,9 +665,9 @@ namespace lua
 #endif//FLIB_COMPILER_64BITS
     
 	template<>
-	struct lua_op_t<int64>
+	struct lua_op_t<::int64>
 	{
-		static int push_stack(lua_State* l, int64 value)
+		static int push_stack(lua_State* l, ::int64 value)
 		{
 			std::stringstream ss;
 			ss << value;
@@ -653,7 +675,7 @@ namespace lua
 			lua_pushlstring(l, str.c_str(), str.length());
 			return 1;
 		}
-		static void from_stack(lua_State* l, int pos, int64* value)
+		static void from_stack(lua_State* l, int pos, ::int64* value)
 		{
 			if (lua_isnoneornil(l, pos))
 			{
@@ -663,15 +685,15 @@ namespace lua
 			size_t len = 0;
 			const char* str = luaL_checklstring(l, pos, &len);
 #if SUPPORT_PARAMS
-			*value = (int64)atoll(str);
+			*value = (::int64)atoll(str);
 #else
 			std::istringstream iss(str);
 			int64 num;
 			iss >> num;
-			*value = (int64)num;
+			*value = (::int64)num;
 #endif
 		}
-		static bool try_get(lua_State * l, int pos, int64* value)
+		static bool try_get(lua_State * l, int pos, ::int64* value)
 		{
 			if (lua_isnoneornil(l, pos) || lua_isstring(l, pos))
 			{
@@ -684,9 +706,9 @@ namespace lua
 	};
 
 	template<>
-	struct lua_op_t<uint64>
+	struct lua_op_t<::uint64>
 	{
-		static int push_stack(lua_State* l, uint64 value)
+		static int push_stack(lua_State* l, ::uint64 value)
 		{
 			std::stringstream ss;
 			ss << value;
@@ -694,7 +716,7 @@ namespace lua
 			lua_pushlstring(l, str.c_str(), str.length());
 			return 1;
 		}
-		static void from_stack(lua_State* l, int pos, uint64* value)
+		static void from_stack(lua_State* l, int pos, ::uint64* value)
 		{
 			if (lua_isnoneornil(l, pos))
 			{
@@ -704,15 +726,15 @@ namespace lua
 			size_t len = 0;
 			const char* str = luaL_checklstring(l, pos, &len);
 #if SUPPORT_PARAMS
-			*value = (uint64)atoll(str);
+			*value = (::uint64)atoll(str);
 #else
 			std::istringstream iss(str);
 			uint64 num;
 			iss >> num;
-			*value = (uint64)num;
+			*value = (::uint64)num;
 #endif
 		}
-		static bool try_get(lua_State * l, int pos, uint64* value)
+		static bool try_get(lua_State * l, int pos, ::uint64* value)
 		{
 			if (lua_isnoneornil(l, pos) || lua_isstring(l, pos))
 			{
@@ -1535,6 +1557,124 @@ namespace lua
 		bool success = pcall(l, n, -1, tracebackFuncRef);
 		luaL_unref(l, LUA_REGISTRYINDEX, tracebackFuncRef);
 		return success;
+	}
+
+	inline void createtable(lua_State* l, const char* name)
+	{
+		assert(name);
+#if LUA_VERSION_NUM == 501
+		lua_pushvalue(l, LUA_GLOBALSINDEX);
+#else
+		lua_pushglobaltable(l);
+#endif
+		const char* p = strchr(name, '.');
+		if (p)
+		{
+#if LUA_VERSION_NUM == 501
+			lua_pushvalue(l, LUA_GLOBALSINDEX); //t
+#else
+			lua_pushglobaltable(l);
+#endif
+			while (p) {
+				lua_pushlstring(l, name, p - name); // <t> <key>
+				lua_gettable(l, -2);                // <t> <table_value>
+				if (lua_isnoneornil(l, -1))
+				{
+					lua_pop(l, 1);// <t>
+					lua_createtable(l, 0, 0); // <t> <table>
+					lua_pushlstring(l, name, p - name); // <t> <table> <key>
+					lua_pushvalue(l, -2);// <t> <table> <key>  <table>
+					lua_rawset(l, -4); // <t> <table>
+				}
+				lua_remove(l, -2);                  // <table_value>
+				name = p + 1;
+				p = strchr(name, '.');
+			}
+
+			lua_pushstring(l, name);                // <last_table> <key>
+			lua_gettable(l, -2);                    // <last_table> <table_value>
+
+			if (lua_isnoneornil(l, -1))
+			{
+				lua_pop(l, 1);// <last_table>
+				lua_createtable(l, 0, 0);// <last_table> <t>
+				lua_pushstring(l, name); // <last_table> <t> <key>
+				lua_pushvalue(l, -2); // <last_table> <t> <key> <t>
+				lua_rawset(l, -4); // <last_table> <t> 
+			}
+			lua_remove(l, -2);
+		}
+		else {
+			if (0 != strcmp(name, "_G"))
+			{
+				lua_createtable(l, 0, 0);// <t> <table>
+				lua_pushstring(l, name); // <t> <table> <key>
+				lua_pushvalue(l, -2); // <t> <table> <key> <table>
+				lua_rawset(l, -4); //<t> <table>
+				lua_remove(l, -2);
+			}
+			else
+			{
+				lua_getglobal(l, name);
+				lua_remove(l, -2);
+			}
+		}
+	}
+	inline void gettable(lua_State* l, const char* name)
+	{
+		assert(name);
+#if LUA_VERSION_NUM == 501
+		lua_pushvalue(l, LUA_GLOBALSINDEX);
+#else
+		lua_pushglobaltable(l);
+#endif
+		const char* p = strchr(name, '.');
+		if (p)
+		{
+#if LUA_VERSION_NUM == 501
+			lua_pushvalue(l, LUA_GLOBALSINDEX); //t
+#else
+			lua_pushglobaltable(l);
+#endif
+			while (p) {
+				lua_pushlstring(l, name, p - name); // <t> <key>
+				lua_gettable(l, -2);                // <t> <table_value>
+				lua_remove(l, -2);                  // <table_value>
+				if (lua_isnoneornil(l, -1))
+				{
+					return;
+				}
+
+				name = p + 1;
+				p = strchr(name, '.');
+			}
+
+			lua_pushstring(l, name);                // <last_table> <key>
+			lua_gettable(l, -2);                    // <last_table> <table_value>
+			lua_remove(l, -2);
+			if (lua_isnoneornil(l, -1))
+			{
+				return;
+			}
+		}
+		else {
+			if (0 != strcmp(name, "_G"))
+			{
+				lua_pushstring(l, name); // <t> <key>
+				lua_gettable(l, -2); //<t> <table>
+				lua_remove(l, -2);
+			}
+			else
+			{
+				lua_getglobal(l, name);
+				lua_remove(l, -2);
+			}
+		}
+
+		if (!lua_istable(l, -1))
+		{
+			luaL_error(l, "failed to get table: %s", name);
+		}
 	}
 }
 
