@@ -12,7 +12,7 @@
 #include "base/FIni.hpp"
 #include "base/FLock.hpp"
 #include "base/FMD5.hpp"
-#include "base/FMemory.hpp"
+//#include "base/FMemory.hpp"
 #include "base/FMemPool.hpp"
 #include "base/FAlloctor.hpp"
 #include "base/FPool.hpp"
